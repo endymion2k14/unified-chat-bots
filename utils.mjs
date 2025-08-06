@@ -2,9 +2,9 @@ import fs from "node:fs";
 
 // Logging
 export const log = {
-    info:  function (log = "", source = "GENERAL") { if (log) { console.log(`[${getTimestampWithDate()}] [${source}] ${log}`); } },
-    warn:  function (log = "", source = "GENERAL") { if (log) { console.warn(`[${getTimestampWithDate()}] [${source}] ${log}`); } },
-    error: function (log = "", source = "GENERAL") { if (log) { console.error(`[${getTimestampWithDate()}] [${source}] ${log}`); } }
+    info:  function (log = "", source = "GENERAL") { info (log, source); },
+    warn:  function (log = "", source = "GENERAL") { warn (log, source); },
+    error: function (log = "", source = "GENERAL") { error(log, source); }
 }
 export function info (log = "", source = "GENERAL") { if (log) { console.log(`[${getTimestampWithDate()}] [${source}] ${log}`); } }
 export function warn (log = "", source = "GENERAL") { if (log) { console.warn(`[${getTimestampWithDate()}] [${source}] ${log}`); } }
