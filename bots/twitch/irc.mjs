@@ -1,5 +1,5 @@
 import { log } from '../../utils.mjs'
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 
 const SOURCE = "Twitch-IRC";
 
