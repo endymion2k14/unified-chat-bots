@@ -1,5 +1,7 @@
 import fs from "node:fs";
 
+const SOURCE = "JSON";
+
 // Logging
 export const log = {
     info:  function (log = "", source = "GENERAL") { info (log, source); },
@@ -20,7 +22,7 @@ export function getTimestamp(date = new Date()) { return `${date.toLocaleTimeStr
 
 // File handling
 export const json = {
-    save: function (source, data) { fs.writeFileSync(new URL(source, import.meta.url), JSON.stringify(data, null, 2)); },
+    save: function (source, data) { const filepath = new URL(source, import.meta.url); try { fs.writeFileSync(filepath, JSON.stringify(data, null, 2)); } catch (e) { log.warn(`JSON file was not able to be overwritten, does the file exist?`, SOURCE) } },
     load: function (source) { return JSON.parse(fs.readFileSync(new URL(source, import.meta.url))); }
 }
 
