@@ -20,12 +20,14 @@ async function start() {
     if (botsDiscord.length > 0) {
         log.info(`Starting ${botsDiscord.length} discord bots`, SOURCE);
         for (let i = 0; i < botsDiscord.length; i++) {
-            // TODO
+            for (let i = 0; i < botsDiscord.length; i++) { clientsDiscord.push(0 /* TODO: TMP! */); }
+            for (let i = 0; i < clientsDiscord.length; i++) { /* TODO */ }
         }
     }
     if (botsTwitch .length > 0) {
         log.info(`Starting ${botsTwitch .length} twitch bots`, SOURCE);
         for (let i = 0; i < botsTwitch.length; i++) { clientsTwitch.push(new ClientTwitch(settings.twitch[botsTwitch[i]])); }
+        for (let i = 0; i < clientsTwitch.length; i++) { clientsTwitch[i].connect(); }
     }
 }
 
