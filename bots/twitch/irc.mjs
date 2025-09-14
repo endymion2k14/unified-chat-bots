@@ -50,7 +50,6 @@ export class TwitchIRC extends EventEmitter {
             this.ws.send(`CAP REQ :twitch.tv/tags`); // this.ws.send(`CAP REQ :twitch.tv/membership twitch.tv/tags twitch.tv/commands`);
             this.ws.send(`PASS ${this.oauth}`);
             this.ws.send(`NICK ${this.username}`);
-            this.ws.send(`USER ${this.username} 8 * :${this.username}`);
             this.ws.send(`JOIN #${this.channel}`);
             this.reconnectAttempts = 0;
             this.emit(EventTypes.connect, { message: 'successfully connected!' });
