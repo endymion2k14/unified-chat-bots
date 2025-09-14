@@ -11,6 +11,15 @@ const url = `wss://${host}:${port}`;
 // Reconnect settings
 const maxReconnectDelay = 60 * 1000; // 1 minute
 
+// Emit event types
+export const EventTypes = {
+    connect: 'connect',
+    disconnect: 'disconnect',
+    message: 'message',
+    ban: 'ban',
+    raid: 'raid',
+}
+
 export class TwitchIRC extends EventEmitter {
     constructor({ username, oauth, channel }) {
         super();
@@ -96,7 +105,7 @@ export class TwitchIRC extends EventEmitter {
         const [_, tagsPart, nick, ident, host, chan, message] = m;
         const tags = this.parseTags(tagsPart);
         const privileges = this.getPrivileges(tags);
-        this.emit('chat', { nick, ident, host, chan, message, tags, privileges });
+        this.emit(EventTypes.message, { nick, ident, host, chan, message, tags, privileges });
     }
 
     parseTags(raw) {
