@@ -43,7 +43,6 @@ export class TwitchIRC extends EventEmitter {
     }
 
     connect() {
-        const url = `wss://${this.host}:${this.port}`;
         this.ws = new WebSocket(url);
 
         this.ws.addEventListener('open', () => {
@@ -122,7 +121,7 @@ export class TwitchIRC extends EventEmitter {
     }
 
     parseBadges(badgesTag) {
-        if (!badgesTag) return {}; // badges/…: "broadcaster/1,subscriber/12,vip/1"
+        if (!badgesTag || badgesTag === true) return {}; // badges/…: "broadcaster/1,subscriber/12,vip/1"
 
         const badges = {};
         for (const entry of badgesTag.split(',')) {
