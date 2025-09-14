@@ -2,7 +2,7 @@ import { log } from '../../utils.mjs';
 import { EventEmitter } from "node:events";
 import { TwitchIRC, EventTypes } from "./irc.mjs";
 
-const SOURCE_NAME = 'Twitch';
+const SOURCE = 'Twitch';
 
 const neededSettings = [
     "secrets.token",
@@ -44,8 +44,8 @@ export class ClientTwitch extends EventEmitter {
                     valid = false;
                     throw(`Missing config info: ${missingSettings}`);
                 }
-            } catch (err) { log.error(err, SOURCE_NAME); }
-            if (!valid) { log.warn('Couldn\'t start bot!', SOURCE_NAME); }
+            } catch (err) { log.error(err, SOURCE); }
+            if (!valid) { log.warn('Couldn\'t start bot!', SOURCE); }
             else {
                 this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this._settings.settings.channel } );
                 this._setupEvents();
