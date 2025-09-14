@@ -1,5 +1,6 @@
 import { log } from '../../utils.mjs';
 import { EventEmitter } from "node:events";
+import { TwitchIRC } from "./irc.mjs";
 
 const SOURCE_NAME = 'Twitch';
 
@@ -47,7 +48,7 @@ export class ClientTwitch extends EventEmitter {
             if (!valid) {
                 log.warn('Couldn\'t start bot!', SOURCE_NAME);
             } else {
-                // TODO: start the client
+                const irc = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this._settings.settings.channel } );
             }
         }
     }
