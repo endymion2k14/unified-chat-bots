@@ -3,6 +3,13 @@ import { EventEmitter } from "node:events";
 
 const SOURCE_NAME = 'Twitch';
 
+const neededSettings = [
+    "secrets.token",
+    "secrets.id",
+    "settings.username",
+    "settings.channel"
+];
+
 export class ClientTwitch extends EventEmitter {
     constructor(settingsJSON) {
         super();
@@ -23,7 +30,14 @@ export class ClientTwitch extends EventEmitter {
 
                 // Check if settings have the right parameters with data
                 const missingSettings = [];
-                // TODO: check the existence of important settings such as client-token, app-id and others if needed
+                for (let i = 0; i < neededSettings.length; i++) {
+                    let parts = neededSettings[i].split(".");
+                    let inner = this._settings;
+                    for (let j = 0; j < parts.length; j++) {
+                        if (parts[j] in inner) { inner = inner[parts[j]]; }
+                        else { missingSettings.push(neededSettings[i]); break; }
+                    }
+                }
 
                 if (missingSettings.length > 0) {
                     valid = false;
