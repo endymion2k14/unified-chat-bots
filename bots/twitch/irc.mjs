@@ -67,6 +67,10 @@ export class TwitchIRC extends EventEmitter {
     }
 
     say(message) {
+        if (!message || message.trim().length) {
+            log.warn('Message could not be sent, no message was passed or it was only whitespace', SOURCE);
+            return;
+        }
         this.messageQueue.push(message);
         this.flushQueue();
     }
