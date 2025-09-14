@@ -1,6 +1,8 @@
 import { log } from '../../utils.mjs'
 import { EventEmitter } from 'node:events';
 
+import { WebSocket } from 'ws';
+
 const SOURCE = "Twitch-IRC";
 
 // Socket settings
