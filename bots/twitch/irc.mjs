@@ -27,7 +27,7 @@ export class TwitchIRC extends EventEmitter {
         super();
 
         this.username   = username.toLowerCase();
-        this.oauth      = oauth;
+        this.oauth      = `oauth:${oauth}`;
         this.channel    = channel.replace(/^#/, '');  // strip leading # - incase we do #username
 
         // Socket
