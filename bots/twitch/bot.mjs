@@ -46,7 +46,22 @@ export class ClientTwitch extends EventEmitter {
                 }
             } catch (err) { log.error(err, SOURCE_NAME); }
             if (!valid) { log.warn('Couldn\'t start bot!', SOURCE_NAME); }
-            else { this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this._settings.settings.channel } ); }
-        }
+            else {
+                this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this._settings.settings.channel } );
+                this._setupEvents();
+                this._setupSystems();
+                this._loadCommands();
+            }
+        };
+
+        this._setupEvents = function() {
+
+        };
+        this._setupSystems = function() {
+
+        };
+        this._loadCommands = function() {
+
+        };
     }
 }
