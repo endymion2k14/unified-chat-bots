@@ -1,6 +1,6 @@
 import { log } from '../../utils.mjs';
 import { EventEmitter } from "node:events";
-import { TwitchIRC } from "./irc.mjs";
+import { TwitchIRC, EventTypes } from "./irc.mjs";
 
 const SOURCE_NAME = 'Twitch';
 
@@ -55,7 +55,21 @@ export class ClientTwitch extends EventEmitter {
         };
 
         this._setupEvents = function() {
+            this._backend.addListener(EventTypes.connect, event => {
 
+            });
+            this._backend.addListener(EventTypes.disconnect, event => {
+
+            });
+            this._backend.addListener(EventTypes.ban, event => {
+
+            });
+            this._backend.addListener(EventTypes.raid, event => {
+
+            });
+            this._backend.addListener(EventTypes.message, event => {
+
+            });
         };
         this._setupSystems = function() {
 
