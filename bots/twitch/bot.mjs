@@ -3,15 +3,7 @@ import { EventEmitter } from "node:events";
 
 const SOURCE_NAME = 'Twitch';
 
-export const EventTypes = {
-    connect: 'connect',
-    disconnect: 'disconnect',
-    message: 'message',
-    ban: 'ban',
-    raid: 'raid',
-}
-
-export class Client extends EventEmitter {
+export class ClientTwitch extends EventEmitter {
     constructor(settingsJSON) {
         super();
 
