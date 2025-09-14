@@ -18,6 +18,7 @@ export class ClientTwitch extends EventEmitter {
         this._settings = settingsJSON;
         this._active = false;
         this._initialized = false;
+        this._backend = null;
 
         this.connect = async function() {
             let valid = true;
@@ -39,17 +40,13 @@ export class ClientTwitch extends EventEmitter {
                         else { missingSettings.push(neededSettings[i]); break; }
                     }
                 }
-
                 if (missingSettings.length > 0) {
                     valid = false;
                     throw(`Missing config info: ${missingSettings}`);
                 }
             } catch (err) { log.error(err, SOURCE_NAME); }
-            if (!valid) {
-                log.warn('Couldn\'t start bot!', SOURCE_NAME);
-            } else {
-                const irc = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this._settings.settings.channel } );
-            }
+            if (!valid) { log.warn('Couldn\'t start bot!', SOURCE_NAME); }
+            else { this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this._settings.settings.channel } ); }
         }
     }
 }
