@@ -66,6 +66,7 @@ export class TwitchIRC extends EventEmitter {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
         this.ws.send(`${message}\r\n`);
     }
+
     say(message) {
         this.messageQueue.push(message);
         this.flushQueue();
@@ -94,6 +95,7 @@ export class TwitchIRC extends EventEmitter {
         const lines = chunk.split('\r\n').filter(Boolean);
         for (const line of lines) this.parseSingle(line);
     }
+
     parseSingle(line) {
         // PING/PONG keep‑alive
         if (line.startsWith('PING')) {
@@ -123,7 +125,6 @@ export class TwitchIRC extends EventEmitter {
 
     parseBadges(badgesTag) {
         if (!badgesTag || badgesTag === true) return {}; // badges/…: "broadcaster/1,subscriber/12,vip/1"
-
         const badges = {};
         for (const entry of badgesTag.split(',')) {
             const [name, version] = entry.split('/');
