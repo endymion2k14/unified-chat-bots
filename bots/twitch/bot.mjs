@@ -18,7 +18,7 @@ export class ClientTwitch extends EventEmitter {
         this._active = false;
         this._initialized = false;
 
-        this.connect = function() {
+        this.connect = async function() {
             let valid = true;
             // Check if settings seem valid
             try {
@@ -45,7 +45,7 @@ export class ClientTwitch extends EventEmitter {
                 }
             } catch (err) { log.error(err, SOURCE_NAME); }
             if (!valid) {
-
+                log.warn('Couldn\'t start bot!', SOURCE_NAME);
             } else {
                 // TODO: start the client
             }
