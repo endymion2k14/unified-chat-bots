@@ -3,7 +3,7 @@ import { EventEmitter } from 'node:events';
 
 import { WebSocket } from 'ws';
 
-const SOURCE = "Twitch-IRC";
+const SOURCE = 'Twitch-IRC';
 
 // Socket settings
 const host = 'irc-ws.chat.twitch.tv';
@@ -53,6 +53,7 @@ export class TwitchIRC extends EventEmitter {
             this.ws.send(`USER ${this.username} 8 * :${this.username}`);
             this.ws.send(`JOIN #${this.channel}`);
             this.reconnectAttempts = 0;
+            this.emit(EventTypes.connect, 'successfully connected!');
         });
 
         this.ws.addEventListener('message', (event) => this.parse(event.data.toString()));
@@ -156,6 +157,7 @@ export class TwitchIRC extends EventEmitter {
     reconnect() {
         if (this.reconnectAttempts >= 10) {
             log.error('Too many reconnect attempts. Giving up.', SOURCE);
+            this.emit(EventTypes.disconnect, 'Max reconnect attempts reached!');
             return;
         }
         const delay = Math.min(1000 * 2 * this.reconnectAttempts, maxReconnectDelay);
