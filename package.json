@@ -10,6 +10,7 @@
   "license": "MIT",
   "description": "Chatbot runner with web gui/console that can handle multiple platforms and running multiple bots on each platform at the same time.",
   "dependencies": {
-    "discord.js": "^14.21.0"
+    "discord.js": "^14.21.0",
+    "ws": "^8.18.3"
   }
 }
