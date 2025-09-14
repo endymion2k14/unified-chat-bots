@@ -53,7 +53,7 @@ export class TwitchIRC extends EventEmitter {
             this.ws.send(`USER ${this.username} 8 * :${this.username}`);
             this.ws.send(`JOIN #${this.channel}`);
             this.reconnectAttempts = 0;
-            this.emit(EventTypes.connect, 'successfully connected!');
+            this.emit(EventTypes.connect, { message: 'successfully connected!' });
         });
 
         this.ws.addEventListener('message', (event) => this.parse(event.data.toString()));
@@ -83,7 +83,7 @@ export class TwitchIRC extends EventEmitter {
         const next = this.messageQueue.shift();
         if (!next) return;
 
-        log.info(`[${this.username}] ${next}`, SOURCE);
+        log.info(`[${this.channel}] ${this.username}: ${next}`, SOURCE);
         this.send(`PRIVMSG #${this.channel} :${next}`);
         this.messagesInPeriod++;
 
@@ -109,6 +109,7 @@ export class TwitchIRC extends EventEmitter {
         const [_, tagsPart, nick, ident, host, chan, message] = m;
         const tags = this.parseTags(tagsPart);
         const privileges = this.getPrivileges(tags);
+        log.info(`[${this.channel}] ${this.username}: ${message}`, SOURCE);
         this.emit(EventTypes.message, { nick, ident, host, chan, message, tags, privileges });
     }
 
@@ -157,8 +158,7 @@ export class TwitchIRC extends EventEmitter {
 
     reconnect() {
         if (this.reconnectAttempts >= 10) {
-            log.error('Too many reconnect attempts. Giving up.', SOURCE);
-            this.emit(EventTypes.disconnect, 'Max reconnect attempts reached!');
+            this.emit(EventTypes.disconnect, { message: 'Max reconnect attempts reached! Disconnected.' });
             return;
         }
         const delay = Math.min(1000 * 2 * this.reconnectAttempts, maxReconnectDelay);
