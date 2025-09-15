@@ -1,4 +1,4 @@
 export default {
     name: 'lurk',
-    async reply(client, channel, userState, params, message) { client.sendMessage(`Thank you for lurking ${userState['display-name']}!`); }
+    async reply(params, client, event) { client.sendMessage(`Thank you for lurking ${userState['display-name']}!`); }
 }
