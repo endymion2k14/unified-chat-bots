@@ -113,8 +113,8 @@ export class TwitchIRC extends EventEmitter {
         const [_, tagsPart, nick, ident, host, chan, message] = m;
         const tags = this.parseTags(tagsPart);
         const privileges = this.getPrivileges(tags);
-        log.info(`[${this.channel}] ${this.username}: ${message}`, SOURCE);
-        this.emit(EventTypes.message, { nick, ident, host, chan, message, tags, privileges });
+        log.info(`[${this.channel}] ${nick}: ${message}`, SOURCE);
+        this.emit(EventTypes.message, { username: nick, identity: ident, host: host, channel: chan, message: message, tags: tags, privileges: privileges });
     }
 
     parseTags(raw) {
