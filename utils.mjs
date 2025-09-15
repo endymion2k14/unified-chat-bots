@@ -42,3 +42,5 @@ export function concat(list, separator = "", prefix = "", start = 0, count = lis
     for (let i = start; i < end; i++) { result += (i <= start ? "" : separator) + prefix + list[i]; }
     return result;
 }
+
+export function randomInt(min, max) { return Math.floor(Math.min(+min, +max)) + Math.floor(Math.random() * (Math.max(+min, +max) - Math.min(+min, +max))); }
