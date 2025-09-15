@@ -141,7 +141,7 @@ export class ClientTwitch extends EventEmitter {
                 // Set a new item in the Collection with the key as the command name and the value as the exported module
                 this._commands.push({ name: command.name.toLowerCase(), command: command });
                 const aliases = command.aliases || [];
-                for (const alias of aliases) { this._commands.push({ name: alias.toLowerCase(), command: command }); }
+                for (const alias of aliases) { this._commands.push({ name: alias.toLowerCase(), command: command, hidden: !!command.hidden }); }
                 log.info(`Loaded command '${command.name}'${(aliases.length > 0) ? ` with aliases ['${concat(aliases, `', '`)}']` : ''}!`, `${SOURCE}-${this._settings.name}`);
             }
             log.info('Loaded all possible commands', `${SOURCE}-${this._settings.name}`);
