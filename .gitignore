@@ -3,3 +3,5 @@ node_modules/
 package-lock.json
 configs/config.json
 configs/secrets.json
+commands/test.mjs
+systems/test.mjs
