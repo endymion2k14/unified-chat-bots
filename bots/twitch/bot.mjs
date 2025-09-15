@@ -34,7 +34,7 @@ export class ClientTwitch extends EventEmitter {
                 // Check if settings have the right parameters with data
                 const missingSettings = [];
                 for (let i = 0; i < neededSettings.length; i++) {
-                    let parts = neededSettings[i].split(".");
+                    let parts = neededSettings[i].split('.');
                     let inner = this._settings;
                     for (let j = 0; j < parts.length; j++) {
                         if (parts[j] in inner) { inner = inner[parts[j]]; }
