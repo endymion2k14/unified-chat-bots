@@ -1,4 +1,4 @@
-import { concat } from "../utils.mjs";
+import { concat } from '../utils.mjs';
 
 export default {
     name: 'help',

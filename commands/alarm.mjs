@@ -1,4 +1,4 @@
-import { sleep } from "../utils.mjs";
+import { sleep } from '../utils.mjs';
 
 export default {
     name: 'alarm',
