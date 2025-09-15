@@ -19,6 +19,7 @@ export class ClientTwitch extends EventEmitter {
         this._active = false;
         this._initialized = false;
         this._backend = null;
+        this.prefix = '!';
 
         this.connect = async function() {
             let valid = true;
@@ -48,6 +49,7 @@ export class ClientTwitch extends EventEmitter {
             if (!valid) { log.warn('Couldn\'t start bot!', SOURCE); }
             else {
                 this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this._settings.settings.channel } );
+                if ('prefix' in this._settings.settings) { this.prefix = this._settings.settings.prefix; }
                 this._setupEvents();
                 this._setupSystems();
                 this._loadCommands();
