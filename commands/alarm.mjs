@@ -3,7 +3,6 @@ import { sleep } from '../utils.mjs';
 export default {
     name: 'alarm',
     aliases: ['timer'],
-    // Twitch
     async reply(params, client, event) {
         if (!event.privileges.moderator && !event.privileges.broadcaster && !event.privileges.super) {
             client.sendMessage('You need to be a moderator or higher to use this command!');
