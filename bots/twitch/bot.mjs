@@ -107,7 +107,20 @@ export class ClientTwitch extends EventEmitter {
         };
 
         this._parseCommand = async function(event) {
-            // TODO
+            const params = event.message.substring(this.prefix.length, event.message.length).split(' ');
+            const commandName = params.shift().toLowerCase(); // Shift removes the first element from the list
+            let found = false;
+            for (let i = 0; i < this._commands.length; i++) {
+                if (equals(commandName, this._commands[i].name)) {
+                    const command = this._commands[i].command;
+                    command.reply(params, this, event); // Command pass-through
+                    found = true;
+                    break;
+                }
+            }
+            if (!found) { this.sendMessage(`Couldn't find the command that you tried to use ${event.username}...`); }
         }
+
+        this.sendMessage = function(message) { this._backend.say(message).catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); }); }
     }
 }
