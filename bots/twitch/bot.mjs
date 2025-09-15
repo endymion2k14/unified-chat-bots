@@ -54,8 +54,8 @@ export class ClientTwitch extends EventEmitter {
                 this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this._settings.settings.channel } );
                 if ('prefix' in this._settings.settings) { this.prefix = this._settings.settings.prefix; }
                 this._setupEvents();
-                this._setupSystems();
-                this._loadCommands();
+                await this._setupSystems();
+                this._loadCommands().catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); });
             }
         };
 
