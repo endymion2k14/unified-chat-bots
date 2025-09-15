@@ -8,7 +8,8 @@ const neededSettings = [
     'secrets.token',
     'secrets.id',
     'settings.username',
-    'settings.channel'
+    'settings.channel',
+    'name'
 ];
 
 export class ClientTwitch extends EventEmitter {
@@ -16,8 +17,6 @@ export class ClientTwitch extends EventEmitter {
         super();
 
         this._settings = settingsJSON;
-        this._active = false;
-        this._initialized = false;
         this._backend = null;
         this.prefix = '!';
 
@@ -57,22 +56,26 @@ export class ClientTwitch extends EventEmitter {
         };
 
         this._setupEvents = function() {
-            this._backend.addListener(EventTypes.connect   , event => { log.info(event.message, SOURCE); this.emit(EventTypes.connect   , event); });
-            this._backend.addListener(EventTypes.disconnect, event => { log.info(event.message, SOURCE); this.emit(EventTypes.disconnect, event); });
-            this._backend.addListener(EventTypes.ban       , event => { log.info(event.message, SOURCE); this.emit(EventTypes.ban       , event); });
-            this._backend.addListener(EventTypes.raid      , event => { log.info(event.message, SOURCE); this.emit(EventTypes.raid      , event); });
+            this._backend.addListener(EventTypes.connect   , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.connect   , event); });
+            this._backend.addListener(EventTypes.disconnect, event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.disconnect, event); });
+            this._backend.addListener(EventTypes.ban       , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.ban       , event); });
+            this._backend.addListener(EventTypes.raid      , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.raid      , event); });
             this._backend.addListener(EventTypes.message   , event => {
-                if (event.message.startsWith(this.prefix)) { this.emit(EventTypes.command, event); this._parseCommand(event); }
+                if (event.message.startsWith(this.prefix)) {
+                    this.emit(EventTypes.command, event);
+                    this._parseCommand(event).catch(err => {
+                        log.error(err, `${SOURCE}-${this._settings.name}`);
+                    }); }
                 else { this.emit(EventTypes.message, event); }
             });
         };
-        this._setupSystems = function() {
+        this._setupSystems = async function() {
             // TODO
         };
-        this._loadCommands = function() {
+        this._loadCommands = async function() {
             // TODO
         };
-        this._parseCommand = function(event) {
+        this._parseCommand = async function(event) {
             // TODO
         }
     }
