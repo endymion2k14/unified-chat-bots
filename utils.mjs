@@ -17,6 +17,13 @@ export function data (log = "", source = "GENERAL") { if (log) { console.info(`[
 // Timing
 export function sleep(seconds) { return new Promise(resolve => setTimeout(resolve, Math.max(seconds, 0) * 1000)); }
 
+export function equals(first, second) {
+    switch (first) {
+        case second: return true;
+        default: return false;
+    }
+}
+
 // Timestamps
 export function getFullTimestamp(date = new Date()) { return `${getDatestamp(date)} ${getTimestamp(date)}`; }
 export function getDatestamp(date = new Date()) { return `${date.getDate() < 10 ? '0' : ''}${date.getDate()}-${(1 + date.getMonth()) < 10 ? '0' : ''}${1 + date.getMonth()}-${date.getFullYear()}`; }
