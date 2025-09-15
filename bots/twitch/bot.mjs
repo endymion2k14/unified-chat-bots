@@ -1,4 +1,4 @@
-import { concat, log } from '../../utils.mjs';
+import { concat, equals, log } from '../../utils.mjs';
 import { EventEmitter } from 'node:events';
 import { TwitchIRC, EventTypes } from './irc.mjs';
 import fs from 'node:fs';
