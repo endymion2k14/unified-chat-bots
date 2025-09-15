@@ -1,14 +1,14 @@
 import { log } from '../../utils.mjs';
-import { EventEmitter } from "node:events";
-import { TwitchIRC, EventTypes } from "./irc.mjs";
+import { EventEmitter } from 'node:events';
+import { TwitchIRC, EventTypes } from './irc.mjs';
 
 const SOURCE = 'Twitch';
 
 const neededSettings = [
-    "secrets.token",
-    "secrets.id",
-    "settings.username",
-    "settings.channel"
+    'secrets.token',
+    'secrets.id',
+    'settings.username',
+    'settings.channel'
 ];
 
 export class ClientTwitch extends EventEmitter {
