@@ -1,9 +1,12 @@
-import { log } from '../../utils.mjs';
+import { concat, log } from '../../utils.mjs';
 import { EventEmitter } from 'node:events';
 import { TwitchIRC, EventTypes } from './irc.mjs';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const SOURCE = 'Twitch';
 
+const commandProperties = ['name', 'reply'];
 const neededSettings = [
     'secrets.token',
     'secrets.id',
@@ -18,6 +21,7 @@ export class ClientTwitch extends EventEmitter {
 
         this._settings = settingsJSON;
         this._backend = null;
+        this._commands = [];
         this.prefix = '!';
 
         this.connect = async function() {
@@ -69,12 +73,39 @@ export class ClientTwitch extends EventEmitter {
                 else { this.emit(EventTypes.message, event); }
             });
         };
+
         this._setupSystems = async function() {
             // TODO
         };
+
         this._loadCommands = async function() {
-            // TODO
+            log.info('Started loading commands', `${SOURCE}-${this._settings.name}`);
+            this._commands.slice(0, this._commands.length);
+            const folder = new URL('../../commands', import.meta.url);
+            const commandFiles = fs.readdirSync(folder).filter(file => file.endsWith('.mjs'));
+            for (const file of commandFiles) {
+                const filePath = path.join(folder.toString(), file);
+                let command = (await import(filePath) .catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); }).then(_ => { return _; })).default;
+
+                // Check if command has all the needed properties
+                let failed = false;
+                for (let i = 0; i < commandProperties.length; i++) {
+                    if (!(commandProperties[i] in command)) {
+                        log.warn(`${filePath} is missing '${commandProperties[i]}' property.`, `${SOURCE}-${this._settings.name}`);
+                        failed = true;
+                    }
+                }
+                if (failed) { continue; } // Skip
+
+                // Set a new item in the Collection with the key as the command name and the value as the exported module
+                this._commands.push({ name: command.name, command: command });
+                const aliases = command.aliases || [];
+                for (const alias of aliases) { this._commands.push({ name: alias, command: command }); }
+                log.info(`Loaded command '${command.name}'${(aliases.length > 0) ? ` with aliases ['${concat(aliases, `', '`)}']` : ''}!`, `${SOURCE}-${this._settings.name}`);
+            }
+            log.info('Loaded all possible commands', `${SOURCE}-${this._settings.name}`);
         };
+
         this._parseCommand = async function(event) {
             // TODO
         }
