@@ -6,6 +6,7 @@ import path from 'node:path';
 
 const SOURCE = 'Twitch';
 
+const systemProperties = ['name']
 const commandProperties = ['name', 'reply'];
 const neededSettings = [
     'secrets.token',
@@ -22,6 +23,7 @@ export class ClientTwitch extends EventEmitter {
         this._settings = settingsJSON;
         this._backend = null;
         this._commands = [];
+        this._systems = [];
         this.prefix = '!';
 
         this.connect = async function() {
@@ -75,7 +77,28 @@ export class ClientTwitch extends EventEmitter {
         };
 
         this._setupSystems = async function() {
-            // TODO
+            log.info('Started loading systems', `${SOURCE}-${this._settings.name}`);
+            this._systems.slice(0, this._systems.length);
+            const folder = new URL('../../systems', import.meta.url);
+            const systemFiles = fs.readdirSync(folder).filter(file => file.endsWith('.mjs'));
+            for (const file of systemFiles) {
+                const filePath = path.join(folder.toString(), file);
+                let system = (await import(filePath) .catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); }).then(_ => { return _; })).default;
+
+                // Check if system has needed properties
+                let failed = false;
+                for (let i = 0; i < systemProperties.length; i++) {
+                    if (!(systemProperties[i] in system)) {
+                        log.warn(`${filePath} is missing '${systemProperties[i]}' property.`, `${SOURCE}-${this._settings.name}`);
+                        failed = true;
+                    }
+                }
+                if (failed) { continue; } // Skip
+
+                if ('init' in system) { system.init(this); } // Initialize system if needed
+                this._systems.push({ name: system.name.toLowerCase(), system: system });
+            }
+            log.info('Loaded all possible systems', `${SOURCE}-${this._settings.name}`);
         };
 
         this._loadCommands = async function() {
@@ -93,6 +116,22 @@ export class ClientTwitch extends EventEmitter {
                     if (!(commandProperties[i] in command)) {
                         log.warn(`${filePath} is missing '${commandProperties[i]}' property.`, `${SOURCE}-${this._settings.name}`);
                         failed = true;
+                    }
+                }
+                if ('systems' in command) {
+                    for (const system of command.systems) {
+                        const find = system.toLowerCase();
+                        let found = false;
+                        for (let i = 0; i < this._systems.length; i++) {
+                            if (equals(this._systems[i].name, find)) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            log.warn(`${filePath} is missing the '${system}' system it needs to function.`, `${SOURCE}-${this._settings.name}`);
+                            failed = true;
+                        }
                     }
                 }
                 if (failed) { continue; } // Skip
@@ -122,5 +161,11 @@ export class ClientTwitch extends EventEmitter {
         }
 
         this.sendMessage = function(message) { this._backend.say(message).catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); }); }
+
+        this.getSystem = function(system) {
+            const find = system.toLowerCase();
+            for (let i = 0; i < this._systems.length; i++) { if (equals(this._systems[i].name, find)) { return this._systems[i]; } }
+            throw(`Unable to find system '${system}'!`);
+        }
     }
 }
