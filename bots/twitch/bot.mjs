@@ -24,6 +24,7 @@ export class ClientTwitch extends EventEmitter {
         this._backend = null;
         this._commands = [];
         this._systems = [];
+        this._supers = [];
         this.prefix = '!';
 
         this.connect = async function() {
@@ -54,7 +55,8 @@ export class ClientTwitch extends EventEmitter {
             if (!valid) { log.warn('Couldn\'t start bot!', SOURCE); }
             else {
                 this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this._settings.settings.channel } );
-                if ('prefix' in this._settings.settings) { this.prefix = this._settings.settings.prefix; }
+                if ('prefix'     in this._settings.settings) { this.prefix  = this._settings.settings.prefix    ; }
+                if ('superusers' in this._settings.settings) { this._supers = this._settings.settings.superusers; }
                 this._setupEvents();
                 await this._setupSystems();
                 this._loadCommands().catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); });
@@ -152,6 +154,12 @@ export class ClientTwitch extends EventEmitter {
             for (let i = 0; i < this._commands.length; i++) {
                 if (equals(commandName, this._commands[i].name)) {
                     const command = this._commands[i].command;
+
+                    // Check if command user is superuser
+                    let isSuper = false;
+                    for (let i = 0; i < this._supers.length; i++) { if (equals(this._supers[i].toLowerCase(), event.username.toLowerCase())) { isSuper = true; break; } }
+                    event.privileges.super = isSuper;
+
                     command.reply(params, this, event); // Command pass-through
                     found = true;
                     break;
