@@ -20,7 +20,9 @@ export const EventTypes = {
     message: 'message',
     ban: 'ban',
     raid: 'raid',
-    command: 'command'
+    command: 'command',
+    stream_start: 'stream.start',
+    stream_end: 'stream.end'
 }
 
 export class TwitchIRC extends EventEmitter {
