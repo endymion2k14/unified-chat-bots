@@ -1,5 +1,4 @@
 import { log, json } from './utils.mjs';
-
 import { ClientTwitch } from "./bots/twitch/bot.mjs";
 
 const SOURCE = "MAIN";
