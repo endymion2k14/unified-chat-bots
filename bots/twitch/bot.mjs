@@ -16,6 +16,9 @@ const neededSettings = [
     'name'
 ];
 
+const configSystem = json.load('../../configs/systems.json');
+const configCommand = json.load('../../configs/commands.json');
+
 export class ClientTwitch extends EventEmitter {
     constructor(settingsJSON) {
         super();
@@ -174,6 +177,14 @@ export class ClientTwitch extends EventEmitter {
             const find = system.toLowerCase();
             for (let i = 0; i < this._systems.length; i++) { if (equals(this._systems[i].name, find)) { return this._systems[i]; } }
             throw(`Unable to find system '${system}'!`);
+        }
+
+        this.getCommandConfig = function(commandName) {
+
+        }
+
+        this.getSystemConfig = function(systemName) {
+
         }
     }
 }
