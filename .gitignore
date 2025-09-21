@@ -3,6 +3,7 @@ node_modules/
 package-lock.json
 configs/config.json
 configs/secrets.json
-configs/discord.json
+configs/commands.json
+configs/systems.json
 commands/test.mjs
 systems/test.mjs
