@@ -1,0 +1,8 @@
+{
+  "welcome": {
+    "channel.name.goes.here": {
+      "first": ["message.goes.here", "Other.message"],
+      "back": ["message.one", "message.two"]
+    }
+  }
+}
