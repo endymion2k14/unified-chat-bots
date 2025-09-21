@@ -4,5 +4,5 @@ const config = json.load('configs/discord.json'); // TODO: make it possible for 
 
 export default {
     name: 'discord',
-    async reply(params, client, event) { client.sendMessage(config.text.toString()); },
+    async reply(params, client, event) { client.sendMessage(client.getCommandConfig(name)); },
 };
