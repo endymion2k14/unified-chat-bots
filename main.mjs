@@ -1,11 +1,11 @@
 import { log, json } from './utils.mjs';
 import { ClientTwitch } from "./bots/twitch/bot.mjs";
 
-const SOURCE = "MAIN";
+const SOURCE = 'MAIN';
 
 async function start() {
-    log.info("Loading settings");
-    const settings = json.load("configs/secrets.json");
+    log.info('Loading settings');
+    const settings = json.load('configs/secrets.json');
 
     // Check which bots to run
     const botsTwitch  = [];
