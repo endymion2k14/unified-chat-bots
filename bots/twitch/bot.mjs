@@ -1,4 +1,4 @@
-import { concat, equals, log } from '../../utils.mjs';
+import { concat, equals, log, json } from '../../utils.mjs';
 import { EventEmitter } from 'node:events';
 import { TwitchIRC, EventTypes } from './irc.mjs';
 import fs from 'node:fs';
@@ -180,11 +180,13 @@ export class ClientTwitch extends EventEmitter {
         }
 
         this.getCommandConfig = function(commandName) {
-
+            if (commandName in configCommand) { return configCommand[commandName]; }
+            return {};
         }
 
         this.getSystemConfig = function(systemName) {
-
+            if (systemName in configSystem) { return configSystem[systemName]; }
+            return {};
         }
     }
 }
