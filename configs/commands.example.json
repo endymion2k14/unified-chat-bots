@@ -1,5 +1,5 @@
 {
   "discord": {
-    "channel.name": "command.response.goes.here"
+    "secrets.json.bot.config.name": "command.response.goes.here"
   }
 }

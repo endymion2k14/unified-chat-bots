@@ -180,12 +180,12 @@ export class ClientTwitch extends EventEmitter {
         }
 
         this.getCommandConfig = function(commandName) {
-            if (commandName in configCommand) { return configCommand[commandName]; }
+            if (commandName in configCommand) { return configCommand[commandName][this._settings.name]; }
             return {};
         }
 
         this.getSystemConfig = function(systemName) {
-            if (systemName in configSystem) { return configSystem[systemName]; }
+            if (systemName in configSystem) { return configSystem[systemName][this._settings.name]; }
             return {};
         }
     }
