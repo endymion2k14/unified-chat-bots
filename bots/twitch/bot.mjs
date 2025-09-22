@@ -16,8 +16,8 @@ const neededSettings = [
     'name'
 ];
 
-const configSystem = json.load('../../configs/systems.json');
-const configCommand = json.load('../../configs/commands.json');
+const configSystem = json.load('./configs/systems.json');
+const configCommand = json.load('./configs/commands.json');
 
 export class ClientTwitch extends EventEmitter {
     constructor(settingsJSON) {
