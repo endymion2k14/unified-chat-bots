@@ -1,18 +1,18 @@
-import fs from "node:fs";
+import fs from 'node:fs';
 
-const SOURCE = "JSON";
+const SOURCE = 'JSON';
 
 // Logging
 export const log = {
-    info:  function (log = "", source = "GENERAL") { info (log, source); },
-    warn:  function (log = "", source = "GENERAL") { warn (log, source); },
-    error: function (log = "", source = "GENERAL") { error(log, source); },
-    data:  function (log = "", source = "GENERAL") { data (log, source); }
+    info:  function (log = '', source = 'GENERAL') { info (log, source); },
+    warn:  function (log = '', source = 'GENERAL') { warn (log, source); },
+    error: function (log = '', source = 'GENERAL') { error(log, source); },
+    data:  function (log = '', source = 'GENERAL') { data (log, source); }
 }
-export function info (log = "", source = "GENERAL") { if (log) { console.log(`[${getFullTimestamp()}] [${source}] ${log}`); } }
-export function warn (log = "", source = "GENERAL") { if (log) { console.warn(`[${getFullTimestamp()}] [${source}] ${log}`); } }
-export function error(log = "", source = "GENERAL") { if (log) { console.error(`[${getFullTimestamp()}] [${source}] ${log}`); } }
-export function data (log = "", source = "GENERAL") { if (log) { console.info(`[${getFullTimestamp()}] [${source}]`, log)} }
+export function info (log = '', source = 'GENERAL') { if (log) { console.log(`[${getFullTimestamp()}] [${source}] ${log}`); } }
+export function warn (log = '', source = 'GENERAL') { if (log) { console.warn(`[${getFullTimestamp()}] [${source}] ${log}`); } }
+export function error(log = '', source = 'GENERAL') { if (log) { console.error(`[${getFullTimestamp()}] [${source}] ${log}`); } }
+export function data (log = '', source = 'GENERAL') { if (log) { console.info(`[${getFullTimestamp()}] [${source}]`, log)} }
 
 // Timing
 export function sleep(seconds) { return new Promise(resolve => setTimeout(resolve, Math.max(seconds, 0) * 1000)); }
@@ -36,10 +36,10 @@ export const json = {
 }
 
 // String manipulation
-export function concat(list, separator = "", prefix = "", start = 0, count = list.length) {
+export function concat(list, separator = '', prefix = '', start = 0, count = list.length) {
     const end = Math.min(start + count, list.length);
-    let result = "";
-    for (let i = start; i < end; i++) { result += (i <= start ? "" : separator) + prefix + list[i]; }
+    let result = '';
+    for (let i = start; i < end; i++) { result += (i <= start ? '' : separator) + prefix + list[i]; }
     return result;
 }
 
