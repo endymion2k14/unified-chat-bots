@@ -11,16 +11,16 @@ export default {
     chatted: [],
     welcome(client, event) {
         const user = event.username.toLowerCase();
-        if (event.tags['first-msg']) {
-            client.sendMessage(this.config.first[randomInt(0, this.config.first.length)].replaceAll('{USER}', event.username));
-            this.chatted.push(user);
-        }
+        if (event.tags['first-msg']) { this.reply(client, this.config.first[randomInt(0, this.config.first.length)], event.username); }
         else {
             for (let i = 0; i < this.chatted.length; i++) {
                 if (equals(this.chatted[i], user)) { return; } // Return if user has already chatted
             }
-            client.sendMessage(this.config.back[randomInt(0, this.config.back.length)].replaceAll('{USER}', event.username));
-            this.chatted.push(user);
+            this.reply(client, this.config.back[randomInt(0, this.config.back.length)], event.username);
         }
+    },
+    reply: function(client, message, user) {
+        client.sendMessage(message.replaceAll('{USER}', user));
+        this.chatted.push(user);
     }
 }
