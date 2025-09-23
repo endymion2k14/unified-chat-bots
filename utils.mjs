@@ -26,9 +26,42 @@ export function equals(first, second) {
 }
 
 // Timestamps
+const short_timespans = ['ms', 's', 'm', 'h', 'd', 'y'];
+const long_timespans =  ['millisecond', 'second', 'minute', 'hour', 'day', 'year'];
+const timespan_dividers = [0, 1000, 60, 60, 24, 365];
+
 export function getFullTimestamp(date = new Date()) { return `${getDatestamp(date)} ${getTimestamp(date)}`; }
 export function getDatestamp(date = new Date()) { return `${date.getDate() < 10 ? '0' : ''}${date.getDate()}-${(1 + date.getMonth()) < 10 ? '0' : ''}${1 + date.getMonth()}-${date.getFullYear()}`; }
 export function getTimestamp(date = new Date()) { return `${date.toLocaleTimeString()}`; }
+export function getTimeDifference(from = 0, to = 0, shortened_words = true, showMilliseconds = false) {
+    const names = shortened_words ? short_timespans : long_timespans;
+    const times = [];
+
+    const fromTime = Math.min(from, to);
+    const toTime = Math.max(from, to);
+    let time = fromTime - toTime;
+
+    // Calculate the time
+    for (let i = 0; i < timespan_dividers.length; i) {
+        // TODO
+    }
+
+    // Get first non-zero that gets displayed
+    let first = 0;
+    for (let i = (showMilliseconds ? 0 : 1); i < times.length; i++) {
+        if (time[i] > 0) {
+            first = i;
+            break;
+        }
+    }
+
+    // Build the string
+    let result = '';
+    for (let i = times.length - 1; i >= (showMilliseconds ? 0 : 1); i--) {
+        if (times[i] > 0) { result += `${result.length > 0 ? (i === first ? ' and ' : ', ') : ''}${times[i]}${names[i]}`; }
+    }
+    return result;
+}
 
 // File handling
 export const json = {
