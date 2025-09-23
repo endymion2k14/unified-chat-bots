@@ -146,6 +146,12 @@ export class ClientTwitch extends EventEmitter {
                         }
                     }
                 }
+                if ('reply' in command) {
+                    if (command.reply.constructor.name !== 'AsyncFunction') {
+                        failed = false;
+                        log.warn(`${filePath}'s reply() is not async!`, `${SOURCE}-${this._settings.name}`);
+                    }
+                }
                 if (failed) { continue; } // Skip
 
                 // Set a new item in the Collection with the key as the command name and the value as the exported module
@@ -170,11 +176,10 @@ export class ClientTwitch extends EventEmitter {
                     for (let i = 0; i < this._supers.length; i++) { if (equals(this._supers[i].toLowerCase(), event.username.toLowerCase())) { isSuper = true; break; } }
                     event.privileges.super = isSuper;
 
-                    try { command.reply(params, this, event); } // Command pass-through
-                    catch (error) {
+                    command.reply(params, this, event).catch(error => { // Command pass-through
                         log.error(error, `${SOURCE}-command-${command.name.toLowerCase()}`);
-                        this.sendMessage('Something went wrong while running the command!')
-                    }
+                        this.sendMessage('Something went wrong while running the command!');
+                    });
                     found = true;
                     break;
                 }
