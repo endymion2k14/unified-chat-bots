@@ -1,6 +1,6 @@
 {
   "welcome": {
-    "channel.name.goes.here": {
+    "secrets.json.bot.config.name": {
       "first": ["message.goes.here", "Other.message"],
       "back": ["message.one", "message.two"]
     }
