@@ -10,9 +10,9 @@ export default {
     },
     chatted: [],
     welcome(client, event) {
-        const user = event.username.toLowerCase();
         if (event.tags['first-msg']) { this.reply(client, this.config.first[randomInt(0, this.config.first.length)], event.username); }
         else {
+            const user = event.username.toLowerCase();
             for (let i = 0; i < this.chatted.length; i++) {
                 if (equals(this.chatted[i], user)) { return; } // Return if user has already chatted
             }
