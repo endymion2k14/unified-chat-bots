@@ -39,17 +39,22 @@ export function getTimeDifference(from = 0, to = 0, shortened_words = true, show
 
     const fromTime = Math.min(from, to);
     const toTime = Math.max(from, to);
-    let time = fromTime - toTime;
+    let time = toTime - fromTime;
 
     // Calculate the time
-    for (let i = 0; i < timespan_dividers.length; i) {
-        // TODO
+    for (let i = 0; i < timespan_dividers.length; i++) {
+        if (i === timespan_dividers.length - 1) { times.push(time); }
+        else {
+            const rest = time % timespan_dividers[i + 1];
+            time = Math.floor((time - rest) / timespan_dividers[i + 1]);
+            times.push(rest);
+        }
     }
 
     // Get first non-zero that gets displayed
     let first = 0;
     for (let i = (showMilliseconds ? 0 : 1); i < times.length; i++) {
-        if (time[i] > 0) {
+        if (times[i] > 0) {
             first = i;
             break;
         }
@@ -58,7 +63,8 @@ export function getTimeDifference(from = 0, to = 0, shortened_words = true, show
     // Build the string
     let result = '';
     for (let i = times.length - 1; i >= (showMilliseconds ? 0 : 1); i--) {
-        if (times[i] > 0) { result += `${result.length > 0 ? (i === first ? ' and ' : ', ') : ''}${times[i]}${names[i]}`; }
+        if (times[i] > 0) { result += `${result.length > 0 ? (i === first ? ' and ' : ', ') : ''}${times[i]} ${names[i]}${(times[i] > 1) && !shortened_words ? 's' : ''}`; }
+        console.log('result', result);
     }
     return result;
 }
