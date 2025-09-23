@@ -100,7 +100,14 @@ export class ClientTwitch extends EventEmitter {
                 }
                 if (failed) { continue; } // Skip
 
-                if ('init' in system) { system.init(this); } // Initialize system if needed
+                if ('init' in system) { // Initialize system if needed
+                    try {
+                        system.init(this);
+                    } catch (error) {
+                        log.error(error, `${SOURCE}-system-${system.name.toLowerCase()}`);
+                        continue; // Skip adding it as a successfully loaded system
+                    }
+                }
                 this._systems.push({ name: system.name.toLowerCase(), system: system });
             }
             log.info('Loaded all possible systems', `${SOURCE}-${this._settings.name}`);
