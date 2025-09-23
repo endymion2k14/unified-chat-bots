@@ -6,7 +6,7 @@ export default {
     init(client) {
         client.addListener(EventTypes.message, event => this.welcome(client, event));
         // TODO: implement stream shutdown/start resetting the chatted array
-        this.config = client.getSystemConfig(name);
+        this.config = client.getSystemConfig(this.name);
     },
     chatted: [],
     welcome(client, event) {
