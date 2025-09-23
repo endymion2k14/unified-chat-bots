@@ -17,6 +17,7 @@ export function data (log = '', source = 'GENERAL') { if (log) { console.info(`[
 // Timing
 export function sleep(seconds) { return new Promise(resolve => setTimeout(resolve, Math.max(seconds, 0) * 1000)); }
 
+// Comparisons
 export function equals(first, second) {
     switch (first) {
         case second: return true;
@@ -43,4 +44,5 @@ export function concat(list, separator = '', prefix = '', start = 0, count = lis
     return result;
 }
 
+// Randomizing
 export function randomInt(min, max) { return Math.floor(Math.min(+min, +max)) + Math.floor(Math.random() * (Math.max(+min, +max) - Math.min(+min, +max))); }
