@@ -186,7 +186,7 @@ export class ClientTwitch extends EventEmitter {
 
         this.getSystem = function(system) {
             const find = system.toLowerCase();
-            for (let i = 0; i < this._systems.length; i++) { if (equals(this._systems[i].name, find)) { return this._systems[i]; } }
+            for (let i = 0; i < this._systems.length; i++) { if (equals(this._systems[i].name, find)) { return this._systems[i].system; } }
             throw(`Unable to find system '${system}'!`);
         }
 
