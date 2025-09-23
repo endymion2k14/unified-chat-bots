@@ -170,7 +170,11 @@ export class ClientTwitch extends EventEmitter {
                     for (let i = 0; i < this._supers.length; i++) { if (equals(this._supers[i].toLowerCase(), event.username.toLowerCase())) { isSuper = true; break; } }
                     event.privileges.super = isSuper;
 
-                    command.reply(params, this, event); // Command pass-through
+                    try { command.reply(params, this, event); } // Command pass-through
+                    catch (error) {
+                        log.error(error, `${SOURCE}-command-${command.name.toLowerCase()}`);
+                        this.sendMessage('Something went wrong while running the command!')
+                    }
                     found = true;
                     break;
                 }
