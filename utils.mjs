@@ -64,7 +64,6 @@ export function getTimeDifference(from = 0, to = 0, shortened_words = true, show
     let result = '';
     for (let i = times.length - 1; i >= (showMilliseconds ? 0 : 1); i--) {
         if (times[i] > 0) { result += `${result.length > 0 ? (i === first ? ' and ' : ', ') : ''}${times[i]} ${names[i]}${(times[i] > 1) && !shortened_words ? 's' : ''}`; }
-        console.log('result', result);
     }
     return result;
 }
