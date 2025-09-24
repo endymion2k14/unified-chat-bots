@@ -107,7 +107,7 @@ export class TwitchIRC extends EventEmitter {
 
     parseSingle(line) {
         // PING/PONG keep‑alive
-        if (line.startsWith('PING')) { this.send(`PONG ${line.split(' ')[1]}`); }
+        if (line.startsWith('PING')) { this.send(`PONG ${line.split(' ')[1]}`); return; }
 
         // ROOMSTATE
         const roomstate = line.match(/@.*room-id=(\d+).*? :.* ROOMSTATE #.*/);
