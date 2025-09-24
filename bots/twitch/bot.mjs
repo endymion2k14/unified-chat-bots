@@ -28,6 +28,7 @@ export class ClientTwitch extends EventEmitter {
         this._commands = [];
         this._systems = [];
         this._supers = [];
+        this._ignore = [];
         this.prefix = '!';
 
         this.connect = async function() {
