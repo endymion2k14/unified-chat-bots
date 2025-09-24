@@ -121,12 +121,16 @@ export class TwitchIRC extends EventEmitter {
         // PRIVMSG
         // Example: @tags :nick!ident@host PRIVMSG #channel :message
         const privmsg = line.match(/^(@[^ ]+ )?:(\S+?)!(\S+?)@(\S+) PRIVMSG #(\S+) :(.*)$/);
-        if (!privmsg) return;
-        const [_, tagsPart, ident, nickname, host, chan, message] = privmsg;
-        const tags = this.parseTags(tagsPart);
-        const privileges = this.getPrivileges(tags);
-        log.info(`[${this.channel}] ${nickname}: ${message}`, SOURCE);
-        this.emit(EventTypes.message, { username: nickname, identity: ident, host: host, channel: chan, message: message, tags: tags, privileges: privileges });
+        if (privmsg) {
+            const [_, tagsPart, ident, nickname, host, chan, message] = privmsg;
+            const tags = this.parseTags(tagsPart);
+            const privileges = this.getPrivileges(tags);
+            log.info(`[${this.channel}] ${nickname}: ${message}`, SOURCE);
+            this.emit(EventTypes.message, { username: nickname, identity: ident, host: host, channel: chan, message: message, tags: tags, privileges: privileges });
+            return;
+        }
+
+        log.info(`Response not handled: ${line}`, SOURCE);
     }
 
     parseTags(raw) {
