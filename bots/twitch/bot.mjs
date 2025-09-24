@@ -60,6 +60,7 @@ export class ClientTwitch extends EventEmitter {
                 this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this._settings.settings.channel } );
                 if ('prefix'     in this._settings.settings) { if (this._settings.settings.prefix.length > 0) { this.prefix = this._settings.settings.prefix; } }
                 if ('superusers' in this._settings.settings) { this._supers = this._settings.settings.superusers; }
+                if ('usersIgnore' in this._settings.settings) { this._ignore = this._settings.settings.usersIgnore; }
                 this._setupEvents();
                 await this._setupSystems();
                 this._loadCommands().catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); });
@@ -72,6 +73,7 @@ export class ClientTwitch extends EventEmitter {
             this._backend.addListener(EventTypes.ban       , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.ban       , event); });
             this._backend.addListener(EventTypes.raid      , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.raid      , event); });
             this._backend.addListener(EventTypes.message   , event => {
+                for (let i = 0;i < this._ignore.length; i++) { if (equals(this._ignore[i], event.identity)) { return; } } // Ignore messages from certain users
                 if (event.message.startsWith(this.prefix)) {
                     this.emit(EventTypes.command, event);
                     this._parseCommand(event).catch(err => {
