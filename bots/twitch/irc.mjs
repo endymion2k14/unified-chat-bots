@@ -25,7 +25,7 @@ export const EventTypes = {
     stream_end: 'stream.end',
 
     // IRC info
-    roomstate: 'roomstate',
+    _roomstate: 'roomstate',
 }
 
 export class TwitchIRC extends EventEmitter {
@@ -53,7 +53,7 @@ export class TwitchIRC extends EventEmitter {
 
         this.ws.addEventListener('open', () => {
             log.info('Connected to Twitch IRC', SOURCE);
-            this.ws.send(`CAP REQ :twitch.tv/tags`); // this.ws.send(`CAP REQ :twitch.tv/membership twitch.tv/tags twitch.tv/commands`);
+            this.ws.send(`CAP REQ :twitch.tv/tags twitch.tv/commands`); // this.ws.send(`CAP REQ :twitch.tv/membership twitch.tv/tags twitch.tv/commands`);
             this.ws.send(`PASS ${this.oauth}`);
             this.ws.send(`NICK ${this.username}`);
             this.ws.send(`JOIN #${this.channel}`);
@@ -108,28 +108,25 @@ export class TwitchIRC extends EventEmitter {
     parseSingle(line) {
         // PING/PONG keep‑alive
         if (line.startsWith('PING')) { this.send(`PONG ${line.split(' ')[1]}`); }
-        else if (line.startsWith('PART')) { this.emit(EventTypes.disconnect, { message: '' }); }
-        else if (line.startsWith('CLEARCHAT')) {}
-        else if (line.startsWith('CLEARMSG')) {}
-        else if (line.startsWith('GLOBALUSERSTATE')) {}
-        else if (line.startsWith('NOTICE')) { log.warn(line, `${SOURCE}-${this.channel}-${this.username}-NOTICE`); }
-        else if (line.startsWith('RECONNECT')) {}
-        else if (line.startsWith('ROOMSTATE')) {}
-        else if (line.startsWith('USERNOTICE')) {}
-        else if (line.startsWith('ROOMSTATE')) {
 
+        // ROOMSTATE
+        const roomstate = line.match(/@.*room-id=(\d+).*? :.* ROOMSTATE #.*/);
+        if (roomstate) {
+            const [_, roomidText] = roomstate;
+            const roomidInt = parseInt(roomidText);
+            if (!isNaN(roomidInt)) { this.emit(EventTypes._roomstate, { roomid: roomidInt }); }
+            return;
         }
-        else if (line.startsWith('USERSTATE')) {}
-        else {
-            // Example: @tags :nick!ident@host PRIVMSG #channel :message
-            const m = line.match(/^(@[^ ]+ )?:(\S+?)!(\S+?)@(\S+) PRIVMSG #(\S+) :(.*)$/);
-            if (!m) return;
-            const [_, tagsPart, ident, nickname, host, chan, message] = m;
-            const tags = this.parseTags(tagsPart);
-            const privileges = this.getPrivileges(tags);
-            log.info(`[${this.channel}] ${nickname}: ${message}`, SOURCE);
-            this.emit(EventTypes.message, { username: nickname, identity: ident, host: host, channel: chan, message: message, tags: tags, privileges: privileges });
-        }
+
+        // PRIVMSG
+        // Example: @tags :nick!ident@host PRIVMSG #channel :message
+        const privmsg = line.match(/^(@[^ ]+ )?:(\S+?)!(\S+?)@(\S+) PRIVMSG #(\S+) :(.*)$/);
+        if (!privmsg) return;
+        const [_, tagsPart, ident, nickname, host, chan, message] = privmsg;
+        const tags = this.parseTags(tagsPart);
+        const privileges = this.getPrivileges(tags);
+        log.info(`[${this.channel}] ${nickname}: ${message}`, SOURCE);
+        this.emit(EventTypes.message, { username: nickname, identity: ident, host: host, channel: chan, message: message, tags: tags, privileges: privileges });
     }
 
     parseTags(raw) {
