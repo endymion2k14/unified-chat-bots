@@ -6,7 +6,8 @@ export class TwitchAPI {
     _data = {
         token: 0,
         userId: 0,
-        roomid: 0,
+        roomId: 0,
+        applicationId: 0,
         channel: 0,
     }
 
@@ -18,7 +19,7 @@ export class TwitchAPI {
     async getAllFollowerData() {
         const followers = [];
 
-        if (this._data.token === 0 || this._data.roomid === 0 || this._data.channel === 0) { log.error('Missing data for getAllFollowerData to request the needed data from twitch!', SOURCE); }
+        if (this._data.token === 0 || this._data.roomId === 0 || this._data.channel === 0) { log.error('Missing data for getAllFollowerData to request the needed data from twitch!', SOURCE); }
         else {
             // TODO
         }
@@ -29,7 +30,7 @@ export class TwitchAPI {
     async getFollowerData() {
         const result = {};
 
-        if (this._data.token === 0 || this._data.roomid === 0 || this._data.channel === 0) { log.error('Missing data for getAllFollowerData to request the needed data from twitch!', SOURCE); }
+        if (this._data.token === 0 || this._data.roomId === 0 || this._data.channel === 0) { log.error('Missing data for getAllFollowerData to request the needed data from twitch!', SOURCE); }
         else {
             // TODO
         }
