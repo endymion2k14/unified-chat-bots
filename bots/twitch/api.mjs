@@ -47,8 +47,8 @@ export class TwitchAPI {
                         const json = JSON.parse(parseData);
                         if (json === undefined) { log.warn('Failed to parse follower data:', SOURCE); log.data(parseData, SOURCE); done = true; return; }
                         if (json.status) { if (json.status === 401) { log.error('Token expired!'); done = true; return; } }
+                        if (!('cursor' in json.pagination)) { done = true; }
                         const next = `${json.pagination.cursor}`.toString();
-                        done = next.length < 10; // if pagination is too short we end or expect there to be no pagination
                         if (!done) { pagination = next; }
                         for (let i = 0; i < json.data.length; i++) {
                             followers.push({
@@ -60,10 +60,10 @@ export class TwitchAPI {
                     });
                 });
                 if (!done) { await sleep(3); } // throttle requests to make sure we dont hit requests per minute limits
-                else { log.info('Finished loading follower data', SOURCE); }
             }
         }
 
+        log.info('Finished loading follower data', SOURCE);
         return followers;
     }
 
