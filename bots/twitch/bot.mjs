@@ -1,4 +1,4 @@
-import { concat, equals, log, json } from '../../utils.mjs';
+import { concat, equals, sleep, log, json } from '../../utils.mjs';
 import { EventEmitter } from 'node:events';
 import { TwitchIRC, EventTypes } from './irc.mjs';
 import fs from 'node:fs';
@@ -89,6 +89,11 @@ export class ClientTwitch extends EventEmitter {
         };
 
         this._setupSystems = async function() {
+            if (!this.api.isReady()) {
+                log.info('Waiting till api has all the data it needs before loading systems...', `${SOURCE}-${this._settings.name}-systems`);
+                while (!this.api.isReady()) { await sleep(0.5); }
+            }
+
             log.info('Started loading systems', `${SOURCE}-${this._settings.name}`);
             this._systems.slice(0, this._systems.length);
             const folder = new URL('../../systems', import.meta.url);
