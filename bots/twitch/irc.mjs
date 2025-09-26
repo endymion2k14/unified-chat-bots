@@ -1,4 +1,4 @@
-import { log } from '../../utils.mjs'
+import { equals, log } from '../../utils.mjs'
 import { EventEmitter } from 'node:events';
 
 import { WebSocket } from 'ws';
@@ -25,7 +25,8 @@ export const EventTypes = {
     stream_end: 'stream.end',
 
     // IRC info
-    _roomstate: 'roomstate',
+    _roomstate: 'roomState',
+    _botuserstate: 'botUserState'
 }
 
 export class TwitchIRC extends EventEmitter {
@@ -115,6 +116,16 @@ export class TwitchIRC extends EventEmitter {
             const [_, roomidText] = roomstate;
             const roomidInt = parseInt(roomidText);
             if (!isNaN(roomidInt)) { this.emit(EventTypes._roomstate, { roomid: roomidInt }); }
+            return;
+        }
+
+        // GLOBALUSERSTATE
+        const globalUserState = line.match(/@.*display-name=(\w+);.*user-id=(\d+).*? :.* GLOBALUSERSTATE.*/);
+        if (globalUserState) {
+            const [_, displayname, userIdText] = globalUserState;
+            if (!equals(this.username, displayname.toLowerCase())) { return; } // Make sure the data is from the bot user
+            const userIdInt = parseInt(userIdText);
+            if (!isNaN(userIdInt)) { this.emit(EventTypes._botuserstate, { userid: userIdInt }); }
             return;
         }
 
