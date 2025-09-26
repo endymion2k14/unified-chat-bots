@@ -3,6 +3,7 @@ import { EventEmitter } from 'node:events';
 import { TwitchIRC, EventTypes } from './irc.mjs';
 import fs from 'node:fs';
 import path from 'node:path';
+import { TwitchAPI } from './api.mjs';
 
 const SOURCE = 'Twitch';
 
@@ -58,6 +59,7 @@ export class ClientTwitch extends EventEmitter {
             } catch (err) { log.error(err, SOURCE); }
             if (!valid) { log.warn('Couldn\'t start bot!', SOURCE); }
             else {
+                this.api = new TwitchAPI(this._settings.secrets.token, this._settings.settings.channel);
                 this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this._settings.settings.channel } );
                 if ('prefix'     in this._settings.settings) { if (this._settings.settings.prefix.length > 0) { this.prefix = this._settings.settings.prefix; } }
                 if ('superusers' in this._settings.settings) { this._supers = this._settings.settings.superusers; }
@@ -69,11 +71,13 @@ export class ClientTwitch extends EventEmitter {
         };
 
         this._setupEvents = function() {
-            this._backend.addListener(EventTypes.connect   , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.connect   , event); });
-            this._backend.addListener(EventTypes.disconnect, event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.disconnect, event); });
-            this._backend.addListener(EventTypes.ban       , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.ban       , event); });
-            this._backend.addListener(EventTypes.raid      , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.raid      , event); });
-            this._backend.addListener(EventTypes.message   , event => {
+            this._backend.addListener(EventTypes.connect      , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.connect   , event); });
+            this._backend.addListener(EventTypes.disconnect   , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.disconnect, event); });
+            this._backend.addListener(EventTypes.ban          , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.ban       , event); });
+            this._backend.addListener(EventTypes.raid         , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.raid      , event); });
+            this._backend.addListener(EventTypes._roomstate   , event => { log.info(`Obtained room-id: ${event.roomid}`, `${SOURCE}-${this._settings.name}`); if (this.api) { this.api._data.roomid = event.roomid; }});
+            this._backend.addListener(EventTypes._botuserstate, event => { log.info(`Obtained user-id: ${event.userid}`, `${SOURCE}-${this._settings.name}`); if (this.api) { this.api._data.userId = event.userid; } });
+            this._backend.addListener(EventTypes.message      , event => {
                 for (let i = 0;i < this._ignore.length; i++) { if (equals(this._ignore[i], event.identity)) { return; } } // Ignore messages from certain users
                 if (event.message.startsWith(this.prefix)) {
                     this.emit(EventTypes.command, event);
