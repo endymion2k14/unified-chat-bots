@@ -115,7 +115,7 @@ export class TwitchIRC extends EventEmitter {
         if (roomstate) {
             const [_, roomidText] = roomstate;
             const roomidInt = parseInt(roomidText);
-            if (!isNaN(roomidInt)) { this.emit(EventTypes._roomstate, { roomid: roomidInt }); }
+            if (!isNaN(roomidInt)) { this.emit(EventTypes._roomstate, { roomId: roomidInt }); }
             return;
         }
 
@@ -125,7 +125,7 @@ export class TwitchIRC extends EventEmitter {
             const [_, displayname, userIdText] = globalUserState;
             if (!equals(this.username, displayname.toLowerCase())) { return; } // Make sure the data is from the bot user
             const userIdInt = parseInt(userIdText);
-            if (!isNaN(userIdInt)) { this.emit(EventTypes._botuserstate, { userid: userIdInt }); }
+            if (!isNaN(userIdInt)) { this.emit(EventTypes._botuserstate, { userId: userIdInt }); }
             return;
         }
 
