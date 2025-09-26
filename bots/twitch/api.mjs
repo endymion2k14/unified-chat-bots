@@ -1,3 +1,7 @@
+import { log } from "../../utils.mjs";
+
+const SOURCE = 'TwitchAPI';
+
 export class TwitchAPI {
     _data = {
         token: 0,
@@ -14,14 +18,22 @@ export class TwitchAPI {
     async getAllFollowerData() {
         const followers = [];
 
-        // TODO
+        if (this._data.token === 0 || this._data.roomid === 0 || this._data.channel === 0) { log.error('Missing data for getAllFollowerData to request the needed data from twitch!', SOURCE); }
+        else {
+            // TODO
+        }
 
         return followers;
     }
 
     async getFollowerData() {
         const result = {};
-        // TODO
+
+        if (this._data.token === 0 || this._data.roomid === 0 || this._data.channel === 0) { log.error('Missing data for getAllFollowerData to request the needed data from twitch!', SOURCE); }
+        else {
+            // TODO
+        }
+
         return result;
     }
 }
