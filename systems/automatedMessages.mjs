@@ -22,7 +22,7 @@ export default {
         client.addListener(EventTypes.message, event => { this.handleMessage(); });
 
         // Set variables from config
-        const settings = client.getSystemConfig(name);
+        const settings = client.getSystemConfig(this.name);
         if ('enabled'                      in settings) { this.enabled          = settings.enabled; }
         if ('randomOrder'                  in settings) { this.randomOrder      = settings.randomOrder; }
         if ('minutesBetweenMessages'       in settings) { this.minutesRequired  = settings.minutesBetweenMessages; }
