@@ -40,7 +40,7 @@ export default {
             await this._awaitRequirements();
             if (this.enabled) { // Make sure system is still enabled
                 if (this.randomOrder) { this.currentMessage = randomInt(0, this.messages.length); }
-                this.currentMessage = clamp(this.currentMessage, 0, this.message.length);
+                this.currentMessage = clamp(this.currentMessage, 0, this.messages.length);
                 if (this.currentMessage === this.messages.length) { this.currentMessage = 0; }
                 const message = this.messages[this.currentMessage];
 
