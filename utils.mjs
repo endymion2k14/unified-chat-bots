@@ -83,4 +83,28 @@ export function concat(list, separator = '', prefix = '', start = 0, count = lis
 }
 
 // Randomizing
-export function randomInt(min, max) { return Math.floor(Math.min(+min, +max)) + Math.floor(Math.random() * (Math.max(+min, +max) - Math.min(+min, +max))); }
+export function randomInt(min, max) {
+    const _min = Math.min(min, max);
+    const _max = Math.max(min, max);
+    return Math.floor(_min) + Math.floor(Math.random() * (_max - _min)); }
+
+export function clamp(value, min, max) {
+    const _min = Math.min(min, max);
+    const _max = Math.max(min, max);
+    return Math.min(Math.max(value, _min), _max);
+}
+
+/**
+ * Maps a value on a number range into the same spot of a different number range
+ * @param value
+ * @param startRange1
+ * @param endRange1
+ * @param startRange2
+ * @param endRange2
+ */
+export function map(value, startRange1, endRange1, startRange2, endRange2) {
+    const diff1 = endRange1 - startRange1;
+    const diff2 = endRange2 - startRange2;
+    const factor = (value - startRange1) / diff1;
+    return (factor * diff2) + startRange2;
+}
