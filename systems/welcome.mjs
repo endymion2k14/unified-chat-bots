@@ -1,5 +1,5 @@
-import { EventTypes } from "../bots/twitch/irc.mjs";
-import { equals, randomInt } from "../utils.mjs";
+import { EventTypes } from '../bots/twitch/irc.mjs';
+import { equals, randomInt } from '../utils.mjs';
 
 export default {
     name: 'welcome',
