@@ -40,7 +40,8 @@
             "This is a list",
             "Unlike the ordered type,",
             "this list goes alot faster",
-            "So they all will be displayed in short order"
+            "So they all will be displayed in short order",
+            "With close to 5 seconds in between each of them"
           ]
         }
       ]
