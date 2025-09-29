@@ -19,7 +19,7 @@ export default {
 
     init(client) {
         this.client = client;
-        client.addListener(EventTypes.message, event => { this.handeMessage(); });
+        client.addListener(EventTypes.message, event => { this.handleMessage(); });
 
         // Set variables from config
         const settings = client.getSystemConfig(name);
@@ -33,7 +33,7 @@ export default {
         if (this.enabled) { this.startMessages().catch(err => { log.error(err, SOURCE); }); }
     },
 
-    handeMessage() { this.messagesSinceLastAutomated++; },
+    handleMessage() { this.messagesSinceLastAutomated++; },
 
     async startMessages() {
         while (this.enabled) {
