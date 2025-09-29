@@ -23,6 +23,8 @@ export default {
         return 0;
     },
 
+    getFollowerCount() { return this.followers.length; },
+
     async loadFollowerData(client) {
         const newData = await client.api.getAllFollowerData();
         this.followers.splice(0, this.followers.length); // Clear the array
