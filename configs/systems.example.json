@@ -4,5 +4,46 @@
       "first": ["message.goes.here", "Other.message"],
       "back": ["message.one", "message.two"]
     }
+  },
+  "automatedMessages": {
+    "secrets.json.bot.config.name": {
+      "enabled": true,
+      "randomOrder": false,
+      "minutesBetweenMessages": 5,
+      "chatsNeededBeforeNextMessage": 10,
+      "messages": [
+        {
+          "type": "single",
+          "messages": [
+            "This type only uses the first message in this list",
+            "This second one will never show up"
+          ]
+        },
+        {
+          "type": "random",
+          "messages": [
+            "Only one of these will be displayed randomly",
+            "The question is which one will happen"
+          ]
+        },
+        {
+          "type": "ordered",
+          "messages": [
+            "These messages will be displayed in order",
+            "All of them will be displayed before it switches to any other message set",
+            "The time, and message, required in between these messages is the same as normal"
+          ]
+        },
+        {
+          "type": "list",
+          "messages": [
+            "This is a list",
+            "Unlike the ordered type,",
+            "this list goes alot faster",
+            "So they all will be displayed in short order"
+          ]
+        }
+      ]
+    }
   }
 }
