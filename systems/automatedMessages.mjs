@@ -61,7 +61,7 @@ export default {
                             this.messagesSinceLastAutomated = 0;
                             if (!this.enabled) { break; } // Make sure system is still enabled
                             this.client.sendMessage(message.messages[i]);
-                            if (i < message.messages.length - 1) { sleep(this.minutesRequired * 60).then(_ => { this.hasTimePassedSinceLastAutomatedMessage = true; }); }
+                            if (i < message.messages.length - 1) { await sleep(this.minutesRequired * 60).then(_ => { this.hasTimePassedSinceLastAutomatedMessage = true; }); }
                         }
                         break;
                     case 'list':
@@ -79,7 +79,7 @@ export default {
                 this.currentMessage++;
                 this.messagesSinceLastAutomated = 0;
                 this.hasTimePassedSinceLastAutomatedMessage = false;
-                sleep(this.minutesRequired * 60).then(_ => { this.hasTimePassedSinceLastAutomatedMessage = true; });
+                await sleep(this.minutesRequired * 60).then(_ => { this.hasTimePassedSinceLastAutomatedMessage = true; });
             }
         }
     },
