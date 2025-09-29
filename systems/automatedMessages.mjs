@@ -85,7 +85,7 @@ export default {
     },
 
     async _awaitRequirements() {
-        while (this.messagesSinceLastAutomated < 0 && !this.hasTimePassedSinceLastAutomatedMessage) {
+        while (this.messagesSinceLastAutomated < this.messagesRequired && this.hasTimePassedSinceLastAutomatedMessage) {
             await sleep(5);
         }
     }
