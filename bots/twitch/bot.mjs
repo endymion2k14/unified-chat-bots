@@ -31,6 +31,7 @@ export class ClientTwitch extends EventEmitter {
         this._supers = [];
         this._ignore = [];
         this.prefix = '!';
+        this.channel = '';
 
         this.connect = async function() {
             let valid = true;
@@ -59,8 +60,9 @@ export class ClientTwitch extends EventEmitter {
             } catch (err) { log.error(err, SOURCE); }
             if (!valid) { log.warn('Couldn\'t start bot!', SOURCE); }
             else {
-                this.api = new TwitchAPI(this._settings.secrets.token, this._settings.settings.channel, this._settings.secrets.id);
-                this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this._settings.settings.channel } );
+                this.channel = this._settings.settings.channel;
+                this.api = new TwitchAPI(this._settings.secrets.token, this.channel, this._settings.secrets.id);
+                this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this.channel } );
                 if ('prefix'     in this._settings.settings) { if (this._settings.settings.prefix.length > 0) { this.prefix = this._settings.settings.prefix; } }
                 if ('superusers' in this._settings.settings) { this._supers = this._settings.settings.superusers; }
                 if ('usersIgnore' in this._settings.settings) { this._ignore = this._settings.settings.usersIgnore; }
