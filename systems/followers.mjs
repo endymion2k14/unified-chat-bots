@@ -7,7 +7,6 @@ export default {
     followers: [],
 
     init(client) {
-        this.channel = client._backend.channel;
         this.loadFollowerData(client).catch(err => log.error(err, `followers.mjs`));
         setInterval(_ => this.loadFollowerData(client).catch(err => log.error(err, `followers.mjs`)), dayMilliseconds);
     },
