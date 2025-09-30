@@ -5,6 +5,6 @@ export default {
     async reply(params, client, event) {
         const messages = client.getCommandConfig(this.name);
         if (messages.length > 0) { client.sendMessage(messages[randomInt(0,  messages.length)]); }
-        else { client.sendMessage("Smurt!"); }
+        else { client.sendMessage('Smurt!'); }
     }
 };
