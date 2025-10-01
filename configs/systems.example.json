@@ -46,5 +46,10 @@
         }
       ]
     }
+  },
+  "gpt": {
+    "secrets.json.bot.config.name": {
+      "host": "ip.of.remote.ollama.gpt.setup.otherwise.will.use.local.optional"
+    }
   }
 }
