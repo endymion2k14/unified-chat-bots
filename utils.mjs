@@ -88,6 +88,7 @@ export function randomInt(min, max) {
     const _max = Math.max(min, max);
     return Math.floor(_min) + Math.floor(Math.random() * (_max - _min)); }
 
+// Math
 export function clamp(value, min, max) {
     const _min = Math.min(min, max);
     const _max = Math.max(min, max);
