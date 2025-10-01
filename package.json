@@ -12,6 +12,7 @@
   "dependencies": {
     "discord.js": "^14.21.0",
     "https": "^1.0.0",
+    "ollama": "^0.6.0",
     "ws": "^8.18.3"
   }
 }
