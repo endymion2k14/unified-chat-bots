@@ -14,7 +14,9 @@ export default {
             if (params.length > 0) {
                 try {
                     const system = client.getSystem('gpt');
-                    const response = await system.getResponse(concat(params, ' '));
+                    const response = await system.getResponse([
+                        { role: system.ROLES.SYSTEM, content: 'Please answer the next question as short and concise as possible:' },
+                        { role: system.ROLES.USER, content: concat(params, ' ') }]);
                     client.sendMessage(response.message.content);
                 } catch (err) {
                     log.error(`Something went wrong trying to get the response from the GPT: ${err}`, SOURCE);
