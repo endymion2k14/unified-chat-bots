@@ -80,9 +80,11 @@ export class TwitchIRC extends EventEmitter {
         }
         let msgs = message.toString().trim().split('\n');
         for (let i = 0; i < msgs.length; i++) {
+            if (msgs[i].trim().length < 1) { continue; }
             if (msgs[i].length < 500) { this.messageQueue.push(msgs[i]); }
             else {
-                let msg = msgs[i];
+                let msg = msgs[i].trim();
+                if (msg.length < 1) { continue; }
                 while (msg.length >= 500) {
                     let space = -1; // find last space before 500 mark
                     for (let j = 0; j < msg.length; j++) {
@@ -106,6 +108,7 @@ export class TwitchIRC extends EventEmitter {
         if (this.messagesInPeriod >= 20) return;    // hit limit
 
         const next = this.messageQueue.shift();
+        while (next.length === 0 && this.messageQueue.length > 0) { this.messageQueue.shift(); }
         if (!next) return;
 
         log.info(`[${this.channel}] ${this.username}: ${next}`, SOURCE);
