@@ -107,8 +107,8 @@ export class TwitchIRC extends EventEmitter {
         }
         if (this.messagesInPeriod >= 20) return;    // hit limit
 
-        const next = this.messageQueue.shift();
-        while (next.length === 0 && this.messageQueue.length > 0) { this.messageQueue.shift(); }
+        let next = this.messageQueue.shift();
+        while (next && next.length === 0 && this.messageQueue.length > 0) { next = this.messageQueue.shift(); }
         if (!next) return;
 
         log.info(`[${this.channel}] ${this.username}: ${next}`, SOURCE);
