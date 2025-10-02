@@ -4,6 +4,10 @@ export default {
     name: 'gpt',
     ollama: 0,
     model: 'gemma3:4b-it-qat',
+    ROLES: {
+        SYSTEM: 'system',
+        USER: 'user'
+    },
 
     init(client) {
         const config = client.getSystemConfig(this.name);
@@ -12,8 +16,8 @@ export default {
         else { this.ollama = new Ollama(); }
     },
 
-    async getResponse(prompt = '') {
+    async getResponse(messages = []) {
         if (!this.ollama) { throw('Unable to contact GPT without its info being initialized.'); }
-        return await this.ollama.chat({ model: this.model, messages: [{ role: 'user', content: prompt }], stream: false });
+        return await this.ollama.chat({ model: this.model, stream: false, messages: messages });
     }
 }
