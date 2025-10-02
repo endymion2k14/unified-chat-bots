@@ -35,7 +35,7 @@ export class TwitchIRC extends EventEmitter {
 
         this.username   = username.toLowerCase();
         this.oauth      = `oauth:${oauth}`;
-        this.channel    = channel.replace(/^#/, '');  // strip leading # - incase we do #username
+        this.channel    = channel.replace(/^#/, ''); // strip leading # - incase we do #username
 
         // Socket
         this.reconnectAttempts  = 0;
@@ -67,7 +67,6 @@ export class TwitchIRC extends EventEmitter {
         this.ws.addEventListener('close',   (code, reason) => this.handleClose(code, reason));
     }
 
-    /* ---------- sending ---------- */
     send(message) {
         if (!this.ws || this.ws.readyState !== WebSocket.OPEN) return;
         this.ws.send(`${message}\r\n`);
