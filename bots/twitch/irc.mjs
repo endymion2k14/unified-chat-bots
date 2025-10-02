@@ -79,21 +79,17 @@ export class TwitchIRC extends EventEmitter {
         }
         let msgs = message.toString().trim().split('\n');
         for (let i = 0; i < msgs.length; i++) {
-            if (msgs[i].trim().length < 1) { continue; }
-            if (msgs[i].length < 500) { this.messageQueue.push(msgs[i]); }
-            else {
-                let msg = msgs[i].trim();
-                if (msg.length < 1) { continue; }
-                while (msg.length >= 500) {
-                    let space = -1; // find last space before 500 mark
-                    for (let j = 0; j < msg.length; j++) {
-                        if (msg[j] === ' ' && j < 500) { space = j; }
-                    }
-                    if (space === -1) { space = 499; } // default to 499 if no good space was found
-                    this.messageQueue.push(msg.substring(0, space));
-                    msg = msg.substring(space, msg.length);
+            let msg = msgs[i].trim();
+            if (msg.length < 1) { continue; }
+            while (msg.length >= 500) {
+                let space = 499; // find last space before 500 mark
+                for (let j = 499; j > 0; j--) {
+                    if (msg[j] === ' ') { space = j; break; }
                 }
+                this.messageQueue.push(msg.substring(0, space));
+                msg = msg.substring(space, msg.length);
             }
+            this.messageQueue.push(msg);
         }
         this.flushQueue();
     }
