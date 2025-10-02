@@ -4,6 +4,7 @@ const SOURCE = 'gpt.mjs';
 
 export default {
     name: 'gpt',
+    system: ['gpt'],
     async reply(params, client, event) {
         if (event.privileges.super       ||
             event.privileges.broadcaster ||
