@@ -86,7 +86,7 @@ export class TwitchIRC extends EventEmitter {
                 while (msg.length >= 500) {
                     let space = -1; // find last space before 500 mark
                     for (let j = 0; j < msg.length; j++) {
-                        if (msg[i] === ' ' && j < 500) { space = j; }
+                        if (msg[j] === ' ' && j < 500) { space = j; }
                     }
                     if (space === -1) { space = 499; } // default to 499 if no good space was found
                     this.messageQueue.push(msg.substring(0, space));
