@@ -1,7 +1,12 @@
 import { log, json } from './utils.mjs';
-import { ClientTwitch } from "./bots/twitch/bot.mjs";
+import { ClientTwitch } from './bots/twitch/bot.mjs';
+import { WebConsole } from './bots/webconsole/webconsole.mjs';
 
 const SOURCE = 'MAIN';
+
+const clientsDiscord = [];
+const clientsTwitch = [];
+let webConsole;
 
 async function start() {
     log.info('Loading settings');
@@ -14,8 +19,6 @@ async function start() {
     for (let i = 0; i < settings.twitch .length; i++) { if (settings.twitch [i].enabled) { botsTwitch .push(i); } }
 
     // Run the bots
-    const clientsDiscord = [];
-    const clientsTwitch = [];
     if (botsDiscord.length > 0) {
         log.info(`Starting ${botsDiscord.length} discord bots`, SOURCE);
         for (let i = 0; i < botsDiscord.length; i++) {
@@ -28,6 +31,13 @@ async function start() {
         for (let i = 0; i < botsTwitch.length; i++) { clientsTwitch.push(new ClientTwitch(settings.twitch[botsTwitch[i]])); }
         for (let i = 0; i < clientsTwitch.length; i++) { clientsTwitch[i].connect(); }
     }
+
+    // Run the web console
+    webConsole = new WebConsole(getTwitchClients, getDiscordClients);
+    webConsole.start(settings.console.port).catch(err => log.error(`${err}`, SOURCE));
 }
+
+function getTwitchClients() { return clientsTwitch; }
+function getDiscordClients() { return clientsDiscord; }
 
 start().catch(err => { log.error(err); });
