@@ -30,11 +30,17 @@ export class WebConsole {
         app.get('/', (req, res) => {
             let nav = '';
             let data = '';
-            const clients = this.getTwitch();
+            const twitch = this.getTwitch();
+            const discord = this.getDiscord();
 
-            for (let i = 0; i < clients.length; i++) {
-                const [objNav, objData] = this.parseObject(clients[i]);
-                nav += `<li><ul>${objNav}</ul></li>`;
+            for (let i = 0; i < twitch.length; i++) {
+                const [objNav, objData] = this.parseObject(twitch[i]);
+                nav += `<li>Twitch<ul>${objNav}</ul></li>`;
+                data += `${objData}`;
+            }
+            for (let i = 0; i < discord.length; i++) {
+                const [objNav, objData] = this.parseObject(discord[i]);
+                nav += `<li>Discord<ul>${objNav}</ul></li>`;
                 data += `${objData}`;
             }
 
