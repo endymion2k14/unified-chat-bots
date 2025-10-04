@@ -1,8 +1,10 @@
-import { log } from '../../utils.mjs';
+import { equals, log } from '../../utils.mjs';
 import express from 'express';
 
-const app = express();
 const SOURCE = 'WebConsole';
+const MAX_DEPTH = 20;
+
+const app = express();
 
 export class WebConsole {
     getTwitch = 0;
@@ -26,9 +28,51 @@ export class WebConsole {
         }
 
         app.get('/', (req, res) => {
-            res.send('Page is working!');
+            let nav = '';
+            let data = '';
+            const clients = this.getTwitch();
+
+            for (let i = 0; i < clients.length; i++) {
+                const [objNav, objData] = this.parseObject(clients[i]);
+                nav += `<li><ul>${objNav}</ul></li>`;
+                data += `${objData}`;
+            }
+
+            res.send(`<ul>${nav}</ul>${data}`);
         });
 
         app.listen(port, _ => { log.info(`WebConsole started on port ${this.port}`, SOURCE) });
+    }
+
+    parseObject(obj, depth = 0, prefix = '') {
+        let nav = '';
+        let data = '';
+        if (depth > MAX_DEPTH) { return [nav, data]; }
+
+        // Filter what data is being presented
+        const keys = Object.keys(obj);
+        const possible = [];
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i].toLowerCase();
+            if (!(equals(key, 'secret') || equals(key, 'secrets') || equals(key, 'token') || equals(key, 'tokens')
+                || equals(key, '_events') || equals(key, '_eventsCount') || equals(key, '_maxListeners') || equals(key, 'ws') || equals(key, 'client')
+                || equals(typeof obj[key], 'function') || equals(typeof obj[key], 'undefined'))) {
+                possible.push(keys[i]);
+            }
+        }
+
+        // Recursively go through objects
+        for (let i = 0; i < possible.length; i++) {
+            if (equals(typeof obj[possible[i]], 'object')) {
+                const [objNav, objData] = this.parseObject(obj[possible[i]], depth + 1, `${prefix}${prefix.length > 0 ? '.' : ''}${possible[i]}`);
+                nav += `<li>${possible[i]}<ul>${objNav}</ul></li>`;
+                if (objData.length > 0) { data += `<p id="${prefix}${prefix.length > 0 ? '.' : ''}${possible[i]}">${objData}</p>`; }
+            }  else {
+                nav += `<li>${possible[i]}</li>`;
+                if (obj[possible[i]].length > 0) { data += `<p id="${prefix}${prefix.length > 0 ? '.' : ''}${possible[i]}">${obj[possible[i]]}</p>`; }
+            }
+        }
+
+        return [nav, data];
     }
 }
