@@ -33,8 +33,12 @@ async function start() {
     }
 
     // Run the web console
-    webConsole = new WebConsole(getTwitchClients, getDiscordClients);
-    webConsole.start(settings.console.port).catch(err => log.error(`${err}`, SOURCE));
+    if ('console' in settings) {
+        if ('port' in settings.console) {
+            webConsole = new WebConsole(getTwitchClients, getDiscordClients);
+            webConsole.start(settings.console.port).catch(err => log.error(`${err}`, SOURCE));
+        }
+    }
 }
 
 function getTwitchClients() { return clientsTwitch; }
