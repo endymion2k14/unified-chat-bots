@@ -1,10 +1,12 @@
-import { log, sleep } from '../../utils.mjs';
 import https from 'https';
+import { EventEmitter } from 'node:events';
+import { log, sleep } from '../../utils.mjs';
+import { EventTypes } from './irc.mjs';
 
 const SOURCE = 'TwitchAPI';
 const USERS_PER_CHUNK = 100;
 
-export class TwitchAPI {
+export class TwitchAPI extends EventEmitter {
     _data = {
         token: 0,
         userId: 0,
@@ -14,12 +16,29 @@ export class TwitchAPI {
     }
 
     constructor(token, channel, id) {
+        super();
         this._data.token = token;
         this._data.channel = channel;
         this._data.applicationId = id;
     }
 
     isReady() { return !(this._data.token === 0 || this._data.roomId === 0 || this._data.channel === 0 || this._data.applicationId === 0); }
+
+    async isChannelLive() {
+        const response = await fetch(`https://api.twitch.tv/helix/streams?user_login=${this._data.channel}`, {
+            method: 'GET',
+            headers: {
+                'Client-ID': `${this._data.applicationId}`,
+                'Authorization': `Bearer ${this._data.token}`
+            }
+        });
+        // TODO: catch this emit somewhere, maybe bundle with Followers
+        if (!response.ok) { this.emit('error', `HTTP ${response.status}`); return false; }
+        const json = await response.json();
+        const isLive = json.data.length > 0;
+        this.emit(isLive ? EventTypes.stream_start : EventTypes.stream_end, { channel: this._data.channel, live: isLive });
+        return isLive;
+    }
 
     async getAllFollowerData() {
         const followers = [];
