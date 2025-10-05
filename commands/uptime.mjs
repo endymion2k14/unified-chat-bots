@@ -1,10 +1,10 @@
-import {equals} from "../utils.mjs";
+import { equals } from '../utils.mjs';
 
 export default {
     name: 'uptime',
     system: ['botUptime', 'channelLive'],
     async reply(params, client, event) {
-        if (params > 0) {
+        if (params.length > 0) {
             if (equals(params[0].toLowerCase(), 'bot')) {
                 const uptime = client.getSystem('botUptime');
                 if ('getUptimeText' in uptime) { client.sendMessage(`Bot has been up for ${uptime.getUptimeText(false)}.`); }
