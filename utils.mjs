@@ -26,8 +26,8 @@ export function equals(first, second) {
 }
 
 // Timestamps
-const short_timespans = ['ms', 's', 'm', 'h', 'd', 'y'];
-const long_timespans =  ['millisecond', 'second', 'minute', 'hour', 'day', 'year'];
+const short_timespans = ['ms', 's', 'm', 'h', 'd', 'mo', 'y'];
+const long_timespans =  ['millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year'];
 const timespan_dividers = [0, 1000, 60, 60, 24, 365];
 
 export function getFullTimestamp(date = new Date()) { return `${getDatestamp(date)} ${getTimestamp(date)}`; }
@@ -35,21 +35,35 @@ export function getDatestamp(date = new Date()) { return `${date.getDate() < 10 
 export function getTimestamp(date = new Date()) { return `${date.toLocaleTimeString()}`; }
 export function getTimeDifference(from = 0, to = 0, shortened_words = true, showMilliseconds = false) {
     const names = shortened_words ? short_timespans : long_timespans;
-    const times = [];
 
-    const fromTime = Math.min(from, to);
-    const toTime = Math.max(from, to);
-    let time = toTime - fromTime;
 
-    // Calculate the time
-    for (let i = 0; i < timespan_dividers.length; i++) {
-        if (i === timespan_dividers.length - 1) { times.push(time); }
-        else {
-            const rest = time % timespan_dividers[i + 1];
-            time = Math.floor((time - rest) / timespan_dividers[i + 1]);
-            times.push(rest);
-        }
+    const fromTime = new Date(Math.min(from, to));
+    const toTime = new Date(Math.max(from, to));
+
+    let years = toTime.getFullYear() - fromTime.getFullYear();
+    let months = toTime.getMonth() - fromTime.getMonth();
+    let days = toTime.getDate() - fromTime.getDate();
+    let hours = toTime.getHours() - fromTime.getHours();
+    let minutes = toTime.getMinutes() - fromTime.getMinutes();
+    let seconds = toTime.getSeconds() - fromTime.getSeconds();
+    let milliseconds = toTime.getMilliseconds() - fromTime.getMilliseconds();
+
+    // Adjust negative values
+    if (milliseconds < 0) { milliseconds += 1000; seconds--; }
+    if (seconds < 0) { seconds += 60; minutes--; }
+    if (minutes < 0) { minutes += 60; hours--; }
+    if (hours < 0) { hours += 24; days--; }
+    if (days < 0) {
+        // Get previous month's last day
+        const prevMonth = new Date(toTime.getFullYear(), toTime.getMonth(), 0);
+        const lastDayOfPrevMonth = prevMonth.getDate();
+        days += lastDayOfPrevMonth;
+        months--;
     }
+    if (months < 0) { months += 12; years--; }
+
+    // Build array of time components
+    const times = [milliseconds, seconds, minutes, hours, days, months, years];
 
     // Get first non-zero that gets displayed
     let first = 0;
@@ -60,12 +74,17 @@ export function getTimeDifference(from = 0, to = 0, shortened_words = true, show
         }
     }
 
-    // Build the string
+    // Build result string
     let result = '';
     for (let i = times.length - 1; i >= (showMilliseconds ? 0 : 1); i--) {
-        if (times[i] > 0) { result += `${result.length > 0 ? (i === first ? ' and ' : ', ') : ''}${times[i]} ${names[i]}${(times[i] > 1) && !shortened_words ? 's' : ''}`; }
+        if (times[i] > 0) {
+            const unit = times[i];
+            const name = names[i];
+            const plural = unit > 1 && !shortened_words ? 's' : '';
+            result += `${result.length > 0 ? (i === first ? ' and ' : ', ') : ''}${unit} ${name}${plural}`;
+        }
     }
-    return result;
+    return result || '0 ' + names[0];
 }
 
 // File handling
