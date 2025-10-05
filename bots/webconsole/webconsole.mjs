@@ -69,13 +69,20 @@ export class WebConsole {
 
         // Recursively go through objects
         for (let i = 0; i < possible.length; i++) {
-            if (equals(typeof obj[possible[i]], 'object')) {
-                const [objNav, objData] = this.parseObject(obj[possible[i]], depth + 1, `${prefix}${prefix.length > 0 ? '.' : ''}${possible[i]}`);
-                nav += `<li>${possible[i]}<ul>${objNav}</ul></li>`;
-                if (objData.length > 0) { data += `<p id="${prefix}${prefix.length > 0 ? '.' : ''}${possible[i]}">${objData}</p>`; }
-            }  else {
-                nav += `<li>${possible[i]}</li>`;
-                if (obj[possible[i]].length > 0) { data += `<p id="${prefix}${prefix.length > 0 ? '.' : ''}${possible[i]}">${obj[possible[i]]}</p>`; }
+            switch ((typeof obj[possible[i]]).toLowerCase()) {
+                case 'object':
+                    const [objNav, objData] = this.parseObject(obj[possible[i]], depth + 1, `${prefix}${prefix.length > 0 ? '.' : ''}${possible[i]}`);
+                    nav += `<li>${possible[i]}<ul>${objNav}</ul></li>`;
+                    if (objData.length > 0) { data += `<p id="${prefix}${prefix.length > 0 ? '.' : ''}${possible[i]}">${objData}</p>`; }
+                    break;
+                case 'boolean':
+                    nav += `<li>${possible[i]}</li>`;
+                    data += `<p id="${prefix}${prefix.length > 0 ? '.' : ''}${possible[i]}">${obj[possible[i]] ? 'true' : 'false'}</p>`;
+                    break;
+                default:
+                    nav += `<li>${possible[i]}</li>`;
+                    if (obj[possible[i]].length > 0) { data += `<p id="${prefix}${prefix.length > 0 ? '.' : ''}${possible[i]}">${obj[possible[i]]}</p>`; }
+                    break;
             }
         }
 
