@@ -73,6 +73,10 @@ export class ClientTwitch extends EventEmitter {
         };
 
         this._setupEvents = function() {
+            // api
+            this.api.addListener('error', err => { log.error(err, `${SOURCE}-API`); })
+
+            // backend
             this._backend.addListener(EventTypes.connect      , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.connect   , event); });
             this._backend.addListener(EventTypes.disconnect   , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.disconnect, event); });
             this._backend.addListener(EventTypes.ban          , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.ban       , event); });
