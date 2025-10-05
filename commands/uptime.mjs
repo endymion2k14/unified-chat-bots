@@ -18,6 +18,5 @@ export default {
             else { client.sendMessage('Stream is currently offline.'); }
         }
         else { throw('Problem getting info from the required system.'); }
-
     }
 };
