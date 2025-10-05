@@ -69,19 +69,22 @@ export class WebConsole {
 
         // Recursively go through objects
         for (let i = 0; i < possible.length; i++) {
-            switch ((typeof obj[possible[i]]).toLowerCase()) {
+            const newPrefix = `${prefix}${prefix.length > 0 ? '.' : ''}${possible[i]}`;
+            const key = possible[i];
+            const value = obj[key];
+            switch ((typeof value).toLowerCase()) {
                 case 'object':
-                    const [objNav, objData] = this.parseObject(obj[possible[i]], depth + 1, `${prefix}${prefix.length > 0 ? '.' : ''}${possible[i]}`);
-                    nav += `<li>${possible[i]}<ul>${objNav}</ul></li>`;
-                    if (objData.length > 0) { data += `<p id="${prefix}${prefix.length > 0 ? '.' : ''}${possible[i]}">${objData}</p>`; }
+                    const [objNav, objData] = this.parseObject(value, depth + 1, `${newPrefix}`);
+                    nav += `<li>${key}<ul>${objNav}</ul></li>`;
+                    if (objData.length > 0) { data += `<div id="${newPrefix}">${objData}</div>`; }
                     break;
                 case 'boolean':
-                    nav += `<li>${possible[i]}</li>`;
-                    data += `<p id="${prefix}${prefix.length > 0 ? '.' : ''}${possible[i]}">${obj[possible[i]] ? 'true' : 'false'}</p>`;
+                    nav += `<li>${key}</li>`;
+                    data += `<div id="${newPrefix}">${value ? 'true' : 'false'}</div>`;
                     break;
                 default:
-                    nav += `<li>${possible[i]}</li>`;
-                    if (obj[possible[i]].length > 0) { data += `<p id="${prefix}${prefix.length > 0 ? '.' : ''}${possible[i]}">${obj[possible[i]]}</p>`; }
+                    nav += `<li>${key}</li>`;
+                    if (value.length > 0) { data += `<div id="${newPrefix}">${value}</div>`; }
                     break;
             }
         }
