@@ -34,12 +34,12 @@ export class WebConsole {
             const discord = this.getDiscord();
 
             for (let i = 0; i < twitch.length; i++) {
-                const [objNav, objData] = this.parseObject(twitch[i]);
+                const [objNav, objData] = this.parseObject(twitch[i], `${i}`);
                 nav += `<li>Twitch<ul>${objNav}</ul></li>`;
                 data += `${objData}`;
             }
             for (let i = 0; i < discord.length; i++) {
-                const [objNav, objData] = this.parseObject(discord[i]);
+                const [objNav, objData] = this.parseObject(discord[i], `${i}`);
                 nav += `<li>Discord<ul>${objNav}</ul></li>`;
                 data += `${objData}`;
             }
@@ -50,7 +50,7 @@ export class WebConsole {
         app.listen(port, _ => { log.info(`WebConsole started on port ${this.port}`, SOURCE) });
     }
 
-    parseObject(obj, depth = 0, prefix = '') {
+    parseObject(obj, prefix = '', depth = 0) {
         let nav = '';
         let data = '';
         if (depth > MAX_DEPTH) { return [nav, data]; }
