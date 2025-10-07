@@ -118,6 +118,16 @@ export class ClientTwitch extends EventEmitter {
                 }
                 if (failed) { continue; } // Skip
 
+                // Check if system is ignored
+                let ignore = false;
+                for (let i = 0; i < this._settings.settings.systemsIgnore.length; i++) {
+                    if (equals(this._settings.settings.systemsIgnore[i].toLowerCase(), system.name.toLowerCase())) {
+                        ignore = true;
+                        break;
+                    }
+                }
+                if (ignore) { continue; } // Skip
+
                 if ('init' in system) { // Initialize system if needed
                     try {
                         system.init(this);
