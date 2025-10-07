@@ -6,13 +6,15 @@ export default {
     model: 'gemma3:4b-it-qat',
     ROLES: {
         SYSTEM: 'system',
-        USER: 'user'
+        USER: 'user',
+        GPT: 'assistant'
     },
 
     init(client) {
         const config = client.getSystemConfig(this.name);
-        if ('model' in config) { this.model  = config.model; }
-        if ('host'  in config) { this.ollama = new Ollama({ host: config.host }); }
+        if ('model'       in config) { this.model  = config.model; }
+        if ('host'        in config) { this.ollama = new Ollama({ host: config.host }); }
+        if (`remembrance` in config) { this.remembrance = config.remembrance; }
         else { this.ollama = new Ollama(); }
     },
 
