@@ -36,7 +36,7 @@ export class TwitchAPI extends EventEmitter {
         if (!response.ok) { this.emit('error', `HTTP ${response.status}`); return false; }
         const json = await response.json();
         const isLive = json.data.length > 0;
-        this.emit(isLive ? EventTypes.stream_start : EventTypes.stream_end, { channel: this._data.channel, live: isLive });
+        this.emit(isLive ? EventTypes.stream_start : EventTypes.stream_end, { channel: this._data.channel, live: isLive, started_at: isLive ? new Date(json.data[0].started_at).getTime() : 0 });
         return isLive;
     }
 
