@@ -10,7 +10,7 @@ const system_prompt = 'Translate the following stream chat message into English.
 
 export default {
     name: 'translate',
-    system: ['gpt'],
+    systems: ['gpt'],
     async reply(params, client, event) {
         if (event.privileges.super       ||
             event.privileges.broadcaster ||

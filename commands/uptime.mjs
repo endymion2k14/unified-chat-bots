@@ -2,7 +2,7 @@ import { equals } from '../utils.mjs';
 
 export default {
     name: 'uptime',
-    system: ['botUptime', 'channelLive'],
+    systems: ['botUptime', 'channelLive'],
     async reply(params, client, event) {
         if (params.length > 0) {
             if (equals(params[0].toLowerCase(), 'bot')) {
