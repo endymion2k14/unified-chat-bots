@@ -135,6 +135,7 @@ export class ClientTwitch extends EventEmitter {
                         log.error(error, `${SOURCE}-system-${system.name.toLowerCase()}`);
                         continue; // Skip adding it as a successfully loaded system
                     }
+                    log.info(`Loaded system '${system.name}'!`, `${SOURCE}-${this._settings.name}`);
                 }
                 this._systems.push({ name: system.name.toLowerCase(), system: system });
             }
