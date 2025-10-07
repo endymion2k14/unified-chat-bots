@@ -172,6 +172,16 @@ export class ClientTwitch extends EventEmitter {
                 }
                 if (failed) { continue; } // Skip
 
+                // Check if command is ignored
+                let ignore = false;
+                for (let i = 0; i < this._settings.settings.commandsIgnore.length; i++) {
+                    if (equals(this._settings.settings.commandsIgnore[i].toLowerCase(), command.name.toLowerCase())) {
+                        ignore = true;
+                        break;
+                    }
+                }
+                if (ignore) { continue; } // Skip
+
                 // Set a new item in the Collection with the key as the command name and the value as the exported module
                 this._commands.push({ name: command.name.toLowerCase(), command: command });
                 const aliases = command.aliases || [];
