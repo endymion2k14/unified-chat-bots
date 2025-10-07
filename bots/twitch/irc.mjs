@@ -154,7 +154,7 @@ export class TwitchIRC extends EventEmitter {
             return;
         }
 
-        log.info(`Response not handled: ${line}`, SOURCE);
+        //log.info(`Response not handled: ${line}`, SOURCE);
     }
 
     parseTags(raw) {
