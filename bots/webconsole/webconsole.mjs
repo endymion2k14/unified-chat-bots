@@ -34,12 +34,12 @@ export class WebConsole {
             const discord = this.getDiscord();
 
             for (let i = 0; i < twitch.length; i++) {
-                const [objNav, objData] = this.parseObject(twitch[i], `${i}`);
+                const [objNav, objData] = this.parseObject(twitch[i], `twitch.${i}`);
                 nav += `<li>Twitch<ul>${objNav}</ul></li>`;
                 data += `${objData}`;
             }
             for (let i = 0; i < discord.length; i++) {
-                const [objNav, objData] = this.parseObject(discord[i], `${i}`);
+                const [objNav, objData] = this.parseObject(discord[i], `discord.${i}`);
                 nav += `<li>Discord<ul>${objNav}</ul></li>`;
                 data += `${objData}`;
             }
