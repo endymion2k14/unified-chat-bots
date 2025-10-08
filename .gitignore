@@ -5,5 +5,8 @@ configs/config.json
 configs/secrets.json
 configs/commands.json
 configs/systems.json
+gptdata/*
+!gptdata/
+!gptdata/.gitkeep
 commands/test.mjs
 systems/test.mjs
