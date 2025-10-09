@@ -24,10 +24,8 @@ export default {
                             return client.sendMessage('Stream is currently offline.');
                         }
                         log.info("Grabbing live image", SOURCE);
-                        // Pick your best image to get based on your 'performance'
-                        // Possible images: 1920x1080, 1280x720, 800x450, 440x248, 320x180
-                        // Date.now so it cannot 'pre cache' the image - has to be refreshed by Twitch
-                        const base64Image = await system.urlToBase64(`https://static-cdn.jtvnw.net/previews-ttv/live_user_${client._settings.settings.channel}-1920x1080.jpg?t=${Date.now()}`);
+                        // Date.now() so it cannot 'pre cache' the image - has to be refreshed by Twitch
+                        const base64Image = await system.urlToBase64(`https://static-cdn.jtvnw.net/previews-ttv/live_user_${client._settings.settings.channel}-${system.resolution}.jpg?t=${Date.now()}`);
                         messages.push({ role: system.ROLES.USER, content: system_prompt, images: [base64Image] });
                     } else if (params[0].startsWith('http')) {
                         log.info("Grabbing image from URL", SOURCE);

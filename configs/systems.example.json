@@ -56,7 +56,8 @@
   "gptimage": {
     "secrets.json.bot.config.name": {
       "host": "ip.of.remote.ollama.gpt.setup.otherwise.will.use.local.optional",
-      "model": "name.of.model.otherwise.will.use.gemma3:4b-it-qat.optional"
+      "model": "name.of.model.otherwise.will.use.gemma3:4b-it-qat.optional",
+      "resolution": "pick.one.for.performance.1920x1080.or.1280x720.or.800x450.or.440x248.or.320x180"
     }
   }
 }
