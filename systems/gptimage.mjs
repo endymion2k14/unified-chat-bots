@@ -13,7 +13,7 @@ export default {
         const config = client.getSystemConfig(this.name);
         if ('model'      in config) { this.model  = config.model; }
         if ('host'       in config) { this.ollama = new Ollama({ host: config.host }); }
-        if (`resolution` in config) { this.resolution = config.resolution; }
+        if ('resolution' in config) { this.resolution = config.resolution; }
         else { this.ollama = new Ollama(); }
     },
 
