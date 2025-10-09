@@ -90,7 +90,19 @@ export function getTimeDifference(from = 0, to = 0, shortened_words = true, show
 // File handling
 export const json = {
     save: function (source, data) { const filepath = new URL(source, import.meta.url); try { fs.writeFileSync(filepath, JSON.stringify(data, null, 2)); } catch (e) { log.warn(`JSON file was not able to be overwritten, does the file exist?`, SOURCE) } },
-    load: function (source) { return JSON.parse(fs.readFileSync(new URL(source, import.meta.url))); }
+    load: function (source) { return JSON.parse(fs.readFileSync(new URL(source, import.meta.url))); },
+    exists: function (source) { return fs.existsSync(source); },
+    append: function (source, data) {
+        let existingData = [];
+        try {
+            const fileData = fs.readFileSync(new URL(source, import.meta.url));
+            if (fileData.length > 0) existingData = JSON.parse(fileData);
+        } catch (err) {
+            console.error("Error reading the file:", err);
+        }
+        existingData.push(data);
+        fs.writeFileSync(new URL(source, import.meta.url), JSON.stringify(existingData, null, 2));
+    }
 }
 
 // String manipulation
