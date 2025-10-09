@@ -65,7 +65,9 @@
     "secrets.json.bot.config.name": {
       "host": "ip.of.remote.ollama.gpt.setup.otherwise.will.use.local.optional",
       "model": "name.of.model.otherwise.will.use.gemma3:4b-it-qat.optional",
-      "max_messages": 5
+      "max_messages": 5,
+      "message_limit_per_user": 5,
+      "message_time_window": 60000
     }
   }
 }
