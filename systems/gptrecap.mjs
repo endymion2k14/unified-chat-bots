@@ -23,6 +23,7 @@ export default {
         if ('message_time_window'    in config) { this.message_time_window  = config.message_time_window; }
         if ('host'                   in config) { this.ollama = new Ollama({ host: config.host }); }
         else { this.ollama = new Ollama(); }
+        // TODO: how to get emit that we went offline, so we can reset chatMessages and userMessageCount?
         client.on('message', (event) => {
             const currentTime = Date.now();
             if (!this.userMessageCount[event.username]) {
