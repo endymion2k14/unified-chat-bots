@@ -159,6 +159,7 @@ export class ClientTwitch extends EventEmitter {
                         failed = true;
                     }
                 }
+                if (failed || !('commandsIgnore' in this._settings.settings)) { continue; } // Skip
 
                 // Check if command is ignored
                 let ignore = false;
