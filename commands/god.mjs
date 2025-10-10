@@ -2,6 +2,8 @@ import { concat, log, json } from '../utils.mjs';
 
 const SOURCE = 'god.mjs';
 
+const system_prompt = 'Please answer the next question as short and concise as possible:';
+
 export default {
     name: 'god',
     system: ['gpt'],
@@ -34,7 +36,7 @@ export default {
                         messages.push({ role: system.ROLES.GPT, content: response });
                     }
                     // Ninja juju to make the messages correct for GPT. Place the role and prompt at the top, place the messages in correct order below.
-                    messages.unshift({ role: system.ROLES.SYSTEM, content: `Please answer the next question as short and concise as possible:` });
+                    messages.unshift({ role: system.ROLES.SYSTEM, content: system_prompt });
                     messages.push({ role: system.ROLES.USER, content: concat(params, ' ') });
 
                     // Await Response
