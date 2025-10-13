@@ -1,4 +1,6 @@
 import { Ollama } from 'ollama';
+import { EventTypes } from '../bots/twitch/irc.mjs';
+import { log } from '../utils.mjs';
 
 export default {
     name: 'gptrecap',
@@ -23,7 +25,11 @@ export default {
         if ('message_time_window'    in config) { this.message_time_window  = config.message_time_window; }
         if ('host'                   in config) { this.ollama = new Ollama({ host: config.host }); }
         else { this.ollama = new Ollama(); }
-        // TODO: how to get emit that we went offline, so we can reset chatMessages and userMessageCount?
+        client.api.addListener(EventTypes.stream_end, () => {
+            this.chatMessages = [];
+            this.userMessageCount = {};
+            log.info('Channel went offline - resetting chat history', 'gptrecap.mjs');
+        });
         client.on('message', (event) => {
             const currentTime = Date.now();
             if (!this.userMessageCount[event.username]) {
@@ -31,13 +37,13 @@ export default {
             }
             this.userMessageCount[event.username] = this.userMessageCount[event.username].filter(time => currentTime - time < this.message_time_window);
             if (this.userMessageCount[event.username].length >= this.message_limit_per_user) {
-                console.log(`User ${event.username} exceeded message limit.`);
+                log.warn(`User ${event.username} exceeded message limit.`, 'gptrecap.mjs');
                 return;
             }
             this.userMessageCount[event.username].push(currentTime);
             if (this.chatMessages.length >= this.max_messages) {
                 this.chatMessages.shift();
-                console.log(`User ${event.username} exceeded max messages limit. shifting.`);
+                log.warn(`User ${event.username} exceeded max messages limit. shifting.`, 'gptrecap.mjs');
             }
             this.chatMessages.push(`${event.username}: ${event.message}`);
         });
