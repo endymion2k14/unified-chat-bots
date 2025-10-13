@@ -1,11 +1,11 @@
 import { concat, log, json } from '../utils.mjs';
 
-const SOURCE = 'god.mjs';
+const SOURCE = 'gptknows.mjs';
 
 const system_prompt = 'Please answer the next question as short and concise as possible:';
 
 export default {
-    name: 'god',
+    name: 'gptknows',
     system: ['gpt'],
     async reply(params, client, event) {
         if (event.privileges.super       ||

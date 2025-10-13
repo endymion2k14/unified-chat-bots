@@ -37,6 +37,7 @@ export default {
             this.userMessageCount[event.username].push(currentTime);
             if (this.chatMessages.length >= this.max_messages) {
                 this.chatMessages.shift();
+                console.log(`User ${event.username} exceeded max messages limit. shifting.`);
             }
             this.chatMessages.push(`${event.username}: ${event.message}`);
         });
