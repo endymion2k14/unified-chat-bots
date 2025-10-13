@@ -2,7 +2,6 @@ import { concat, equals, log } from '../utils.mjs';
 
 const SOURCE = 'gptimage.mjs';
 
-// TODO: Test url: https://static-cdn.jtvnw.net/previews-ttv/live_user_[streamer]-1920x1080.jpg
 const system_prompt = 'Please describe this image as short and concise as possible:';
 
 export default {
