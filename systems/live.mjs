@@ -3,24 +3,40 @@ import { getFullTimestamp, getTimeDifference, log } from '../utils.mjs';
 
 export default {
     name: 'channelLive',
-    _live: false,
-    _startTime: 0,
+    data: {},
     init(client) {
         client.api.addListener(EventTypes.stream_start, status => {
-            if (!this._live) { log.info(`Channel '${client.channel}' started streaming at ${getFullTimestamp(new Date(status.started_at))}.`, 'live.mjs'); }
-            this._live = true;
-            this._startTime = status.started_at;
+            // Make sure data is stored
+            if (!(client.channel in this.data)) { this.data[client.channel] = { live: false, startTime: 0 }; }
+
+            // Check if message needs to be sent
+            if (this.data[client.channel].live) { return; }
+
+            // Update info
+            log.info(`Channel '${client.channel}' started streaming at ${getFullTimestamp(new Date(status.started_at))}.`, 'live.mjs');
+            this.data[client.channel].live = true;
+            this.data[client.channel].startTime = status.started_at;
         });
         client.api.addListener(EventTypes.stream_end  , status => {
-            if (this._live) { log.info(`Channel '${client.channel}' went offline.`, 'live.mjs'); }
-            this._live = false;
-            this._startTime = 0;
+            // Make sure data is stored
+            if (!(client.channel in this.data)) { this.data[client.channel] = { live: false, startTime: 0 }; }
+
+            // Check if message needs to be sent
+            if (!this.data[client.channel].live) { return; }
+
+            // Update info
+            if (this.data[client.channel].live) { log.info(`Channel '${client.channel}' went offline.`, 'live.mjs'); }
+            this.data[client.channel].live = false;
+            this.data[client.channel].startTime = 0;
         });
         this.callAPI(client);
         setInterval(_ => { this.callAPI(client); }, 60 * 1000 );
     },
     _now() { return new Date().getTime(); },
-    getUptimeValue() { return this._startTime - this._now(); },
-    getUptimeText(shortened_words = true) { return getTimeDifference(this.getUptimeValue(), 0, shortened_words); },
+    getUptimeValue(channel) {
+        if (channel in this.data) { return this.data[channel].startTime; }
+        return 0;
+    },
+    getUptimeText(channel, shortened_words = true) { return getTimeDifference(this.getUptimeValue(channel), this._now(), shortened_words); },
     callAPI(client) { client.api.isChannelLive().catch(e => {}); }
 }
