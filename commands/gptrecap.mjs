@@ -18,8 +18,8 @@ export default {
                     const [username, message] = msg.split(': ');
                     return { username, message };
                 }).map(item => `${item.username}: ${item.message}`).join('\n');
-                console.log(`Showing chat history for ${event.channel}`);
-                console.log(chatHistory);
+                log.info(`Showing chat history for ${event.channel}`, SOURCE);
+                log.info(chatHistory, SOURCE);
                 const response = await system.getResponse([
                     { role: system.ROLES.SYSTEM, content: system_prompt },
                     { role: system.ROLES.USER, content: chatHistory }]);
