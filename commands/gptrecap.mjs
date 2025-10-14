@@ -13,7 +13,8 @@ export default {
             event.privileges.moderator) {
             try {
                 const system = client.getSystem('gptrecap');
-                const chatHistory = system.chatMessages.map(msg => {
+                const channelData = system.data[client.channel];
+                const chatHistory = channelData.chatMessages.map(msg => {
                     const [username, message] = msg.split(': ');
                     return { username, message };
                 }).map(item => `${item.username}: ${item.message}`).join('\n');
