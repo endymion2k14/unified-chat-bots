@@ -30,7 +30,7 @@ const short_timespans = ['ms', 's', 'm', 'h', 'd', 'mo', 'y'];
 const long_timespans =  ['millisecond', 'second', 'minute', 'hour', 'day', 'month', 'year'];
 const timespan_dividers = [0, 1000, 60, 60, 24, 365];
 
-export function getFullTimestamp(date = new Date()) { return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2,'0')}-${date.getDate().toString().padStart(2,'0')} ${((date.getHours() % 12) || 12).toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}:${date.getSeconds().toString().padStart(2,'0')} ${date.getHours() >= 12 ? 'PM' : 'AM'}`; }
+export function getFullTimestamp(date = new Date()) { return `${getDatestamp(date)} ${getTimestamp(date)}`; }
 export function getDatestamp(date = new Date()) { return `${date.getDate() < 10 ? '0' : ''}${date.getDate()}-${(1 + date.getMonth()) < 10 ? '0' : ''}${1 + date.getMonth()}-${date.getFullYear()}`; }
 export function getTimestamp(date = new Date()) { return `${date.toLocaleTimeString()}`; }
 export function getTimeDifference(from = 0, to = 0, shortened_words = true, showMilliseconds = false) {
