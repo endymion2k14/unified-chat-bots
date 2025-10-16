@@ -63,8 +63,8 @@ export class TwitchIRC extends EventEmitter {
         });
 
         this.ws.addEventListener('message', (event) => this.parse(event.data.toString()));
-        this.ws.addEventListener('error',   (error) => this.handleError(error));
-        this.ws.addEventListener('close',   (code, reason) => this.handleClose(code, reason));
+        this.ws.addEventListener('error', (event) => this.handleError(event.error));
+        this.ws.addEventListener('close', (event) => this.handleClose(event.code, event.reason));
     }
 
     send(message) {
@@ -149,7 +149,6 @@ export class TwitchIRC extends EventEmitter {
             const [_, tagsPart, ident, nickname, host, chan, message] = privmsg;
             const tags = this.parseTags(tagsPart);
             const privileges = this.getPrivileges(tags);
-            log.info(`[${this.channel}] ${nickname}: ${message}`, SOURCE);
             this.emit(EventTypes.message, { username: nickname, identity: ident, host: host, channel: chan, message: message, tags: tags, privileges: privileges });
             return;
         }
@@ -193,7 +192,7 @@ export class TwitchIRC extends EventEmitter {
         };
     }
 
-    handleError(err) { log.error(`WS error: ${err}`, SOURCE); }
+    handleError(error) { log.error(`WS error: ${error}`, SOURCE); }
 
     handleClose(code, reason) {
         log.warn(`WS closed (code=${code} reason=${reason}). Reconnecting...`, SOURCE);
