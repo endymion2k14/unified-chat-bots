@@ -32,6 +32,7 @@ export class TwitchAPI extends EventEmitter {
                 'Authorization': `Bearer ${this._data.token}`
             }
         });
+        // TODO: catch this emit somewhere, maybe bundle with Followers
         if (!response.ok) { this.emit('error', `HTTP ${response.status}`); return false; }
         const json = await response.json();
         const isLive = json.data.length > 0;
