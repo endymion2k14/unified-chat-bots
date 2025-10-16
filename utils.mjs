@@ -94,12 +94,7 @@ export const json = {
     exists: function (source) { return fs.existsSync(source); },
     append: function (source, data) {
         let existingData = [];
-        try {
-            const fileData = fs.readFileSync(new URL(source, import.meta.url));
-            if (fileData.length > 0) existingData = JSON.parse(fileData);
-        } catch (err) {
-            console.error("Error reading the file:", err);
-        }
+        try { const fileData = fs.readFileSync(new URL(source, import.meta.url)); if (fileData.length > 0) existingData = JSON.parse(fileData); } catch (err) { log.error(`Error reading the file: ${err}`, SOURCE); }
         existingData.push(data);
         fs.writeFileSync(new URL(source, import.meta.url), JSON.stringify(existingData, null, 2));
     }
