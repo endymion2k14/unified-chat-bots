@@ -1,4 +1,4 @@
-import { concat, equals, log } from '../utils.mjs';
+import { concat, equals, log, urlToBase64 } from '../utils.mjs';
 
 const SOURCE = 'gptimage.mjs';
 
@@ -24,11 +24,11 @@ export default {
                         }
                         log.info("Grabbing live image", SOURCE);
                         // Date.now() so it cannot 'pre cache' the image - has to be refreshed by Twitch
-                        const base64Image = await system.urlToBase64(`https://static-cdn.jtvnw.net/previews-ttv/live_user_${client._settings.settings.channel}-${system.resolution}.jpg?t=${Date.now()}`);
+                        const base64Image = await urlToBase64(`https://static-cdn.jtvnw.net/previews-ttv/live_user_${client._settings.settings.channel}-${system.resolution}.jpg?t=${Date.now()}`);
                         messages.push({ role: system.ROLES.USER, content: system_prompt, images: [base64Image] });
                     } else if (params[0].startsWith('http')) {
                         log.info("Grabbing image from URL", SOURCE);
-                        const base64Image = await system.urlToBase64(params[0]);
+                        const base64Image = await urlToBase64(params[0]);
                         messages.push({ role: system.ROLES.USER, content: system_prompt, images: [base64Image] });
                     } else {
                         return client.sendMessage('Invalid input. Please provide a valid live keyword or image URL.');
