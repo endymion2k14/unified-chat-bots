@@ -4,7 +4,6 @@ export default {
     name: 'gpt',
     ollama: 0,
     model: 'gemma3:4b-it-qat',
-    remembrance: 0,
     ROLES: {
         SYSTEM: 'system',
         USER: 'user',
