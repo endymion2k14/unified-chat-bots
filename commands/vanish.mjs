@@ -1,5 +1,6 @@
 export default {
     name: 'vanish',
+    systems: ['vanish'],
     async reply(params, client, event) {
         if (event.privileges.super       ||
             event.privileges.broadcaster ||
