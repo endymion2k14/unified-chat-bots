@@ -24,6 +24,43 @@ export class TwitchAPI extends EventEmitter {
 
     isReady() { return !(this._data.token === 0 || this._data.roomId === 0 || this._data.channel === 0 || this._data.applicationId === 0); }
 
+    // Token is expected to have: moderator:manage:chat_messages
+    async clearChat() {
+        const options = {
+            hostname: 'api.twitch.tv',
+            method: 'DELETE',
+            path: `/helix/moderation/chat?broadcaster_id=${this._data.roomId}&moderator_id=${this._data.userId}`,
+            headers: {
+                'Client-ID': `${this._data.applicationId}`,
+                'Authorization': `Bearer ${this._data.token}`
+            }
+        }
+        let response = "";
+        https.get(options, r => {
+            r.setEncoding('utf8');
+            r.on('data', data => { response += data; });
+            r.on('end', _ => { });
+        }).on('error', err => { log.error(err); });
+    }
+    // Token is expected to have: moderator:manage:chat_messages
+    async removeMessage(messageId) {
+        const options = {
+            hostname: 'api.twitch.tv',
+            method: 'DELETE',
+            path: `/helix/moderation/chat?broadcaster_id=${this._data.roomId}&moderator_id=${this._data.userId}&message_id=${messageId}`,
+            headers: {
+                'Client-ID': `${this._data.applicationId}`,
+                'Authorization': `Bearer ${this._data.token}`
+            }
+        }
+        let response = "";
+        https.get(options, r => {
+            r.setEncoding('utf8');
+            r.on('data', data => { response += data; });
+            r.on('end', _ => { });
+        }).on('error', err => { logError(err); });
+    }
+
     async isChannelLive() {
         const response = await fetch(`https://api.twitch.tv/helix/streams?user_login=${this._data.channel}`, {
             method: 'GET',
@@ -32,7 +69,6 @@ export class TwitchAPI extends EventEmitter {
                 'Authorization': `Bearer ${this._data.token}`
             }
         });
-        // TODO: catch this emit somewhere, maybe bundle with Followers
         if (!response.ok) { this.emit('error', `HTTP ${response.status}`); return false; }
         const json = await response.json();
         const isLive = json.data.length > 0;

@@ -34,6 +34,7 @@ export class TwitchIRC extends EventEmitter {
         super();
 
         this.username   = username.toLowerCase();
+        // Token is expected to have: channel:moderate, chat:edit, chat:read, moderator:read:followers
         this.oauth      = `oauth:${oauth}`;
         this.channel    = channel.replace(/^#/, ''); // strip leading # - incase we do #username
 
