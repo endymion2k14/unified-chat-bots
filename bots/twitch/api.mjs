@@ -25,6 +25,7 @@ export class TwitchAPI extends EventEmitter {
     isReady() { return !(this._data.token === 0 || this._data.roomId === 0 || this._data.channel === 0 || this._data.applicationId === 0); }
 
     // Token is expected to have: moderator:manage:chat_messages
+    // https://dev.twitch.tv/docs/api/reference#delete-chat-messages
     async clearChat() {
         const options = {
             hostname: 'api.twitch.tv',
@@ -46,6 +47,7 @@ export class TwitchAPI extends EventEmitter {
         });
     }
     // Token is expected to have: moderator:manage:chat_messages
+    // https://dev.twitch.tv/docs/api/reference#delete-chat-messages
     async removeMessage(messageId) {
         const options = {
             hostname: 'api.twitch.tv',
@@ -64,26 +66,6 @@ export class TwitchAPI extends EventEmitter {
                 res.on('end', () => { try { resolve(JSON.parse(data)); } catch (err) { reject(err); } });
             }).on('error', err => { log.error(err); reject(err); });
             req.end();
-        });
-    }
-
-    async fetchMessagesFromUser(client, event) {
-        const options = {
-            hostname: 'api.twitch.tv',
-            method: 'GET',
-            path: `/helix/chat/history?broadcaster_id=${client._data.roomId}&moderator_id=${client._data.userId}`,
-            headers: {
-                'Client-ID': `${client._data.applicationId}`,
-                'Authorization': `Bearer ${client._data.token}`
-            }
-        };
-        return new Promise((resolve, reject) => {
-            let response = "";
-            https.get(options, res => {
-                res.setEncoding('utf8');
-                res.on('data', data => { response += data; });
-                res.on('end', () => { try { const messages = JSON.parse(response).messages; resolve(messages); } catch (err) { reject(err); } });
-            }).on('error', err => { log.error(err); reject(err); });
         });
     }
 
