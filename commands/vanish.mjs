@@ -3,24 +3,12 @@ export default {
     name: 'vanish',
     systems: ['vanish'],
     async reply(params, client, event) {
-        if (event.privileges.super       ||
-            event.privileges.broadcaster ||
-            event.privileges.moderator   ||
-            event.privileges.subscriber  ||
-            event.privileges.vip) {
-            const system = client.getSystem('vanish');
-            const userMessages = [...system.data.userMessages.entries()];
-            log.info(JSON.stringify(userMessages, null, 2));
-            for (const [userId, messages] of userMessages) {
-                // TODO: how to get userid?
-                // Check if this is the specific user ID you want (61528972)
-                if (userId === "61528972") {
-                    for (const message of messages) {
-                        client.api.removeMessage(message.id);
-                    }
-
-                }
-            }
+        if (event.privileges.broadcaster || event.privileges.moderator) { client.sendMessage(`Broadcasters and Moderators cannot vanish themselves ${event.username}.`); return; }
+        const system = client.getSystem('vanish');
+        const userMessages = [...system.data.userMessages.entries()];
+        const userId = await client.api.getUserId(event.username);
+        for (const [id, messageid] of userMessages) {
+            if (id === userId) { for (const message of messages) { client.api.removeMessage(message.id); } system.data.userMessages.delete(userId); break; }
         }
     },
 };
