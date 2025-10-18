@@ -41,7 +41,7 @@ export class TwitchAPI extends EventEmitter {
                 let data = '';
                 res.setEncoding('utf8');
                 res.on('data', chunk => { data += chunk; });
-                res.on('end', () => { try { resolve(JSON.parse(data)); } catch (err) { reject(err); } });
+                res.on('end', () => { });
             }).on('error', err => { log.error(err); reject(err); });
             req.end();
         });
