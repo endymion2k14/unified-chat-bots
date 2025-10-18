@@ -5,7 +5,7 @@ const SOURCE = 'vanish.mjs';
 
 export default {
     name: 'vanish',
-    data: {},
+    data: [],
     init(client) {
         if (!this.data.userMessages) { this.data.userMessages = new Map(); }
         client.on('message', (event) => {
@@ -13,6 +13,7 @@ export default {
             const messageId = event.tags.id;
             if (!this.data.userMessages.has(userId)) { this.data.userMessages.set(userId, []); }
             this.data.userMessages.get(userId).push({ id: messageId });
+            console.log(this.data.userMessages);
         });
     },
 }
