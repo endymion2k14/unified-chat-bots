@@ -13,7 +13,6 @@ export default {
             const messageId = event.tags.id;
             if (!this.data.userMessages.has(userId)) { this.data.userMessages.set(userId, []); }
             this.data.userMessages.get(userId).push({ id: messageId });
-            console.log(this.data.userMessages);
         });
     },
 }
