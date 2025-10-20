@@ -1,4 +1,7 @@
 import { log } from '../utils.mjs';
+
+const SOURCE = 'vanish.mjs';
+
 export default {
     name: 'vanish',
     systems: ['vanish'],
@@ -9,9 +12,9 @@ export default {
             const userId = event.tags['user-id'];
             const userMessages = system.data[client.channel].userMessages[userId];
             if (userMessages) {
-                console.log(`User ID: ${userId}`);
+                log.info(`User ID: ${userId}`, SOURCE);
                 userMessages.forEach(message => {
-                    console.log(`Message ID: ${message.id}`);
+                    log.info(`Message ID: ${message.id}`, SOURCE);
                 //     client.api.removeMessage(`${message.id}`).then(() => {
                 //         system.data[client.channel].userMessages[userId] = userMessages.filter(msg => msg.id !== message.id);
                 //     }).catch(error => {
@@ -19,10 +22,10 @@ export default {
                 //     });
                 // });
             } else {
-                console.log('No messages found for this user.');
+                log.warn('No messages found for this user.', SOURCE);
             }
         } else {
-            console.log('No user messages available for this channel.');
+            log.warn('No user messages available for this channel.', SOURCE);
         }
     },
 };

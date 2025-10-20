@@ -1,7 +1,4 @@
 import { EventTypes } from '../bots/twitch/irc.mjs';
-import { log } from '../utils.mjs';
-
-const SOURCE = 'vanish.mjs';
 
 export default {
     name: 'vanish',
