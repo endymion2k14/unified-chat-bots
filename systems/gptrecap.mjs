@@ -2,6 +2,8 @@ import { Ollama } from 'ollama';
 import { EventTypes } from '../bots/twitch/irc.mjs';
 import { log } from '../utils.mjs';
 
+const SOURCE = 'gptrecap.mjs';
+
 export default {
     name: 'gptrecap',
     data: {},
@@ -31,9 +33,9 @@ export default {
             const currentTime = Date.now();
             if (!this.data[event.channel].userMessageCount[event.username]) { this.data[event.channel].userMessageCount[event.username] = []; }
             this.data[event.channel].userMessageCount[event.username] = this.data[event.channel].userMessageCount[event.username].filter(time => currentTime - time < this.message_time_window);
-            if (this.data[event.channel].userMessageCount[event.username].length >= this.message_limit_per_user) { log.warn(`User ${event.username} exceeded message limit.`, 'gptrecap.mjs'); return; }
+            if (this.data[event.channel].userMessageCount[event.username].length >= this.message_limit_per_user) { log.warn(`User ${event.username} exceeded message limit.`, SOURCE); return; }
             this.data[event.channel].userMessageCount[event.username].push(currentTime);
-            if (this.data[event.channel].chatMessages.length >= this.max_messages) { this.data[event.channel].chatMessages.shift(); log.warn(`User ${event.username} exceeded max messages limit. shifting.`, 'gptrecap.mjs'); }
+            if (this.data[event.channel].chatMessages.length >= this.max_messages) { this.data[event.channel].chatMessages.shift(); log.warn(`User ${event.username} exceeded max messages limit. shifting.`, SOURCE); }
             this.data[event.channel].chatMessages.push(`${event.username}: ${event.message}`);
         });
     },
