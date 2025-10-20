@@ -24,34 +24,16 @@ export default {
         if ('message_time_window'    in config) { this.message_time_window  = config.message_time_window; }
         if ('host'                   in config) { this.ollama = new Ollama({ host: config.host }); }
         else { this.ollama = new Ollama(); }
-        client.api.addListener(EventTypes.stream_start, status => {
-            if (!(client.channel in this.data)) { this.data[client.channel] = { live: false, chatMessages: [], userMessageCount: {} }; }
-            if (this.data[client.channel].live) { return; }
-            this.data[client.channel].live = true;
-        });
-        client.api.addListener(EventTypes.stream_end  , status => {
-            if (!(client.channel in this.data)) { this.data[client.channel] = { live: false, chatMessages: [], userMessageCount: {} }; }
-            if (!this.data[client.channel].live) { return; }
-            if (this.data[client.channel].live) { log.info(`${client.channel} went offline - resetting chat recap history`, 'gptrecap.mjs'); }
-            this.data[client.channel].live = false;
-            this.data[client.channel].chatMessages = [];
-            this.data[client.channel].userMessageCount = {};
-        });
+        if (!(client.channel in this.data)) { this.data[client.channel] = { live: false, chatMessages: [], userMessageCount: {} }; }
+        client.api.addListener(EventTypes.stream_start, status => { if (this.data[client.channel].live) { return; } this.data[client.channel].live = true; this.data[client.channel].chatMessages = []; this.data[client.channel].userMessageCount = {}; });
+        client.api.addListener(EventTypes.stream_end, status => { if (!this.data[client.channel].live) { return; } this.data[client.channel].live = false; this.data[client.channel].chatMessages = []; this.data[client.channel].userMessageCount = {}; });
         client.on('message', (event) => {
             const currentTime = Date.now();
-            if (!this.data[event.channel].userMessageCount[event.username]) {
-                this.data[event.channel].userMessageCount[event.username] = [];
-            }
+            if (!this.data[event.channel].userMessageCount[event.username]) { this.data[event.channel].userMessageCount[event.username] = []; }
             this.data[event.channel].userMessageCount[event.username] = this.data[event.channel].userMessageCount[event.username].filter(time => currentTime - time < this.message_time_window);
-            if (this.data[event.channel].userMessageCount[event.username].length >= this.message_limit_per_user) {
-                log.warn(`User ${event.username} exceeded message limit.`, 'gptrecap.mjs');
-                return;
-            }
+            if (this.data[event.channel].userMessageCount[event.username].length >= this.message_limit_per_user) { log.warn(`User ${event.username} exceeded message limit.`, 'gptrecap.mjs'); return; }
             this.data[event.channel].userMessageCount[event.username].push(currentTime);
-            if (this.data[event.channel].chatMessages.length >= this.max_messages) {
-                this.data[event.channel].chatMessages.shift();
-                log.warn(`User ${event.username} exceeded max messages limit. shifting.`, 'gptrecap.mjs');
-            }
+            if (this.data[event.channel].chatMessages.length >= this.max_messages) { this.data[event.channel].chatMessages.shift(); log.warn(`User ${event.username} exceeded max messages limit. shifting.`, 'gptrecap.mjs'); }
             this.data[event.channel].chatMessages.push(`${event.username}: ${event.message}`);
         });
     },
