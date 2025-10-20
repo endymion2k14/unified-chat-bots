@@ -5,14 +5,16 @@ const SOURCE = 'vanish.mjs';
 
 export default {
     name: 'vanish',
-    data: [],
+    data: {},
     init(client) {
-        if (!this.data.userMessages) { this.data.userMessages = new Map(); }
+        this.data[client.channel] = this.data[client.channel] || { live: false, userMessages: {} };
+        client.api.addListener(EventTypes.stream_start, status => { this.data[client.channel].live = true; this.data[client.channel].userMessages = {}; });
+        client.api.addListener(EventTypes.stream_end, status => { this.data[client.channel].live = false; this.data[client.channel].userMessages = {}; });
         client.on('message', (event) => {
-            const userId = event.tags['user-id'];
             const messageId = event.tags.id;
-            if (!this.data.userMessages.has(userId)) { this.data.userMessages.set(userId, []); }
-            this.data.userMessages.get(userId).push({ id: messageId });
+            this.data[client.channel].userMessages[event.tags['user-id']] = this.data[client.channel].userMessages[event.tags['user-id']] || [];
+            this.data[client.channel].userMessages[event.tags['user-id']].push({ id: messageId });
         });
     },
 }
+
