@@ -1,5 +1,5 @@
 export default {
-    name: 'debug',
+    name: 'debugvanish',
     async reply(params, client, event) {
         if (event.privileges.super       ||
             event.privileges.broadcaster ||
