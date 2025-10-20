@@ -68,6 +68,7 @@ export class TwitchAPI extends EventEmitter {
             req.end();
         });
     }
+    // TODO: Keep or remove, obsolete with event.tags['user-id']
     // https://dev.twitch.tv/docs/api/reference#get-users
     async getUserId(username) {
         const options = {
