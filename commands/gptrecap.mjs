@@ -6,10 +6,8 @@ const system_prompt = 'Please give a recap as short and concise as possible:';
 
 export default {
     name: 'gptrecap',
-    systems: ['gptrecap', 'channelLive'],
+    systems: ['gptrecap'],
     async reply(params, client, event) {
-        const uptime = client.getSystem('channelLive');
-        if (!uptime._live) { return; }
         if (event.privileges.super       ||
             event.privileges.broadcaster ||
             event.privileges.moderator) {
