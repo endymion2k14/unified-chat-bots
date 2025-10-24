@@ -1,25 +1,15 @@
 # Unified Chat Bots
 
-## ???
+# Oauth
 
-## Features
- - Web interface
- - Options to disable bots on specified platforms, command & systems
- - Adding custom systems and/or commands
- - Settings role/permission requirements for commands and/or systems
-
-
-### Platforms
- - Twitch
- - Discord
-
-## Setup
-### Getting the dependencies
-```npm i```
-
-### Running
-```node .```\
-In the case you are running the bot from another folder you need to replace the ```.``` with the path to the folder of this bot.
-
-#### First run
-The first run of the bot(s) wil create all the settings files if they have not yet been created, all will be enabled by default but can be turned off in their respective config file
+## Tries to implement:
+ - Security on webconsole. only localhost and 192.168.0 ip range may access /
+ - Oauth tokenflow on /oauth/callback
+ - Initial tokenflow start /oauth/twitch/{botindex}
+ - Bot starts with apptoken still, which is 60 days. (fallback purpose)
+ - Bot switches to oauth token only when authorized via web and refresh went correctly.
+ - Scopes editable from the json
+ - Updated corresponding example files
+ 
+ 
+ 
