@@ -30,7 +30,6 @@ export class WebConsole {
             log.error(`No functors obtained for collecting the info to display on the page `, SOURCE);
             return;
         }
-        app.set('trust proxy', true);
         app.get('/', (req, res) => {
             // Only allow localhost to view
             if (!req.ip.startsWith('::ffff:') || !req.ip === '127.0.0.1') return res.status(403).send('Access denied');
@@ -64,11 +63,11 @@ export class WebConsole {
                 return res.status(400).send('Client secret not configured for this bot');
             }
             const clientId = bot.secrets.id;
-            const redirectUri = `http://localhost:${this.port}/oauth/callback`;
+            const redirectUri = bot.secrets.redirectUri || `http://localhost:${this.port}/oauth/callback`;
             // Default scopes to basic if not filled in
             const scope = bot.secrets.scopes || 'chat:read chat:edit channel:moderate';
             const state = index.toString();
-            const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&state=${state}`;
+            const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}`;
             res.redirect(authUrl);
         });
         app.get('/oauth/callback', async (req, res) => {
@@ -83,7 +82,7 @@ export class WebConsole {
             const bot = this.settings.twitch[index];
             const clientId = bot.secrets.id;
             const clientSecret = bot.secrets.secret;
-            const redirectUri = `http://localhost:${this.port}/oauth/callback`;
+            const redirectUri = bot.secrets.redirectUri || `http://localhost:${this.port}/oauth/callback`;
 
             try {
                 const response = await fetch('https://id.twitch.tv/oauth2/token', {
