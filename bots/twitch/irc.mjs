@@ -54,7 +54,7 @@ export class TwitchIRC extends EventEmitter {
         this.ws = new WebSocket(url);
 
         this.ws.addEventListener('open', () => {
-            log.info('Connected to Twitch IRC', SOURCE);
+            log.info('Connected to Twitch IRC', `${SOURCE}-${this.channel}`);
             this.ws.send(`CAP REQ :twitch.tv/tags twitch.tv/commands`); // this.ws.send(`CAP REQ :twitch.tv/membership twitch.tv/tags twitch.tv/commands`);
             this.ws.send(`PASS ${this.oauth}`);
             this.ws.send(`NICK ${this.username}`);
@@ -154,7 +154,7 @@ export class TwitchIRC extends EventEmitter {
             return;
         }
 
-        log.info(`Response not handled: ${line}`, SOURCE);
+        log.info(`Response not handled: ${line}`, `${SOURCE}-${this.channel}`);
     }
 
     parseTags(raw) {
