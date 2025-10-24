@@ -89,7 +89,7 @@ export class TwitchAPI extends EventEmitter {
 
         if (!this.isReady()) { log.error('Missing data for getAllFollowerData to request the needed data from twitch!', SOURCE); }
         else {
-            log.info('Started loading follower data', SOURCE);
+            log.info('Started loading follower data', `${SOURCE}-${this._data.channel}`);
             let pagination = '';
             let done = false;
             while (!done) {
