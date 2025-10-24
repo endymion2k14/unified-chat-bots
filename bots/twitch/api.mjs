@@ -72,6 +72,7 @@ export class TwitchAPI extends EventEmitter {
         log.info(`Auto-refresh started with interval ${intervalMs}ms`, SOURCE);
     }
 
+    // TODO: Currently unused, can be used if we make the bot 'shutdown nicely'
     stopAutoRefresh() {
         if (this._refreshInterval) {
             clearInterval(this._refreshInterval);
