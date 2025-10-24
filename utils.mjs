@@ -114,6 +114,24 @@ export function clamp(value, min, max) {
     return Math.min(Math.max(value, _min), _max);
 }
 
+// urlToBase64
+export async function urlToBase64(url) {
+    try {
+        if (url.startsWith('http://') || url.startsWith('https://')) {
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`);
+            }
+            const blob = await response.blob();
+            const arrayBuffer = await blob.arrayBuffer();
+            const base64 = Buffer.from(arrayBuffer).toString('base64');
+            return base64;
+        }
+    } catch (error) {
+        throw new Error(`Error converting URL to base64: ${error.message}`);
+    }
+}
+
 /**
  * Maps a value on a number range into the same spot of a different number range
  * @param value

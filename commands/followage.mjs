@@ -3,8 +3,10 @@ import { equals, getTimeDifference } from "../utils.mjs";
 export default {
     name: 'followage',
     aliases: ['followtime', 'followed'],
-    systems: ['followers'],
+    systems: ['followers', 'channelLive'],
     async reply(params, client, event) {
+        const uptime = client.getSystem('channelLive');
+        if (!uptime._live) { return; }
         const system = client.getSystem('followers');
         if ('getFollowerData' in system) {
             if (params.length < 1) {

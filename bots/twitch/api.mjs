@@ -68,28 +68,6 @@ export class TwitchAPI extends EventEmitter {
             req.end();
         });
     }
-    // TODO: Keep or remove, obsolete with event.tags['user-id']
-    // https://dev.twitch.tv/docs/api/reference#get-users
-    async getUserId(username) {
-        const options = {
-            hostname: 'api.twitch.tv',
-            method: 'GET',
-            path: `/helix/users?login=${username}`,
-            headers: {
-                'Client-ID': `${this._data.applicationId}`,
-                'Authorization': `Bearer ${this._data.token}`
-            }
-        };
-        return new Promise((resolve, reject) => {
-            const req = https.request(options, res => {
-                let data = '';
-                res.setEncoding('utf8');
-                res.on('data', chunk => { data += chunk; });
-                res.on('end', () => { try { const json = JSON.parse(data); if (json.data.length > 0) { resolve(json.data[0].id); } else { reject(new Error('User not found')); } } catch (err) { reject(err); } });
-            }).on('error', err => { log.error(err); reject(err); });
-            req.end();
-        });
-    }
 
     async isChannelLive() {
         const response = await fetch(`https://api.twitch.tv/helix/streams?user_login=${this._data.channel}`, {

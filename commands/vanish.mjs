@@ -4,8 +4,10 @@ const SOURCE = 'vanish.mjs';
 
 export default {
     name: 'vanish',
-    systems: ['vanish'],
+    systems: ['vanish', 'channelLive'],
     async reply(params, client, event) {
+        const uptime = client.getSystem('channelLive');
+        if (!uptime._live) { return; }
         if (event.privileges.broadcaster || event.privileges.moderator) { client.sendMessage(`Broadcasters and Moderators cannot vanish themselves ${event.username}.`); return; }
         const system = client.getSystem('vanish');
         if (system.data[client.channel] && system.data[client.channel].userMessages) {
@@ -22,7 +24,7 @@ export default {
                     }).catch(error => {
                         console.error(`Failed to remove message with ID ${message.id}:`, error);
                     });
-                // });
+                });
             } else {
                 log.warn('No messages found for this user.', SOURCE);
             }
