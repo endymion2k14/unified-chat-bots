@@ -57,7 +57,7 @@ export class TwitchAPI extends EventEmitter {
 
     startAutoRefresh(intervalMs = 3 * 60 * 60 * 1000) { // Default 3 hours
         if (!this._data.refresh) {
-            log.info('No refresh token available, skipping auto-refresh', SOURCE);
+            log.info('No refresh token available, skipping auto-refresh', `SOURCE-${this._data.channel}`);
             return;
         }
         if (this._refreshInterval) {
@@ -69,7 +69,7 @@ export class TwitchAPI extends EventEmitter {
                 // Optionally, stop on persistent failure, but for now, continue
             });
         }, intervalMs);
-        log.info(`Auto-refresh started with interval ${intervalMs}ms`, SOURCE);
+        log.info(`Auto-refresh started with interval ${intervalMs}ms`, `SOURCE-${this._data.channel}`);
     }
 
     async isChannelLive() {
