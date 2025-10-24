@@ -32,6 +32,7 @@ export class WebConsole {
         }
 
         app.get('/', (req, res) => {
+            // Only allow localhost or anyone from the 192.168.0 range to view /
             if (!(req.ip === '127.0.0.1' || req.ip.startsWith('192.168.0.'))) return res.status(403).send('Access denied');
             let nav = '';
             let data = '';
@@ -52,7 +53,7 @@ export class WebConsole {
             res.send(`<ul>${nav}</ul>${data}`);
         });
 
-        // OAuth routes for Twitch
+        // OAuth routes for Twitch accesible for everyone
         app.get('/oauth/twitch/:index', (req, res) => {
             const index = parseInt(req.params.index);
             if (isNaN(index) || index < 0 || index >= this.settings.twitch.length) {
@@ -64,6 +65,7 @@ export class WebConsole {
             }
             const clientId = bot.secrets.id;
             const redirectUri = `http://localhost:${this.port}/oauth/callback`;
+            // Default scopes to basic if not filled in
             const scope = bot.secrets.scopes || 'chat:read chat:edit channel:moderate';
             const state = index.toString();
             const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&state=${state}`;
