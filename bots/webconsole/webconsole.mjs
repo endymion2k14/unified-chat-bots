@@ -32,6 +32,7 @@ export class WebConsole {
         }
 
         app.get('/', (req, res) => {
+            if (!(req.ip === '127.0.0.1' || req.ip.startsWith('192.168.0.'))) return res.status(403).send('Access denied');
             let nav = '';
             let data = '';
             const twitch = this.getTwitch();
