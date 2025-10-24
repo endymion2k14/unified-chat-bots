@@ -6,10 +6,8 @@ const system_prompt = 'Please answer the next question as short and concise as p
 
 export default {
     name: 'gpt',
-    systems: ['gpt', 'channelLive'],
+    systems: ['gpt'],
     async reply(params, client, event) {
-        const uptime = client.getSystem('channelLive');
-        if (!uptime._live) { return; }
         if (event.privileges.super       ||
             event.privileges.broadcaster ||
             event.privileges.moderator   ||
