@@ -4,7 +4,6 @@ export default {
     name: 'gpt',
     ollama: 0,
     model: 'gemma3:4b-it-qat',
-    remembrance: 0,
     ROLES: {
         SYSTEM: 'system',
         USER: 'user',
@@ -15,7 +14,6 @@ export default {
         const config = client.getSystemConfig(this.name);
         if ('model'       in config) { this.model  = config.model; }
         if ('host'        in config) { this.ollama = new Ollama({ host: config.host }); }
-        if ('remembrance' in config) { this.remembrance = config.remembrance; }
         else { this.ollama = new Ollama(); }
     },
 

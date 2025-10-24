@@ -8,6 +8,8 @@ export default {
     name: 'gptimage',
     systems: ['gptimage', 'channelLive'],
     async reply(params, client, event) {
+        const uptime = client.getSystem('channelLive');
+        if (!uptime._live) { return; }
         if (event.privileges.super       ||
             event.privileges.broadcaster ||
             event.privileges.moderator   ||
@@ -18,10 +20,6 @@ export default {
                     const system = client.getSystem('gptimage');
                     const messages = [];
                     if (equals(params[0].toLowerCase(), 'live')) {
-                        const uptime = client.getSystem('channelLive');
-                        if (!uptime._live) {
-                            return client.sendMessage('Stream is currently offline.');
-                        }
                         log.info("Grabbing live image", SOURCE);
                         // Date.now() so it cannot 'pre cache' the image - has to be refreshed by Twitch
                         const base64Image = await urlToBase64(`https://static-cdn.jtvnw.net/previews-ttv/live_user_${client._settings.settings.channel}-${system.resolution}.jpg?t=${Date.now()}`);

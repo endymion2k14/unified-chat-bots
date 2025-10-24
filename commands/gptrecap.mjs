@@ -6,18 +6,31 @@ const system_prompt = 'Please give a recap as short and concise as possible:';
 
 export default {
     name: 'gptrecap',
-    systems: ['gptrecap'],
+    systems: ['gptrecap', 'channelLive'],
     async reply(params, client, event) {
+        const uptime = client.getSystem('channelLive');
+        if (!uptime._live) { return; }
         if (event.privileges.super       ||
             event.privileges.broadcaster ||
             event.privileges.moderator) {
             try {
                 const system = client.getSystem('gptrecap');
                 const channelData = system.data[client.channel];
-                const chatHistory = channelData.chatMessages.map(msg => {
-                    const [username, message] = msg.split(': ');
-                    return { username, message };
-                }).map(item => `${item.username}: ${item.message}`).join('\n');
+                let chatHistory = '';
+                if (channelData) {
+                    const userMessages = channelData.userMessages;
+                    if (typeof userMessages === 'object' && userMessages !== null) {
+                        for (const username in userMessages) {
+                            if (userMessages.hasOwnProperty(username)) {
+                                const messagesArray = userMessages[username];
+                                if (Array.isArray(messagesArray)) {
+                                    messagesArray.forEach(message => { const messageText = message.message || JSON.stringify(message); chatHistory += `${username}: ${messageText}\n`; });
+                                }
+                            }
+                        }
+                    }
+                }
+                chatHistory = chatHistory.trim();
                 const response = await system.getResponse([
                     { role: system.ROLES.SYSTEM, content: system_prompt },
                     { role: system.ROLES.USER, content: chatHistory }]);

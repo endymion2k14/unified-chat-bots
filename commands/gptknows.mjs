@@ -7,8 +7,10 @@ const system_prompt = 'Please answer the next question as short and concise as p
 export default {
     name: 'gptknows',
     aliases: ['god'],
-    system: ['gpt'],
+    system: ['gptknows', 'channelLive'],
     async reply(params, client, event) {
+        const uptime = client.getSystem('channelLive');
+        if (!uptime._live) { return; }
         if (event.privileges.super       ||
             event.privileges.broadcaster ||
             event.privileges.moderator   ||
@@ -16,42 +18,36 @@ export default {
             event.privileges.vip) {
             if (params.length > 0) {
                 try {
-                    const system = client.getSystem('gpt');
-
-                    // Check if file exists, if not user is new to gpt and a file will be created.
-                    if (!json.exists(`./gptdata/${client._settings.name}-${client._settings.settings.channel}-${event.username}.json`)) {
-                        json.save(`./gptdata/${client._settings.name}-${client._settings.settings.channel}-${event.username}.json`, []);
+                    const system = client.getSystem('gptknows');
+                    // Ensure the array exists for the specific username
+                    if (!system.data[client.channel].userMessages) { system.data[client.channel].userMessages = {}; }
+                    // If userMessages[event.username] doesn't exist, initialize it as an empty array
+                    const userMessages = system.data[client.channel].userMessages;
+                    if (!Array.isArray(userMessages[event.username])) { userMessages[event.username] = []; }
+                    // Combine the parameters into a single string
+                    const userInput = concat(params, ' ');
+                    // Prepare the messages to be sent to the AI system
+                    const messagesToAI = [ { role: system.ROLES.SYSTEM, content: system_prompt } ];
+                    // Add previous user and AI messages to the context
+                    for (const message of userMessages[event.username]) {
+                        messagesToAI.push({ role: system.ROLES.USER, content: message.message });
+                        if (message.response) { messagesToAI.push({ role: system.ROLES.GPT, content: message.response }); }
                     }
-                    // Load the json and responses
-                    // TODO: can we somehow not load it all depending on the remembrance? seems like if the file is large itll load/unload memory a lot?
-                    let gptUserData = json.load(`./gptdata/${client._settings.name}-${client._settings.settings.channel}-${event.username}.json`);
-                    // Only use last "remembrance" which is default 0, knows nothing, vs 5 (for me), knows 5 previous questions/responses
-                    if (gptUserData.length > system.remembrance) {
-                        gptUserData = gptUserData.slice(-system.remembrance);
-                    }
-                    let messages = [];
-                    for (const item of gptUserData) {
-                        // Add previous questions and responses - cut previously with remembrance
-                        const { question, response } = item;
-                        messages.push({ role: system.ROLES.USER, content: question });
-                        messages.push({ role: system.ROLES.GPT, content: response });
-                    }
-                    // Ninja juju to make the messages correct for GPT. Place the role and prompt at the top, place the messages in correct order below.
-                    messages.unshift({ role: system.ROLES.SYSTEM, content: system_prompt });
-                    messages.push({ role: system.ROLES.USER, content: concat(params, ' ') });
-
-                    // Await Response
-                    const response = await system.getResponse(messages);
-
-                    // Asuming Response went correct and didnt trigger the catch, we write the question and response from the user to the correct file.
-                    const data = {
-                        created_at: new Date().toISOString(),
-                        question: concat(params, ' '),
-                        response: response.message.content
-                    };
-                    json.append(`./gptdata/${client._settings.name}-${client._settings.settings.channel}-${event.username}.json`, data);
-
+                    // Add the new user input to the context
+                    messagesToAI.push({ role: system.ROLES.USER, content: userInput });
+                    //console.log(messagesToAI);
+                    // Fetch the response from the AI
+                    const response = await system.getResponse(messagesToAI);
+                    // Send response to client
                     client.sendMessage(response.message.content);
+                    // Prepare the new message object with the user input and the AI's response
+                    const newMessage = { message: userInput, response: response.message.content };
+                    // Add the new message to the user's messages array
+                    userMessages[event.username].push(newMessage);
+                    // Trim the array to ensure it does not exceed system.remembrance
+                    if (userMessages[event.username].length > system.remembrance) { userMessages[event.username] = userMessages[event.username].slice(-system.remembrance); }
+                    // Log the updated messages for debugging or other purposes
+                    //console.log('Updated user messages for', event.username, ':', JSON.stringify(userMessages[event.username], null, 2));
                 } catch (err) {
                     log.error(`Something went wrong trying to get the response from the GPT: ${err}`, SOURCE);
                     client.sendMessage(`Something went wrong trying to get a response from the GPT ${event.username}.`);
