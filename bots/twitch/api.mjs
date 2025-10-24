@@ -15,15 +15,70 @@ export class TwitchAPI extends EventEmitter {
         channel: 0,
     }
 
-    constructor(token, channel, id) {
+    constructor(token, channel, id, secret, refresh) {
         super();
         this._data.token = token;
         this._data.channel = channel;
         this._data.applicationId = id;
+        this._data.secret = secret;
+        this._data.refresh = refresh;
     }
 
     isReady() { return !(this._data.token === 0 || this._data.roomId === 0 || this._data.channel === 0 || this._data.applicationId === 0); }
 
+    async refreshToken() {
+        if (!this._data.refresh || !this._data.secret || !this._data.applicationId) {
+            throw new Error('Missing refresh token, client secret, or client ID for refresh');
+        }
+        const response = await fetch('https://id.twitch.tv/oauth2/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({
+                client_id: this._data.applicationId,
+                client_secret: this._data.secret,
+                refresh_token: this._data.refresh,
+                grant_type: 'refresh_token',
+            }),
+        });
+        const data = await response.json();
+        if (!response.ok) {
+            throw new Error(`Token refresh failed: ${data.message}`);
+        }
+        this._data.token = data.access_token;
+        if (data.refresh_token) {
+            this._data.refresh = data.refresh_token;
+        }
+        // Emit event or something to update config
+        this.emit('token_refreshed', { token: this._data.token, refresh: this._data.refresh });
+        return this._data.token;
+    }
+
+    startAutoRefresh(intervalMs = 3 * 60 * 60 * 1000) { // Default 3 hours
+        if (!this._data.refresh) {
+            log.info('No refresh token available, skipping auto-refresh', SOURCE);
+            return;
+        }
+        if (this._refreshInterval) {
+            clearInterval(this._refreshInterval);
+        }
+        this._refreshInterval = setInterval(() => {
+            this.refreshToken().catch(err => {
+                log.error(`Auto-refresh failed: ${err.message}`, SOURCE);
+                // Optionally, stop on persistent failure, but for now, continue
+            });
+        }, intervalMs);
+        log.info(`Auto-refresh started with interval ${intervalMs}ms`, SOURCE);
+    }
+
+    stopAutoRefresh() {
+        if (this._refreshInterval) {
+            clearInterval(this._refreshInterval);
+            this._refreshInterval = null;
+            log.info('Auto-refresh stopped', SOURCE);
+        }
+    }
     async isChannelLive() {
         const response = await fetch(`https://api.twitch.tv/helix/streams?user_login=${this._data.channel}`, {
             method: 'GET',

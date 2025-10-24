@@ -1,5 +1,7 @@
 import { equals, log } from '../../utils.mjs';
 import express from 'express';
+import fs from 'node:fs';
+import path from 'node:path';
 
 const SOURCE = 'WebConsole';
 const MAX_DEPTH = 20;
@@ -10,10 +12,12 @@ export class WebConsole {
     getTwitch = 0;
     getDiscord = 0;
     port = 0;
+    settings = {};
 
-    constructor(functorTwitch, functorDiscord) {
+    constructor(functorTwitch, functorDiscord, settings) {
         this.getTwitch  = functorTwitch;
         this.getDiscord = functorDiscord;
+        this.settings = settings;
     }
 
     async start(port = 0) {
@@ -45,6 +49,70 @@ export class WebConsole {
             }
 
             res.send(`<ul>${nav}</ul>${data}`);
+        });
+
+        // OAuth routes for Twitch
+        app.get('/oauth/twitch/:index', (req, res) => {
+            const index = parseInt(req.params.index);
+            if (isNaN(index) || index < 0 || index >= this.settings.twitch.length) {
+                return res.status(400).send('Invalid bot index');
+            }
+            const bot = this.settings.twitch[index];
+            if (!bot.secrets.secret) {
+                return res.status(400).send('Client secret not configured for this bot');
+            }
+            const clientId = bot.secrets.id;
+            const redirectUri = `http://localhost:${this.port}/oauth/callback`;
+            const scope = bot.secrets.scopes || 'chat:read chat:edit channel:moderate';
+            const state = index.toString();
+            const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=${encodeURIComponent(scope)}&state=${state}`;
+            res.redirect(authUrl);
+        });
+        app.get('/oauth/callback', async (req, res) => {
+            const { code, state, error } = req.query;
+            if (error) {
+                return res.status(400).send(`OAuth error: ${error}`);
+            }
+            const index = parseInt(state);
+            if (isNaN(index) || index < 0 || index >= this.settings.twitch.length) {
+                return res.status(400).send('Invalid state');
+            }
+            const bot = this.settings.twitch[index];
+            const clientId = bot.secrets.id;
+            const clientSecret = bot.secrets.secret;
+            const redirectUri = `http://localhost:${this.port}/oauth/callback`;
+
+            try {
+                const response = await fetch('https://id.twitch.tv/oauth2/token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: new URLSearchParams({
+                        client_id: clientId,
+                        client_secret: clientSecret,
+                        code: code,
+                        grant_type: 'authorization_code',
+                        redirect_uri: redirectUri,
+                    }),
+                });
+                const data = await response.json();
+                if (!response.ok) {
+                    return res.status(400).send(`Token exchange failed: ${data.message}`);
+                }
+                // Update settings
+                bot.secrets.token = data.access_token;
+                if (data.refresh_token) {
+                    bot.secrets.refresh = data.refresh_token;
+                }
+                // Save to file
+                const configPath = path.join(process.cwd(), 'configs', 'secrets.json');
+                fs.writeFileSync(configPath, JSON.stringify(this.settings, null, 2));
+                res.send('OAuth successful! Tokens updated. You can close this window.');
+            } catch (err) {
+                log.error(err, SOURCE);
+                res.status(500).send('Internal error');
+            }
         });
 
         app.listen(port, _ => { log.info(`WebConsole started on port ${this.port}`, SOURCE) });
