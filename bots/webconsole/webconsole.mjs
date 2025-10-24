@@ -30,10 +30,10 @@ export class WebConsole {
             log.error(`No functors obtained for collecting the info to display on the page `, SOURCE);
             return;
         }
-
+        app.set('trust proxy', true);
         app.get('/', (req, res) => {
-            // Only allow localhost or anyone from the 192.168.0 range to view /
-            if (!(req.ip === '127.0.0.1' || req.ip.startsWith('192.168.0.'))) return res.status(403).send('Access denied');
+            // Only allow localhost to view
+            if (!req.ip.startsWith('::ffff:') || !req.ip === '127.0.0.1') return res.status(403).send('Access denied');
             let nav = '';
             let data = '';
             const twitch = this.getTwitch();
