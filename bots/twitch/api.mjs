@@ -126,7 +126,7 @@ export class TwitchAPI extends EventEmitter {
             }
         }
 
-        log.info('Finished loading follower data', SOURCE);
+        log.info('Finished loading follower data', `${SOURCE}-${this._data.channel}`);
         return followers;
     }
 
