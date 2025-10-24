@@ -24,7 +24,7 @@ export default {
         else { this.ollama = new Ollama(); }
         this.data[client.channel] = this.data[client.channel] || { live: false };
         client.api.addListener(EventTypes.stream_start, status => { if (this.data[client.channel].live) { return; } this.data[client.channel].live = true; });
-        client.api.addListener(EventTypes.stream_end, status => { if (!this.data[client.channel].live) { return; } this.data[client.channel].live = false; this.data[client.channel].userMessages = {}; log.info(`Clearing GPTKnows information for channel ${client.channel}`); });
+        client.api.addListener(EventTypes.stream_end, status => { if (!this.data[client.channel].live) { return; } this.data[client.channel].live = false; this.data[client.channel].userMessages = {}; log.info(`Clearing GPTKnows information for channel ${client.channel}`, SOURCE); });
     },
 
     async getResponse(messages = []) {
