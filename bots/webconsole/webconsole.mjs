@@ -107,6 +107,9 @@ export class WebConsole {
                 if (data.refresh_token) {
                     bot.secrets.refresh = data.refresh_token;
                 }
+                if (data.expires_in) {
+                    bot.secrets.expiry = Date.now() + (data.expires_in * 1000);
+                }
                 // Save to file
                 const configPath = path.join(process.cwd(), 'configs', 'secrets.json');
                 fs.writeFileSync(configPath, JSON.stringify(this.settings, null, 2));

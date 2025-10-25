@@ -13,15 +13,17 @@ export class TwitchAPI extends EventEmitter {
         roomId: 0,
         applicationId: 0,
         channel: 0,
+        tokenExpiry: 0,
     }
 
-    constructor(token, channel, id, secret, refresh) {
+    constructor(token, channel, id, secret, refresh, expiry = 0) {
         super();
         this._data.token = token;
         this._data.channel = channel;
         this._data.applicationId = id;
         this._data.secret = secret;
         this._data.refresh = refresh;
+        this._data.tokenExpiry = expiry;
     }
 
     isReady() { return !(this._data.token === 0 || this._data.roomId === 0 || this._data.channel === 0 || this._data.applicationId === 0); }
@@ -50,26 +52,53 @@ export class TwitchAPI extends EventEmitter {
         if (data.refresh_token) {
             this._data.refresh = data.refresh_token;
         }
+        if (data.expires_in) {
+            this._data.tokenExpiry = Date.now() + (data.expires_in * 1000);
+        }
         // Emit event or something to update config
-        this.emit('token_refreshed', { token: this._data.token, refresh: this._data.refresh });
+        this.emit('token_refreshed', { token: this._data.token, refresh: this._data.refresh, expiry: this._data.tokenExpiry });
         return this._data.token;
     }
 
-    startAutoRefresh(intervalMs = 3 * 60 * 60 * 1000) { // Default 3 hours
+    async ensureValidToken() {
+        if (this._data.tokenExpiry && Date.now() >= this._data.tokenExpiry) {
+            await this.refreshToken();
+        }
+    }
+
+    startAutoRefresh() {
         if (!this._data.refresh) {
             log.info('No refresh token available, skipping auto-refresh', `${SOURCE}-${this._data.channel}`);
             return;
         }
-        if (this._refreshInterval) {
-            clearInterval(this._refreshInterval);
+        if (this._refreshTimeout) {
+            clearTimeout(this._refreshTimeout);
         }
-        this._refreshInterval = setInterval(() => {
-            this.refreshToken().catch(err => {
+        this._scheduleNextRefresh();
+        log.info('Auto-refresh started', `${SOURCE}-${this._data.channel}`);
+    }
+
+    _scheduleNextRefresh() {
+        if (!this._data.tokenExpiry) {
+            // Fallback to 3 hours if no expiry
+            const intervalMs = 3 * 60 * 60 * 1000;
+            this._refreshTimeout = setTimeout(() => {
+                this.refreshToken().then(() => this._scheduleNextRefresh()).catch(err => {
+                    log.error(`Auto-refresh failed: ${err.message}`, SOURCE);
+                    this._scheduleNextRefresh(); // Retry
+                });
+            }, intervalMs);
+            return;
+        }
+        const bufferMs = 5 * 60 * 1000; // 5 minutes buffer
+        const timeUntilExpiry = this._data.tokenExpiry - Date.now() - bufferMs;
+        const intervalMs = Math.max(1000, timeUntilExpiry); // At least 1 second
+        this._refreshTimeout = setTimeout(() => {
+            this.refreshToken().then(() => this._scheduleNextRefresh()).catch(err => {
                 log.error(`Auto-refresh failed: ${err.message}`, SOURCE);
-                // Optionally, stop on persistent failure, but for now, continue
+                this._scheduleNextRefresh(); // Retry
             });
         }, intervalMs);
-        log.info(`Auto-refresh started with interval ${intervalMs}ms`, `${SOURCE}-${this._data.channel}`);
     }
 
     async isChannelLive() {
