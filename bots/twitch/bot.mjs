@@ -62,7 +62,7 @@ export class ClientTwitch extends EventEmitter {
             else {
                 this.channel = this._settings.settings.channel;
                 this.api = new TwitchAPI(this._settings.secrets.token, this.channel, this._settings.secrets.id, this._settings.secrets.secret, this._settings.secrets.refresh, this._settings.secrets.expiry);
-                this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, apptoken: this._settings.secrets.apptoken, channel: this.channel } );
+                this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, usertoken: this._settings.secrets.usertoken, channel: this.channel } );
                 if ('prefix'     in this._settings.settings) { if (this._settings.settings.prefix.length > 0) { this.prefix = this._settings.settings.prefix; } }
                 if ('superusers' in this._settings.settings) { this._supers = this._settings.settings.superusers; }
                 if ('usersIgnore' in this._settings.settings) { this._ignore = this._settings.settings.usersIgnore; }
@@ -84,7 +84,7 @@ export class ClientTwitch extends EventEmitter {
                 if (data.expiry) {
                     this._settings.secrets.expiry = data.expiry;
                 }
-                this._backend.apptoken = `oauth:${data.token}`;
+                this._backend.usertoken = `oauth:${data.token}`;
                 // Persist to file - note: this assumes the settings object is shared, but in practice, may need manual update
                 const configPath = path.join(process.cwd(), 'configs', 'secrets.json');
                 try {
@@ -92,7 +92,7 @@ export class ClientTwitch extends EventEmitter {
                     const currentSettings = json.load(configPath);
                     const botIndex = currentSettings.twitch.findIndex(b => b.name === this._settings.name);
                     if (botIndex !== -1) {
-                        currentSettings.twitch[botIndex].secrets.apptoken = data.token;
+                        currentSettings.twitch[botIndex].secrets.usertoken = data.token;
                         if (data.refresh) {
                             currentSettings.twitch[botIndex].secrets.refresh = data.refresh;
                         }
