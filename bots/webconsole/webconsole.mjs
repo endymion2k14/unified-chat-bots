@@ -52,7 +52,7 @@ export class WebConsole {
             res.send(`<ul>${nav}</ul>${data}`);
         });
 
-        // OAuth routes for Twitch accesible for everyone
+        // OAuth routes for Twitch accessible for everyone
         app.get('/oauth/twitch/:index', (req, res) => {
             const index = parseInt(req.params.index);
             if (isNaN(index) || index < 0 || index >= this.settings.twitch.length) {
