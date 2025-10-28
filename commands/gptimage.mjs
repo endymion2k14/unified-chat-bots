@@ -11,16 +11,15 @@ export default {
         if (event.privileges.super       ||
             event.privileges.broadcaster ||
             event.privileges.moderator   ||
-            event.privileges.subscriber  ||
-            event.privileges.vip) {
+            event.privileges.vip         ||
+            event.privileges.subscriber) {
             if (params.length > 0) {
                 try {
                     const system = client.getSystem('gptimage');
                     const messages = [];
                     if (equals(params[0].toLowerCase(), 'live')) {
                         log.info("Grabbing live image", SOURCE);
-                        // Date.now() so it cannot 'pre cache' the image - has to be refreshed by Twitch
-                        const base64Image = await urlToBase64(`https://static-cdn.jtvnw.net/previews-ttv/live_user_${client._settings.settings.channel}-${system.resolution}.jpg?t=${Date.now()}`);
+                        const base64Image = await urlToBase64(`https://static-cdn.jtvnw.net/previews-ttv/live_user_${client._settings.settings.channel}-${system.resolution}.jpg?t=${Date.now()}`); // Date.now() so it cannot 'pre cache' the image - has to be refreshed by Twitch
                         messages.push({ role: system.ROLES.USER, content: system_prompt, images: [base64Image] });
                     } else if (params[0].startsWith('http')) {
                         log.info("Grabbing image from URL", SOURCE);
@@ -35,7 +34,7 @@ export default {
                     log.error(`Something went wrong trying to get the response from the GPT: ${err}`, SOURCE);
                     client.sendMessage(`Something went wrong trying to get a response from the GPT ${event.username}.`);
                 }
-            } else { client.sendMessage('You need to specify a prompt for the gpt to be able to reply to.'); }
-        } else { client.sendMessage(`You need to be at least a subscriber or VIP to use this command ${event.username}.`); }
+            } else { client.sendMessage('You need to specify a where the image is, eitehr live image or from a url.'); }
+        } else { client.sendMessage(`You need to be at least a subscriber to use this command ${event.username}.`); }
     }
 }
