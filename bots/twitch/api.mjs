@@ -99,6 +99,8 @@ export class TwitchAPI extends EventEmitter {
                 this._scheduleNextRefresh(); // Retry
             });
         }, intervalMs);
+    }
+
     // Token is expected to have: moderator:manage:chat_messages
     // https://dev.twitch.tv/docs/api/reference#delete-chat-messages
     async clearChat() {
