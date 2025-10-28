@@ -99,6 +99,49 @@ export class TwitchAPI extends EventEmitter {
                 this._scheduleNextRefresh(); // Retry
             });
         }, intervalMs);
+    // Token is expected to have: moderator:manage:chat_messages
+    // https://dev.twitch.tv/docs/api/reference#delete-chat-messages
+    async clearChat() {
+        const options = {
+            hostname: 'api.twitch.tv',
+            method: 'DELETE',
+            path: `/helix/moderation/chat?broadcaster_id=${this._data.roomId}&moderator_id=${this._data.userId}`,
+            headers: {
+                'Client-ID': `${this._data.applicationId}`,
+                'Authorization': `Bearer ${this._data.token}`
+            }
+        }
+        return new Promise((resolve, reject) => {
+            const req = https.request(options, res => {
+                let data = '';
+                res.setEncoding('utf8');
+                res.on('data', chunk => { data += chunk; });
+                res.on('end', () => { });
+            }).on('error', err => { log.error(err); reject(err); });
+            req.end();
+        });
+    }
+    // Token is expected to have: moderator:manage:chat_messages
+    // https://dev.twitch.tv/docs/api/reference#delete-chat-messages
+    async removeMessage(messageId) {
+        const options = {
+            hostname: 'api.twitch.tv',
+            method: 'DELETE',
+            path: `/helix/moderation/chat?broadcaster_id=${this._data.roomId}&moderator_id=${this._data.userId}&message_id=${messageId}`,
+            headers: {
+                'Client-ID': `${this._data.applicationId}`,
+                'Authorization': `Bearer ${this._data.token}`
+            }
+        }
+        return new Promise((resolve, reject) => {
+            const req = https.request(options, res => {
+                let data = '';
+                res.setEncoding('utf8');
+                res.on('data', chunk => { data += chunk; });
+                res.on('end', () => { try { resolve(JSON.parse(data)); } catch (err) { reject(err); } });
+            }).on('error', err => { log.error(err); reject(err); });
+            req.end();
+        });
     }
 
     async isChannelLive() {
@@ -109,7 +152,6 @@ export class TwitchAPI extends EventEmitter {
                 'Authorization': `Bearer ${this._data.token}`
             }
         });
-        // TODO: catch this emit somewhere, maybe bundle with Followers
         if (!response.ok) { this.emit('error', `HTTP ${response.status}`); return false; }
         const json = await response.json();
         const isLive = json.data.length > 0;
@@ -122,7 +164,7 @@ export class TwitchAPI extends EventEmitter {
 
         if (!this.isReady()) { log.error('Missing data for getAllFollowerData to request the needed data from twitch!', SOURCE); }
         else {
-            log.info('Started loading follower data', SOURCE);
+            log.info('Started loading follower data', `${SOURCE}-${this._data.channel}`);
             let pagination = '';
             let done = false;
             while (!done) {
@@ -159,7 +201,7 @@ export class TwitchAPI extends EventEmitter {
             }
         }
 
-        log.info('Finished loading follower data', SOURCE);
+        log.info('Finished loading follower data', `${SOURCE}-${this._data.channel}`);
         return followers;
     }
 

@@ -7,6 +7,9 @@ import { TwitchAPI } from './api.mjs';
 
 const SOURCE = 'Twitch';
 
+// TODO: Aliases overwrite each other, make it known that they are
+// TODO: If we multiline, add (x/X) before so we know its line 1 of 3 etc.
+
 const systemProperties = ['name']
 const commandProperties = ['name', 'reply'];
 const neededSettings = [
@@ -31,6 +34,9 @@ export class ClientTwitch extends EventEmitter {
         this._supers = [];
         this._ignore = [];
         this.prefix = '!';
+        this.chat_show = true;
+        this.chat_delay = 0;
+        this.chat_silence = false;
         this.channel = '';
 
         this.connect = async function() {
@@ -61,11 +67,14 @@ export class ClientTwitch extends EventEmitter {
             if (!valid) { log.warn('Couldn\'t start bot!', SOURCE); }
             else {
                 this.channel = this._settings.settings.channel;
-                this.api = new TwitchAPI(this._settings.secrets.token, this.channel, this._settings.secrets.id, this._settings.secrets.secret, this._settings.secrets.refresh, this._settings.secrets.expiry);
-                this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, usertoken: this._settings.secrets.usertoken, channel: this.channel } );
-                if ('prefix'     in this._settings.settings) { if (this._settings.settings.prefix.length > 0) { this.prefix = this._settings.settings.prefix; } }
-                if ('superusers' in this._settings.settings) { this._supers = this._settings.settings.superusers; }
-                if ('usersIgnore' in this._settings.settings) { this._ignore = this._settings.settings.usersIgnore; }
+                this.api = new TwitchAPI(this._settings.secrets.token, this.channel, this._settings.secrets.id);
+                this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this.channel } );
+                if ('prefix'       in this._settings.settings) { if (this._settings.settings.prefix.length > 0) { this.prefix = this._settings.settings.prefix; } }
+                if ('chat_show'    in this._settings.settings) { this.chat_show = this._settings.settings.chat_show; }
+                if ('chat_delay'   in this._settings.settings) { this.chat_delay = this._settings.settings.chat_delay; }
+                if ('chat_silence' in this._settings.settings) { this.chat_silence = this._settings.settings.chat_silence; }
+                if ('superusers'   in this._settings.settings) { this._supers = this._settings.settings.superusers; }
+                if ('usersIgnore'  in this._settings.settings) { this._ignore = this._settings.settings.usersIgnore; }
                 this._setupEvents();
                 this.api.startAutoRefresh();
                 await this._setupSystems();
@@ -118,6 +127,7 @@ export class ClientTwitch extends EventEmitter {
             this._backend.addListener(EventTypes._botuserstate, event => { log.info(`Obtained user-id: ${event.userId}`, `${SOURCE}-${this._settings.name}`); if (this.api) { this.api._data.userId = event.userId; } });
             this._backend.addListener(EventTypes.message      , event => {
                 for (let i = 0;i < this._ignore.length; i++) { if (equals(this._ignore[i], event.identity)) { return; } } // Ignore messages from certain users
+                if (this.chat_show) { log.info(`[${event.channel}] ${event.username}: ${event.message}`, SOURCE); }
                 if (event.message.startsWith(this.prefix)) {
                     this.emit(EventTypes.command, event);
                     this._parseCommand(event).catch(err => {
@@ -129,7 +139,7 @@ export class ClientTwitch extends EventEmitter {
 
         this._setupSystems = async function() {
             if (!this.api.isReady()) {
-                log.info('Waiting till api has all the data it needs before loading systems...', `${SOURCE}-${this._settings.name}-systems`);
+                log.info('Waiting till api has all the data it needs before loading systems...', `${SOURCE}-systems-${this._settings.name}`);
                 while (!this.api.isReady()) { await sleep(0.5); }
             }
 
@@ -262,7 +272,7 @@ export class ClientTwitch extends EventEmitter {
             if (!found) { this.sendMessage(`Couldn't find the command that you tried to use ${event.username}...`); }
         }
 
-        this.sendMessage = function(message) { this._backend.say(message).catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); }); }
+        this.sendMessage = async function(message) { if (!this.chat_silence) { await sleep(this.chat_delay); this._backend.say(message).catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); }); } }
 
         this.getSystem = function(system) {
             const find = system.toLowerCase();

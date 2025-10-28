@@ -2,6 +2,8 @@ import { concat, log } from '../utils.mjs';
 
 const SOURCE = 'gpt.mjs';
 
+const system_prompt = 'Please answer the next question as short and concise as possible:';
+
 export default {
     name: 'gpt',
     systems: ['gpt'],
@@ -15,7 +17,7 @@ export default {
                 try {
                     const system = client.getSystem('gpt');
                     const response = await system.getResponse([
-                        { role: system.ROLES.SYSTEM, content: 'Please answer the next question as short and concise as possible:' },
+                        { role: system.ROLES.SYSTEM, content: system_prompt },
                         { role: system.ROLES.USER, content: concat(params, ' ') }]);
                     client.sendMessage(response.message.content);
                 } catch (err) {
