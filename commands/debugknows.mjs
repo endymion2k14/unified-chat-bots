@@ -2,6 +2,7 @@ export default {
     name: 'debugknows',
     aliases: ['dk'],
     system: ['gptknows'],
+    hidden: true,
     async reply(params, client, event) {
         if (event.privileges.super       ||
             event.privileges.broadcaster ||

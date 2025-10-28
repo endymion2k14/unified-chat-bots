@@ -2,6 +2,7 @@ export default {
     name: 'debugvanish',
     aliases: ['dv'],
     system: ['vanish'],
+    hidden: true,
     async reply(params, client, event) {
         if (event.privileges.super       ||
             event.privileges.broadcaster ||

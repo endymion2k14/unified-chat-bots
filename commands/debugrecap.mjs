@@ -2,6 +2,7 @@ export default {
     name: 'debugrecap',
     aliases: ['dr'],
     system: ['gptrecap'],
+    hidden: true,
     async reply(params, client, event) {
         if (event.privileges.super       ||
             event.privileges.broadcaster ||
