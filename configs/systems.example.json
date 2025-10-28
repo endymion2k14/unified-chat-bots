@@ -50,8 +50,7 @@
   "gpt": {
     "secrets.json.bot.config.name": {
       "host": "ip.of.remote.ollama.gpt.setup.otherwise.will.use.local.optional",
-      "model": "name.of.model.otherwise.will.use.gemma3:4b-it-qat.optional",
-      "remembrance": 0
+      "model": "name.of.model.otherwise.will.use.gemma3:4b-it-qat.optional"
     }
   }
 }
