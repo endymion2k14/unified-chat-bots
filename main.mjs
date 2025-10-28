@@ -35,7 +35,7 @@ async function start() {
     // Run the web console
     if ('console' in settings) {
         if ('port' in settings.console) {
-            webConsole = new WebConsole(getTwitchClients, getDiscordClients);
+            webConsole = new WebConsole(getTwitchClients, getDiscordClients, settings);
             webConsole.start(settings.console.port).catch(err => log.error(`${err}`, SOURCE));
         }
     }

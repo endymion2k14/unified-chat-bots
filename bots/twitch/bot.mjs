@@ -76,6 +76,7 @@ export class ClientTwitch extends EventEmitter {
                 if ('superusers'   in this._settings.settings) { this._supers = this._settings.settings.superusers; }
                 if ('usersIgnore'  in this._settings.settings) { this._ignore = this._settings.settings.usersIgnore; }
                 this._setupEvents();
+                this.api.startAutoRefresh();
                 await this._setupSystems();
                 this._loadCommands().catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); });
             }
@@ -83,7 +84,39 @@ export class ClientTwitch extends EventEmitter {
 
         this._setupEvents = function() {
             // api
-            this.api.addListener('error', err => { log.error(err, `${SOURCE}-API`); })
+            this.api.addListener('error', err => { log.error(err, `${SOURCE}-API`); });
+            this.api.addListener('token_refreshed', data => {
+                this._settings.secrets.token = data.token;
+                if (data.refresh) {
+                    this._settings.secrets.refresh = data.refresh;
+                }
+                if (data.expiry) {
+                    this._settings.secrets.expiry = data.expiry;
+                }
+                this._backend.usertoken = `oauth:${data.token}`;
+                // Persist to file - note: this assumes the settings object is shared, but in practice, may need manual update
+                const configPath = path.join(process.cwd(), 'configs', 'secrets.json');
+                try {
+                    // Load current settings, update this bot, save
+                    const currentSettings = json.load(configPath);
+                    const botIndex = currentSettings.twitch.findIndex(b => b.name === this._settings.name);
+                    if (botIndex !== -1) {
+                        currentSettings.twitch[botIndex].secrets.usertoken = data.token;
+                        if (data.refresh) {
+                            currentSettings.twitch[botIndex].secrets.refresh = data.refresh;
+                        }
+                        if (data.expiry) {
+                            currentSettings.twitch[botIndex].secrets.expiry = data.expiry;
+                        }
+                        fs.writeFileSync(configPath, JSON.stringify(currentSettings, null, 2));
+                        log.info('Tokens updated in secrets.json', `${SOURCE}-${this._settings.name}`);
+                    } else {
+                        log.warn('Could not find bot in settings to update tokens', `${SOURCE}-${this._settings.name}`);
+                    }
+                } catch (err) {
+                    log.error(`Failed to update secrets.json: ${err}`, `${SOURCE}-${this._settings.name}`);
+                }
+            });
 
             // backend
             this._backend.addListener(EventTypes.connect      , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.connect   , event); });
