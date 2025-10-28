@@ -8,7 +8,9 @@ const requestOptions = {
 
 export default {
     name: 'joke',
-    async reply(params, client, event) { client.sendMessage(await getDadJoke()); }
+    async reply(params, client, event) {
+        client.sendMessage(await getDadJoke());
+    }
 };
 
 async function getDadJoke() {
