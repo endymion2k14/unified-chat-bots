@@ -141,7 +141,7 @@ export class TwitchAPI extends EventEmitter {
                 res.setEncoding('utf8');
                 res.on('data', chunk => { data += chunk; });
                 res.on('end', () => { try { resolve(JSON.parse(data)); } catch (err) { reject(err); } });
-            }).on('error', err => { log.error(err); reject(err); });
+            }).on('error', err => { log.error(err, `${SOURCE}-removeMessage-id:${messageId}`); reject(err); });
             req.end();
         });
     }
