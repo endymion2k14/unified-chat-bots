@@ -16,7 +16,7 @@ export default {
                 userMessages.forEach(message => {
                     log.info(`Message ID: ${message.id}`, SOURCE);
                     // TODO: Should technically work, i cannot test it myself.
-                    // TODO: I cannot find a way to pass 'multiple' messages into the API for Twitch to remove, i expect each message to be a devalue of -1 rate limt. Documentation does not exist, on multiple.
+                    // TODO: I cannot find a way to pass 'multiple' messages into the API for Twitch to remove, i expect each message to be a devalue of -1 rate limit. Documentation does not exist on removing multiple messages at a time.
                     client.api.removeMessage(`${message.id}`).then(() => {
                         system.data[client.channel].userMessages[userId] = userMessages.filter(msg => msg.id !== message.id);
                     }).catch(error => {
