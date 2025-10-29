@@ -7,4 +7,4 @@ export default {
                 client.api.clearChat();
         } else { client.sendMessage(`You need to be at least a Moderator to use this command ${event.username}.`); }
     },
-};
+}

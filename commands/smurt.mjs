@@ -7,4 +7,4 @@ export default {
         if (messages.length > 0) { client.sendMessage(messages[randomInt(0,  messages.length)]); }
         else { client.sendMessage('Smurt!'); }
     }
-};
+}

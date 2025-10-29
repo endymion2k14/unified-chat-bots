@@ -30,4 +30,4 @@ export default {
             log.warn('No user messages available for this channel.', SOURCE);
         }
     },
-};
+}

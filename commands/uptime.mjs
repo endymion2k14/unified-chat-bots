@@ -19,4 +19,4 @@ export default {
         }
         else { throw('Problem getting info from the required system.'); }
     }
-};
+}

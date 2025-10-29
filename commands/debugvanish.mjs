@@ -29,4 +29,4 @@ export default {
             client.sendMessage(`You need to be at least a moderator to use this command, ${event.username}.`);
         }
     },
-};
+}

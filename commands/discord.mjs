@@ -3,4 +3,4 @@ export default {
     async reply(params, client, event) {
         client.sendMessage(client.getCommandConfig(this.name));
     },
-};
+}
