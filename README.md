@@ -18,7 +18,7 @@
 ```npm i```
 
 ### Running
-```node .```\
+```node .```
 In the case you are running the bot from another folder you need to replace the ```.``` with the path to the folder of this bot.
 
 #### First run
