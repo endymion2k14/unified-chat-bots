@@ -47,7 +47,6 @@ export class TwitchAPI extends EventEmitter {
         if (data.refresh_token) { this._data.refresh = data.refresh_token; }
         if (data.expires_in) { this._data.tokenExpiry = Date.now() + (data.expires_in * 1000); }
         this.emit('token_refreshed', { usertoken: data.access_token, refresh: this._data.refresh, expiry: this._data.tokenExpiry });
-        return data.access_token;
     }
 
     startAutoRefresh() {
@@ -58,9 +57,9 @@ export class TwitchAPI extends EventEmitter {
     }
 
     _scheduleNextRefresh() {
-        const bufferMs = 5 * 60 * 1000; // 5 minutes buffer
+        const bufferMs = 5 * 60 * 1000;
         const timeUntilExpiry = this._data.tokenExpiry - Date.now() - bufferMs;
-        const intervalMs = Math.max(1000, timeUntilExpiry); // At least 1 second
+        const intervalMs = Math.max(1000, timeUntilExpiry);
         this._refreshTimeout = setTimeout(() => { this.refreshToken().then(() => this._scheduleNextRefresh()).catch(err => { log.error(`Auto-refresh failed: ${err.message}`, SOURCE); this._scheduleNextRefresh(); }); }, intervalMs);
     }
 
