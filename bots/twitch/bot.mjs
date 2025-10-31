@@ -68,7 +68,7 @@ export class ClientTwitch extends EventEmitter {
             else {
                 this.channel = this._settings.settings.channel;
                 this.api = new TwitchAPI(this._settings.secrets.token, this.channel, this._settings.secrets.id, this._settings.secrets.secret, this._settings.secrets.refresh, this._settings.secrets.expiry);
-                this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, usertoken: this._settings.secrets.usertoken, channel: this.channel } );
+                this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this.channel } );
                 if ('prefix'       in this._settings.settings) { if (this._settings.settings.prefix.length > 0) { this.prefix = this._settings.settings.prefix; } }
                 if ('chat_show'    in this._settings.settings) { this.chat_show = this._settings.settings.chat_show; }
                 if ('chat_delay'   in this._settings.settings) { this.chat_delay = this._settings.settings.chat_delay; }
@@ -86,7 +86,7 @@ export class ClientTwitch extends EventEmitter {
             // api
             this.api.addListener('error', err => { log.error(err, `${SOURCE}-API`); });
             this.api.addListener('token_refreshed', data => {
-                if (data.usertoken) { this._settings.secrets.usertoken = data.usertoken; this.api._data.token = data.usertoken; }
+                if (data.usertoken) { this._settings.secrets.usertoken = data.usertoken; this.api._data.usertoken = data.usertoken; }
                 if (data.refresh) { this._settings.secrets.refresh = data.refresh; this.api._data.refresh = data.refresh; }
                 if (data.expiry) { this._settings.secrets.expiry = data.expiry; this.api._data.tokenExpiry = data.expiry; }
                 this.api.startAutoRefresh();

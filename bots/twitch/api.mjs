@@ -13,6 +13,8 @@ export class TwitchAPI extends EventEmitter {
         roomId: 0,
         applicationId: 0,
         channel: 0,
+        usertoken: "",
+        refresh: "",
         tokenExpiry: 0,
     }
 
@@ -22,6 +24,7 @@ export class TwitchAPI extends EventEmitter {
         this._data.channel = channel;
         this._data.applicationId = id;
         this._data.secret = secret;
+        this._data.usertoken = this.usertoken;
         this._data.refresh = refresh;
         this._data.tokenExpiry = expiry;
     }
