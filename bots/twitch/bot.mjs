@@ -76,8 +76,10 @@ export class ClientTwitch extends EventEmitter {
                 if ('superusers'   in this._settings.settings) { this._supers = this._settings.settings.superusers; }
                 if ('usersIgnore'  in this._settings.settings) { this._ignore = this._settings.settings.usersIgnore; }
                 this._setupEvents();
-                this.api.startAutoRefresh();
                 await this._setupSystems();
+                // Call after Systems are ready.
+                this.api.startAutoRefresh();
+                this.api.startEventSub();
                 this._loadCommands().catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); });
             }
         };
@@ -107,6 +109,7 @@ export class ClientTwitch extends EventEmitter {
                     log.error(`Failed to update secrets.json: ${err}`, `${SOURCE}-${this._settings.name}`);
                 }
             });
+            this.api.addListener('follow', event => { log.info(`New follower: ${event.user_name}`, `${SOURCE}-${this._settings.name}`); this.emit('follow', event); });
 
             // backend
             this._backend.addListener(EventTypes.connect      , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.connect   , event); });
