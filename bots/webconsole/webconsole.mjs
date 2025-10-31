@@ -35,9 +35,7 @@ export class WebConsole extends EventEmitter {
         }
         app.get('/', (req, res) => {
             const clientIP = req.ip || req.connection.remoteAddress;
-            if (clientIP !== '127.0.0.1' && clientIP !== '::1' && clientIP !== '::ffff:127.0.0.1') {
-                return res.status(403).send('Access denied');
-            }
+            if (clientIP !== '127.0.0.1' && clientIP !== '::1' && clientIP !== '::ffff:127.0.0.1') { return res.status(403).send('Access denied'); }
 
             let nav = '';
             let data = '';
