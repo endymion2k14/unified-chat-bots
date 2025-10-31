@@ -58,12 +58,6 @@ export class TwitchAPI extends EventEmitter {
     }
 
     _scheduleNextRefresh() {
-        if (!this._data.tokenExpiry) {
-            // Fallback to 3 hours if no expiry
-            const intervalMs = 3 * 60 * 60 * 1000;
-            this._refreshTimeout = setTimeout(() => { this.refreshToken().then(() => this._scheduleNextRefresh()).catch(err => { log.error(`Auto-refresh failed: ${err.message}`, SOURCE); this._scheduleNextRefresh(); }); }, intervalMs);
-            return;
-        }
         const bufferMs = 5 * 60 * 1000; // 5 minutes buffer
         const timeUntilExpiry = this._data.tokenExpiry - Date.now() - bufferMs;
         const intervalMs = Math.max(1000, timeUntilExpiry); // At least 1 second
