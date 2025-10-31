@@ -79,6 +79,9 @@ export class ClientTwitch extends EventEmitter {
                 await this._setupSystems();
                 // Call after Systems are ready.
                 this.api.startAutoRefresh();
+                // TODO: This starts connection, and if we dont specify which it will keep reconnecting.
+                // Can we make this only connect if we have any 'channel.follow' in there, else just do nothing.
+                // Dont spam twitch.
                 this.api.startEventSub();
                 this._loadCommands().catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); });
             }
@@ -109,6 +112,7 @@ export class ClientTwitch extends EventEmitter {
                     log.error(`Failed to update secrets.json: ${err}`, `${SOURCE}-${this._settings.name}`);
                 }
             });
+            // TODO: Update Followers Array
             this.api.addListener('follow', event => { log.info(`New follower: ${event.user_name}`, `${SOURCE}-${this._settings.name}`); this.emit('follow', event); });
 
             // backend
