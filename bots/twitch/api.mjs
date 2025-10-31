@@ -18,13 +18,13 @@ export class TwitchAPI extends EventEmitter {
         tokenExpiry: 0,
     }
 
-    constructor(token, channel, id, secret, refresh, expiry = 0) {
+    constructor(token, channel, id, secret, usertoken, refresh, expiry = 0) {
         super();
         this._data.token = token;
         this._data.channel = channel;
         this._data.applicationId = id;
         this._data.secret = secret;
-        this._data.usertoken = this.usertoken;
+        this._data.usertoken = usertoken;
         this._data.refresh = refresh;
         this._data.tokenExpiry = expiry;
     }
