@@ -51,17 +51,14 @@ export class TwitchEventSub extends EventEmitter {
 
     reconnect() {
         if (this.reconnectAttempts >= 5) { log.error('Max EventSub reconnect attempts reached', `${SOURCE}-${this.channel}`); return; }
-        const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
+        const delay = Math.min(10000 * Math.pow(2, this.reconnectAttempts), 30000);
         setTimeout(() => { this.reconnectAttempts++; this.connect(); }, delay);
     }
 
     updateToken(newToken) {
         this.usertoken = newToken;
         log.info('EventSub token updated, reconnecting...', `${SOURCE}-${this.channel}`);
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            this.ws.close();
-        }
-        this.connect();
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) { this.ws.close(); }
     }
 
     async subscribe(type, version, condition) {
