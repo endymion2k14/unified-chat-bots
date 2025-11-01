@@ -55,6 +55,15 @@ export class TwitchEventSub extends EventEmitter {
         setTimeout(() => { this.reconnectAttempts++; this.connect(); }, delay);
     }
 
+    updateToken(newToken) {
+        this.usertoken = newToken;
+        log.info('EventSub token updated, reconnecting...', `${SOURCE}-${this.channel}`);
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            this.ws.close();
+        }
+        this.connect();
+    }
+
     async subscribe(type, version, condition) {
         if (!this.sessionId) { throw new Error('EventSub session not ready'); }
         const response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {

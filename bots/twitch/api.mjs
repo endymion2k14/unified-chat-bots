@@ -29,6 +29,7 @@ export class TwitchAPI extends EventEmitter {
         this._data.refresh = refresh;
         this._data.tokenExpiry = expiry;
         this.eventsub = null;
+        this._autoRefreshStarted = false;
     }
 
     isReady() { return !(this._data.token === 0 || this._data.roomId === 0 || this._data.channel === 0 || this._data.applicationId === 0); }
@@ -59,7 +60,10 @@ export class TwitchAPI extends EventEmitter {
         if (!this._data.refresh) { log.info('No refresh token available, skipping auto-refresh', `${SOURCE}-${this._data.channel}`); return; }
         if (this._refreshTimeout) { clearTimeout(this._refreshTimeout); }
         this._scheduleNextRefresh();
-        log.info('Token auto-refresh started', `${SOURCE}-${this._data.channel}`);
+        if (!this._autoRefreshStarted) {
+            log.info('Token auto-refresh started', `${SOURCE}-${this._data.channel}`);
+            this._autoRefreshStarted = true;
+        }
     }
 
     _scheduleNextRefresh() {
