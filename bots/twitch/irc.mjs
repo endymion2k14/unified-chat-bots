@@ -122,7 +122,7 @@ export class TwitchIRC extends EventEmitter {
         // CAP
         if (line.includes('CAP')) { return; }
         // CLEARCHAT
-        if (line.includes('CLEARCHAT')) { log.info('Cleared chat', `${SOURCE}-${this.channel}`); return; }
+        if (line.includes('CLEARCHAT')) { log.info(`Cleared chat for ${this.channel}`, `${SOURCE}-${this.channel}`); return; }
         // GLOBALUSERSTATE
         const globalUserState = line.match(/@.*display-name=(\w+);.*user-id=(\d+).*? :.* GLOBALUSERSTATE.*/);
         if (globalUserState) {
