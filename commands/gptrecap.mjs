@@ -34,7 +34,7 @@ export default {
                     { role: system.ROLES.SYSTEM, content: system_prompt },
                     { role: system.ROLES.USER, content: chatHistory }]);
                 console.log(response.message.content);
-                //client.sendMessage(response.message.content);
+                // client.sendMessage(response.message.content);
                 // system.data[client.channel].userMessages = {};
             } catch (err) {
                 log.error(`Something went wrong trying to get the response from the GPT: ${err}`, SOURCE);
