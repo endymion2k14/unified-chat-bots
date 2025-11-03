@@ -195,10 +195,10 @@ export class TwitchIRC extends EventEmitter {
         };
     }
 
-    handleError(error) { log.error(`WS error: ${error}`, SOURCE); }
+    handleError(error) { log.error(`WS error: ${error}`, `${SOURCE}-${this.channel}`); }
 
     handleClose(code, reason) {
-        log.warn(`WS closed (code=${code} reason=${reason}). Reconnecting...`, SOURCE);
+        log.warn(`WS closed (code=${code} reason=${reason}). Reconnecting...`, `${SOURCE}-${this.channel}`);
         this.reconnect();
     }
 
