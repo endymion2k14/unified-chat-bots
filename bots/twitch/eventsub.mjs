@@ -86,17 +86,4 @@ export class TwitchEventSub extends EventEmitter {
         log.info(`Subscribed to ${type}`, `${SOURCE}-${this.channel}`);
         return data.data[0].id;
     }
-
-    async unsubscribe(type) {
-        const subId = this.subscriptions.get(type);
-        if (!subId) return;
-        const response = await fetch(`https://api.twitch.tv/helix/eventsub/subscriptions?id=${subId}`, {
-            method: 'DELETE',
-            headers: {
-                'Authorization': `Bearer ${this.usertoken}`,
-                'Client-Id': this.clientId
-            }
-        });
-        if (response.ok) { this.subscriptions.delete(type); log.info(`Unsubscribed from ${type}`, `${SOURCE}-${this.channel}`); } else { log.error(`Failed to unsubscribe from ${type}`, `${SOURCE}-${this.channel}`); }
-    }
 }
