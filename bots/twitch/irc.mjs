@@ -119,6 +119,13 @@ export class TwitchIRC extends EventEmitter {
         // PING/PONG keep‑alive
         if (line.startsWith('PING')) { this.send(`PONG ${line.split(' ')[1]}`); return; }
 
+        // RECONNECT
+        if (line.includes('RECONNECT')) {
+            log.info('Twitch IRC reconnect requested', `${SOURCE}-${this.channel}`);
+            this.ws.close();
+            return;
+        }
+
         // ROOMSTATE
         const roomstate = line.match(/@.*room-id=(\d+).*? :.* ROOMSTATE #.*/);
         if (roomstate) {
