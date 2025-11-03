@@ -163,6 +163,8 @@ export class TwitchIRC extends EventEmitter {
             const tags = this.parseTags(tagsPart);
             const badges = this.parseBadges(tags.badges || '');
             this.emit(EventTypes._userstate, { badges: badges, channel: chan });
+            // For now log if we get modded/unmodded? Does USERSTATE even trigger or does Twitch hide it.
+            log.info(`Response information: ${line}`, `${SOURCE}-${this.channel}`);
             return;
         }
 
