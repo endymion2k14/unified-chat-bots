@@ -126,6 +126,12 @@ export class TwitchIRC extends EventEmitter {
             return;
         }
 
+        // CLEARCHAT
+        if (line.includes('CLEARCHAT')) {
+            log.info('Cleared chat', `${SOURCE}-${this.channel}`);
+            return;
+        }
+
         // ROOMSTATE
         const roomstate = line.match(/@.*room-id=(\d+).*? :.* ROOMSTATE #.*/);
         if (roomstate) {
