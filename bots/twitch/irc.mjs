@@ -130,7 +130,7 @@ export class TwitchIRC extends EventEmitter {
             return;
         }
         // JOIN
-        if (line.includes('JOIN')) { log.info(`Joined Broadcaster's Channel`, `${SOURCE}-${this.channel}`); return; }
+        if (line.includes('JOIN')) { log.info(`Joined ${this.channel}`, `${SOURCE}-${this.channel}`); return; }
         // PING/PONG keep‑alive
         if (line.startsWith('PING')) { this.send(`PONG ${line.split(' ')[1]}`); return; }
         // PRIVMSG
