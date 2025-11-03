@@ -134,6 +134,8 @@ export class TwitchIRC extends EventEmitter {
         }
         // JOIN
         if (line.includes('JOIN')) { log.info(`Joined ${this.channel}`, `${SOURCE}-${this.channel}`); return; }
+        // NOTICE
+        if (line.includes('NOTICE')) { log.info(`Response handled: ${line}`, `${SOURCE}-${this.channel}`); return; }
         // PING/PONG keep‑alive
         if (line.startsWith('PING')) { this.send(`PONG ${line.split(' ')[1]}`); return; }
         // PRIVMSG
