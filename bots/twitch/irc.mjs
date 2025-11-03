@@ -103,7 +103,7 @@ export class TwitchIRC extends EventEmitter {
         while (next && next.length === 0 && this.messageQueue.length > 0) { next = this.messageQueue.shift(); }
         if (!next) return;
 
-        log.info(`[${this.channel}] ${this.username}: ${next}`, SOURCE);
+        log.info(`${this.username}: ${next}`, `${SOURCE}-${this.channel}`);
         this.send(`PRIVMSG #${this.channel} :${next}`);
         this.messagesInPeriod++;
 

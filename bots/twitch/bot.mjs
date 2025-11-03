@@ -116,7 +116,7 @@ export class ClientTwitch extends EventEmitter {
             this._backend.addListener(EventTypes._botuserstate, event => { log.info(`Obtained user-id: ${event.userId}`, `${SOURCE}-IRC-${this._settings.name}`); if (this.api) { this.api._data.userId = event.userId; } });
             this._backend.addListener(EventTypes.message      , event => {
                 for (let i = 0;i < this._ignore.length; i++) { if (equals(this._ignore[i], event.identity)) { return; } } // Ignore messages from certain users
-                if (this.chat_show) { log.info(`[${event.channel}] ${event.username}: ${event.message}`, `${SOURCE}-IRC-${this._settings.name}`); }
+                if (this.chat_show) { log.info(`${event.username}: ${event.message}`, `${SOURCE}-IRC-${this._settings.name}`); }
                 if (event.message.startsWith(this.prefix)) {
                     this.emit(EventTypes.command, event);
                     this._parseCommand(event).catch(err => {
