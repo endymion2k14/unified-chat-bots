@@ -79,9 +79,6 @@ export class ClientTwitch extends EventEmitter {
                 await this._setupSystems();
                 // Call after Systems are ready.
                 this.api.startAutoRefresh();
-                // TODO: This starts connection, and if we dont specify which it will keep reconnecting.
-                // Can we make this only connect if we have any 'channel.follow' in there, else just do nothing.
-                // Dont spam twitch.
                 this.api.startEventSub();
                 this._loadCommands().catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); });
             }
