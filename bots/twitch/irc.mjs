@@ -26,7 +26,8 @@ export const EventTypes = {
 
     // IRC info
     _roomstate: 'roomState',
-    _botuserstate: 'botUserState'
+    _botuserstate: 'botUserState',
+    _userstate: 'userState'
 }
 
 export class TwitchIRC extends EventEmitter {
@@ -116,6 +117,8 @@ export class TwitchIRC extends EventEmitter {
     }
 
     parseSingle(line) {
+        // Stop 2nd Parameter, Integer flood.
+        const parts = line.split(' '); if (parts.length >= 3) { if (!isNaN(parts[1]) && Number.isInteger(Number(parts[1])) && 0 <= Number(parts[1]) <= 999) { return; } }
         // CAP
         if (line.includes('CAP')) { return; }
         // CLEARCHAT
@@ -153,15 +156,16 @@ export class TwitchIRC extends EventEmitter {
             if (!isNaN(roomidInt)) { this.emit(EventTypes._roomstate, { roomId: roomidInt }); }
             return;
         }
-        // Stop 2nd Parameter, Integer flood.
-        const parts = line.split(' '); if (parts.length >= 3) { if (!isNaN(parts[1]) && Number.isInteger(Number(parts[1])) && 0 <= Number(parts[1]) <= 999) { return; } }
+        // USERSTATE
+        const userstate = line.match(/^@([^ ]+) :.* USERSTATE #(.+)$/);
+        if (userstate) {
+            const [_, tagsPart, chan] = userstate;
+            const tags = this.parseTags(tagsPart);
+            const badges = this.parseBadges(tags.badges || '');
+            this.emit(EventTypes._userstate, { badges: badges, channel: chan });
+            return;
+        }
 
-        // BADGE
-        // Make variable for the BADGE, so the BOT knows what it is. mod vip or nothing
-        // Mod
-        // @badge-info=;badges=moderator/1;color=#00FF7F;display-name=Overseer26;emote-sets=0;mod=1;subscriber=0;user-type=mod :tmi.twitch.tv USERSTATE #endymion2k14
-        // Nothing
-        // @badge-info=;badges=;color=#00FF7F;display-name=Overseer26;emote-sets=0;mod=0;subscriber=0;user-type= :tmi.twitch.tv USERSTATE #missdokidoki
         log.info(`Response not handled: ${line}`, `${SOURCE}-${this.channel}`);
     }
 
