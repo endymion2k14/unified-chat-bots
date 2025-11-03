@@ -129,7 +129,7 @@ export class ClientTwitch extends EventEmitter {
 
         this._setupSystems = async function() {
             if (!this.api.isReady()) {
-                log.info('Waiting till api has all the data it needs before loading systems...', `${SOURCE}-systems-${this._settings.name}`);
+                log.info('Waiting till api has all the data it needs before loading systems...', `${SOURCE}-Systems-${this._settings.name}`);
                 while (!this.api.isReady()) { await sleep(0.5); }
             }
 
