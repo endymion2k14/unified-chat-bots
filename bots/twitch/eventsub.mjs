@@ -22,7 +22,12 @@ export class TwitchEventSub extends EventEmitter {
         this.ws.on('open', () => { log.info('Connected to Twitch EventSub', `${SOURCE}-${this.channel}`); this.reconnectAttempts = 0; });
         this.ws.on('message', (data) => { try { const message = JSON.parse(data.toString()); this.handleMessage(message); } catch (err) { log.error(`Failed to parse EventSub message: ${err}`, `${SOURCE}-${this.channel}`); } });
         this.ws.on('error', (error) => { log.error(`EventSub WS error: ${error}`, `${SOURCE}-${this.channel}`); });
-        this.ws.on('close', (code, reason) => { log.warn(`EventSub WS closed (code=${code} reason=${reason}). Reconnecting...`, `${SOURCE}-${this.channel}`); this.sessionId = null; this.reconnect(); });
+        this.ws.on('close', (code, reason) => {
+            log.warn(`EventSub WS closed (code=${code} reason=${reason}). Reconnecting...`, `${SOURCE}-${this.channel}`);
+            this.sessionId = null;
+            // Twitch or ISP dropped the connection. Give Twitch 1 minute to properly close the connection.
+            if (code === 1006) { setTimeout(() => this.reconnect(), 60000); } else { this.reconnect(); }
+        });
     }
 
     handleMessage(message) {
@@ -51,7 +56,7 @@ export class TwitchEventSub extends EventEmitter {
 
     reconnect() {
         if (this.reconnectAttempts >= 5) { log.error('Max EventSub reconnect attempts reached', `${SOURCE}-${this.channel}`); return; }
-        const delay = Math.min(10000 * Math.pow(2, this.reconnectAttempts), 30000);
+        const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
         setTimeout(() => { this.reconnectAttempts++; this.connect(); }, delay);
     }
 
