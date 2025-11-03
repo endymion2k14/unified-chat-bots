@@ -41,6 +41,10 @@ export class TwitchEventSub extends EventEmitter {
                 log.info('EventSub session reconnect requested', `${SOURCE}-${this.channel}`);
                 this.sessionId = message.payload.session.id;
                 this.ws.close();
+            case 'revocation':
+                // Revoked Moderator or VIP?
+                // TODO: Investigate what we get.
+                break;
             case 'notification':
                 this.handleNotification(message.payload);
                 break;
