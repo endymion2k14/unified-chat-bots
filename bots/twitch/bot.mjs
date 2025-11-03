@@ -108,24 +108,24 @@ export class ClientTwitch extends EventEmitter {
             });
 
             // backend
-            this._backend.addListener(EventTypes.connect      , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.connect   , event); });
-            this._backend.addListener(EventTypes.disconnect   , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.disconnect, event); });
-            this._backend.addListener(EventTypes.ban          , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.ban       , event); });
-            this._backend.addListener(EventTypes.raid         , event => { log.info(event.message, `${SOURCE}-${this._settings.name}`); this.emit(EventTypes.raid      , event); });
-            this._backend.addListener(EventTypes._roomstate   , event => { log.info(`Obtained room-id: ${event.roomId}`, `${SOURCE}-${this._settings.name}`); if (this.api) { this.api._data.roomId = event.roomId; } });
-            this._backend.addListener(EventTypes._botuserstate, event => { log.info(`Obtained user-id: ${event.userId}`, `${SOURCE}-${this._settings.name}`); if (this.api) { this.api._data.userId = event.userId; } });
+            this._backend.addListener(EventTypes.connect      , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.connect   , event); });
+            this._backend.addListener(EventTypes.disconnect   , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.disconnect, event); });
+            this._backend.addListener(EventTypes.ban          , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.ban       , event); });
+            this._backend.addListener(EventTypes.raid         , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.raid      , event); });
+            this._backend.addListener(EventTypes._roomstate   , event => { log.info(`Obtained room-id: ${event.roomId}`, `${SOURCE}-IRC-${this._settings.name}`); if (this.api) { this.api._data.roomId = event.roomId; } });
+            this._backend.addListener(EventTypes._botuserstate, event => { log.info(`Obtained user-id: ${event.userId}`, `${SOURCE}-IRC-${this._settings.name}`); if (this.api) { this.api._data.userId = event.userId; } });
             this._backend.addListener(EventTypes.message      , event => {
                 for (let i = 0;i < this._ignore.length; i++) { if (equals(this._ignore[i], event.identity)) { return; } } // Ignore messages from certain users
-                if (this.chat_show) { log.info(`[${event.channel}] ${event.username}: ${event.message}`, SOURCE); }
+                if (this.chat_show) { log.info(`[${event.channel}] ${event.username}: ${event.message}`, `${SOURCE}-IRC-${this._settings.name}`); }
                 if (event.message.startsWith(this.prefix)) {
                     this.emit(EventTypes.command, event);
                     this._parseCommand(event).catch(err => {
-                        log.error(err, `${SOURCE}-${this._settings.name}`);
+                        log.error(err, `${SOURCE}-IRC-${this._settings.name}`);
                     }); }
                 else { this.emit(EventTypes.message, event); }
             });
             // TODO: Only updates on load? unmod/mod does not trigger this
-            this._backend.addListener(EventTypes._userstate, event => { log.info(`Bot badges updated: ${JSON.stringify(event.badges)}`, `${SOURCE}-${this._settings.name}`); this.botBadges = event.badges; });
+            this._backend.addListener(EventTypes._userstate, event => { log.info(`Bot badges updated: ${JSON.stringify(event.badges)}`, `${SOURCE}-IRC-${this._settings.name}`); this.botBadges = event.badges; });
         };
 
         this._setupSystems = async function() {
@@ -134,19 +134,19 @@ export class ClientTwitch extends EventEmitter {
                 while (!this.api.isReady()) { await sleep(0.5); }
             }
 
-            log.info('Started loading systems', `${SOURCE}-${this._settings.name}`);
+            log.info('Started loading systems', `${SOURCE}-Systems-${this._settings.name}`);
             this._systems.slice(0, this._systems.length);
             const folder = new URL('../../systems', import.meta.url);
             const systemFiles = fs.readdirSync(folder).filter(file => file.endsWith('.mjs'));
             for (const file of systemFiles) {
                 const filePath = path.join(folder.toString(), file);
-                let system = (await import(filePath) .catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); }).then(_ => { return _; })).default;
+                let system = (await import(filePath) .catch(err => { log.error(err, `${SOURCE}-Systems-${this._settings.name}`); }).then(_ => { return _; })).default;
 
                 // Check if system has needed properties
                 let failed = false;
                 for (let i = 0; i < systemProperties.length; i++) {
                     if (!(systemProperties[i] in system)) {
-                        log.warn(`${filePath} is missing '${systemProperties[i]}' property.`, `${SOURCE}-${this._settings.name}`);
+                        log.warn(`${filePath} is missing '${systemProperties[i]}' property.`, `${SOURCE}-Systems-${this._settings.name}`);
                         failed = true;
                     }
                 }
@@ -166,30 +166,30 @@ export class ClientTwitch extends EventEmitter {
                     try {
                         system.init(this);
                     } catch (error) {
-                        log.error(error, `${SOURCE}-system-${system.name.toLowerCase()}`);
+                        log.error(error, `${SOURCE}-Systems-${this._settings.name}`);
                         continue; // Skip adding it as a successfully loaded system
                     }
-                    log.info(`Loaded system '${system.name}'!`, `${SOURCE}-${this._settings.name}`);
+                    log.info(`Loaded system '${system.name}'!`, `${SOURCE}-Systems-${this._settings.name}`);
                 }
                 this._systems.push({ name: system.name.toLowerCase(), system: system });
             }
-            log.info('Loaded all possible systems', `${SOURCE}-${this._settings.name}`);
+            log.info('Loaded all possible systems', `${SOURCE}-Systems-${this._settings.name}`);
         };
 
         this._loadCommands = async function() {
-            log.info('Started loading commands', `${SOURCE}-${this._settings.name}`);
+            log.info('Started loading commands', `${SOURCE}-Commands-${this._settings.name}`);
             this._commands.slice(0, this._commands.length);
             const folder = new URL('../../commands', import.meta.url);
             const commandFiles = fs.readdirSync(folder).filter(file => file.endsWith('.mjs'));
             for (const file of commandFiles) {
                 const filePath = path.join(folder.toString(), file);
-                let command = (await import(filePath) .catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); }).then(_ => { return _; })).default;
+                let command = (await import(filePath) .catch(err => { log.error(err, `${SOURCE}-Commands-${this._settings.name}`); }).then(_ => { return _; })).default;
 
                 // Check if command has all the needed properties
                 let failed = false;
                 for (let i = 0; i < commandProperties.length; i++) {
                     if (!(commandProperties[i] in command)) {
-                        log.warn(`${filePath} is missing '${commandProperties[i]}' property.`, `${SOURCE}-${this._settings.name}`);
+                        log.warn(`${filePath} is missing '${commandProperties[i]}' property.`, `${SOURCE}-Commands-${this._settings.name}`);
                         failed = true;
                     }
                 }
@@ -217,7 +217,7 @@ export class ClientTwitch extends EventEmitter {
                             }
                         }
                         if (!found) {
-                            log.warn(`${filePath} is missing the '${system}' system it needs to function.`, `${SOURCE}-${this._settings.name}`);
+                            log.warn(`${filePath} is missing the '${system}' system it needs to function.`, `${SOURCE}-Commands-${this._settings.name}`);
                             failed = true;
                         }
                     }
@@ -225,7 +225,7 @@ export class ClientTwitch extends EventEmitter {
                 if ('reply' in command) {
                     if (command.reply.constructor.name !== 'AsyncFunction') {
                         failed = false;
-                        log.warn(`${filePath}'s reply() is not async!`, `${SOURCE}-${this._settings.name}`);
+                        log.warn(`${filePath}'s reply() is not async!`, `${SOURCE}-Commands-${this._settings.name}`);
                     }
                 }
                 if (failed) { continue; } // Skip
@@ -234,9 +234,9 @@ export class ClientTwitch extends EventEmitter {
                 this._commands.push({ name: command.name.toLowerCase(), command: command });
                 const aliases = command.aliases || [];
                 for (const alias of aliases) { this._commands.push({ name: alias.toLowerCase(), command: command, hidden: !!command.hidden }); }
-                log.info(`Loaded command '${command.name}'${(aliases.length > 0) ? ` with aliases ['${concat(aliases, `', '`)}']` : ''}!`, `${SOURCE}-${this._settings.name}`);
+                log.info(`Loaded command '${command.name}'${(aliases.length > 0) ? ` with aliases ['${concat(aliases, `', '`)}']` : ''}!`, `${SOURCE}-Commands-${this._settings.name}`);
             }
-            log.info('Loaded all possible commands', `${SOURCE}-${this._settings.name}`);
+            log.info('Loaded all possible commands', `${SOURCE}-Commands-${this._settings.name}`);
         };
 
         this._parseCommand = async function(event) {
