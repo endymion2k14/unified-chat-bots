@@ -4,7 +4,7 @@ const SOURCE = 'gptrecap.mjs';
 
 const system_prompt =   'Format: {Username}: {Message}\n' +
                         'Tone: Playful and joyful\n' +
-                        'Emoticons: Allowed based on the response\n';
+                        'Emoticons: Allowed based on the response (sparingly)\n';
 
 export default {
     name: 'gptrecap',
@@ -34,7 +34,7 @@ export default {
                     { role: system.ROLES.USER, content: chatHistory }]);
                 console.log(response.message.content);
                 //client.sendMessage(response.message.content);
-                // TODO: Clear Array after one asking of 'recap' because we had this recap, we need to build up new recap message data from chatters.
+                // system.data[client.channel].userMessages = {};
             } catch (err) {
                 log.error(`Something went wrong trying to get the response from the GPT: ${err}`, SOURCE);
                 client.sendMessage(`Something went wrong trying to get a response from the GPT ${event.username}.`);
