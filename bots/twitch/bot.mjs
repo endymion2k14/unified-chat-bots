@@ -124,6 +124,7 @@ export class ClientTwitch extends EventEmitter {
                     }); }
                 else { this.emit(EventTypes.message, event); }
             });
+            // TODO: Only updates on load? unmod/mod does not trigger this
             this._backend.addListener(EventTypes._userstate, event => { log.info(`Bot badges updated: ${JSON.stringify(event.badges)}`, `${SOURCE}-${this._settings.name}`); this.botBadges = event.badges; });
         };
 
