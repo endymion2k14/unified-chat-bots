@@ -4,7 +4,8 @@ const SOURCE = 'gptrecap.mjs';
 
 const system_prompt =   'Format: {Username}: {Message}\n' +
                         'Tone: Playful and joyful\n' +
-                        'Emoticons: Allowed based on the response (sparingly)\n';
+                        'Emoticons: Allowed based on the response (sparingly)\n'
+                        'Recapitulation: Summarize key points or highlights from previous interactions at the start of each new conversation.';
 
 export default {
     name: 'gptrecap',
