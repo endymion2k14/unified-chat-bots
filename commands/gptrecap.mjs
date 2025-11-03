@@ -2,11 +2,9 @@ import { log } from '../utils.mjs';
 
 const SOURCE = 'gptrecap.mjs';
 
-// TODO: need a more constructive system_prompt
-// something like, format is "{username}: {message}"
-// Use emojis to reflect emotions
-// Use all 'usernames' in the response and dont leave anyone out.
-const system_prompt = 'Please give a recap as short and concise as possible:';
+const system_prompt =   'Format: {Username}: {Message}\n' +
+                        'Tone: Playful and joyful\n' +
+                        'Emoticons: Allowed based on the response\n';
 
 export default {
     name: 'gptrecap',
@@ -31,13 +29,11 @@ export default {
                     }
                 }
                 chatHistory = chatHistory.trim();
-                // Log for now because something goes wrong here. Or the AI does not understand the 'input'.
-                // Seems to prefer to speak about one person. Is only one person being passed instead of 'channel' ?
-                console.log(chatHistory);
                 const response = await system.getResponse([
                     { role: system.ROLES.SYSTEM, content: system_prompt },
                     { role: system.ROLES.USER, content: chatHistory }]);
-                client.sendMessage(response.message.content);
+                console.log(response.message.content);
+                //client.sendMessage(response.message.content);
                 // TODO: Clear Array after one asking of 'recap' because we had this recap, we need to build up new recap message data from chatters.
             } catch (err) {
                 log.error(`Something went wrong trying to get the response from the GPT: ${err}`, SOURCE);
