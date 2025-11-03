@@ -118,10 +118,8 @@ export class TwitchIRC extends EventEmitter {
     parseSingle(line) {
         // CAP
         if (line.includes('CAP')) { return; }
-
         // CLEARCHAT
         if (line.includes('CLEARCHAT')) { log.info('Cleared chat', `${SOURCE}-${this.channel}`); return; }
-
         // GLOBALUSERSTATE
         const globalUserState = line.match(/@.*display-name=(\w+);.*user-id=(\d+).*? :.* GLOBALUSERSTATE.*/);
         if (globalUserState) {
@@ -131,13 +129,10 @@ export class TwitchIRC extends EventEmitter {
             if (!isNaN(userIdInt)) { this.emit(EventTypes._botuserstate, { userId: userIdInt }); }
             return;
         }
-
         // JOIN
         if (line.includes('JOIN')) { log.info(`Joined Broadcaster's Channel`, `${SOURCE}-${this.channel}`); return; }
-
         // PING/PONG keep‑alive
         if (line.startsWith('PING')) { this.send(`PONG ${line.split(' ')[1]}`); return; }
-
         // PRIVMSG
         // Example: @tags :nick!ident@host PRIVMSG #channel :message
         const privmsg = line.match(/^(@[^ ]+ )?:(\S+?)!(\S+?)@(\S+) PRIVMSG #(\S+) :(.*)$/);
@@ -148,10 +143,8 @@ export class TwitchIRC extends EventEmitter {
             this.emit(EventTypes.message, { username: nickname, identity: ident, host: host, channel: chan, message: message, tags: tags, privileges: privileges });
             return;
         }
-
         // RECONNECT
         if (line.includes('RECONNECT')) { log.info('Twitch IRC reconnect requested', `${SOURCE}-${this.channel}`); this.ws.close(1000, "Twitch IRC reconnect requested"); return; }
-
         // ROOMSTATE
         const roomstate = line.match(/@.*room-id=(\d+).*? :.* ROOMSTATE #.*/);
         if (roomstate) {
@@ -160,7 +153,6 @@ export class TwitchIRC extends EventEmitter {
             if (!isNaN(roomidInt)) { this.emit(EventTypes._roomstate, { roomId: roomidInt }); }
             return;
         }
-
         // Stop 2nd Parameter, Integer flood.
         const parts = line.split(' '); if (parts.length >= 3) { if (!isNaN(parts[1]) && Number.isInteger(Number(parts[1])) && 0 <= Number(parts[1]) <= 999) { return; } }
 
