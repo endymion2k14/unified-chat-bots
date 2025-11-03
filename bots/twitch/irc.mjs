@@ -122,7 +122,7 @@ export class TwitchIRC extends EventEmitter {
         // RECONNECT
         if (line.includes('RECONNECT')) {
             log.info('Twitch IRC reconnect requested', `${SOURCE}-${this.channel}`);
-            this.ws.close();
+            this.ws.close(1000, "Twitch IRC reconnect requested");
             return;
         }
 
