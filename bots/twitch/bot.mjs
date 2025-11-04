@@ -101,7 +101,6 @@ export class ClientTwitch extends EventEmitter {
                         if (data.refresh) { currentSettings.twitch[botIndex].secrets.refresh = data.refresh; }
                         if (data.expiry) { currentSettings.twitch[botIndex].secrets.expiry = data.expiry; }
                         fs.writeFileSync(configPath, JSON.stringify(currentSettings, null, 2));
-                        log.info('Tokens updated in secrets.json', `${SOURCE}-${this._settings.name}`);
                     } else {
                         log.warn('Could not find bot in settings to update tokens', `${SOURCE}-${this._settings.name}`);
                     }
