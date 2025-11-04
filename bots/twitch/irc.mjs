@@ -219,7 +219,7 @@ export class TwitchIRC extends EventEmitter {
             this.emit(EventTypes.disconnect, { message: 'Max reconnect attempts reached! Disconnected.' });
             return;
         }
-        const delay = Math.min(1000 * 2 * this.reconnectAttempts, maxReconnectDelay);
+        const delay = Math.min(1000 * 1 * this.reconnectAttempts, maxReconnectDelay);
         setTimeout(_ => {
             this.reconnectAttempts++;
             this.connect();
