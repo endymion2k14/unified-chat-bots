@@ -52,7 +52,6 @@ export class TwitchAPI extends EventEmitter {
         if (!response.ok) { throw new Error(`Token refresh failed: ${data.message}`); }
         if (data.refresh_token) { this._data.refresh = data.refresh_token; }
         if (data.expires_in) { this._data.tokenExpiry = Date.now() + (data.expires_in * 1000); }
-        log.info(`OAuth token refreshed, next expiry: ${new Date(this._data.tokenExpiry).toLocaleString()}`, `${SOURCE}-${this._data.channel}`);
         this.emit('token_refreshed', { usertoken: data.access_token, refresh: this._data.refresh, expiry: this._data.tokenExpiry });
     }
 
