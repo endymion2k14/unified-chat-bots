@@ -2,9 +2,6 @@ import { concat, equals, log, urlToBase64 } from '../utils.mjs';
 
 const SOURCE = 'gptimage.mjs';
 
-// TODO: Live works when not live?
-// Is this the reason why the other lockdowns also did not work?
-
 const system_prompt = 'Please describe this image as short and concise as possible:';
 
 export default {
