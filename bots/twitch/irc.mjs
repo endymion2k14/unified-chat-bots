@@ -26,7 +26,8 @@ export const EventTypes = {
 
     // IRC info
     _roomstate: 'roomState',
-    _botuserstate: 'botUserState'
+    _botuserstate: 'botUserState',
+    _userstate: 'userState'
 }
 
 export class TwitchIRC extends EventEmitter {
@@ -102,7 +103,7 @@ export class TwitchIRC extends EventEmitter {
         while (next && next.length === 0 && this.messageQueue.length > 0) { next = this.messageQueue.shift(); }
         if (!next) return;
 
-        log.info(`[${this.channel}] ${this.username}: ${next}`, SOURCE);
+        log.info(`${this.username}: ${next}`, `${SOURCE}-${this.channel}`);
         this.send(`PRIVMSG #${this.channel} :${next}`);
         this.messagesInPeriod++;
 
@@ -116,18 +117,12 @@ export class TwitchIRC extends EventEmitter {
     }
 
     parseSingle(line) {
-        // PING/PONG keep‑alive
-        if (line.startsWith('PING')) { this.send(`PONG ${line.split(' ')[1]}`); return; }
-
-        // ROOMSTATE
-        const roomstate = line.match(/@.*room-id=(\d+).*? :.* ROOMSTATE #.*/);
-        if (roomstate) {
-            const [_, roomidText] = roomstate;
-            const roomidInt = parseInt(roomidText);
-            if (!isNaN(roomidInt)) { this.emit(EventTypes._roomstate, { roomId: roomidInt }); }
-            return;
-        }
-
+        // Stop 2nd Parameter, Integer flood.
+        const parts = line.split(' '); if (parts.length >= 3) { if (!isNaN(parts[1]) && Number.isInteger(Number(parts[1])) && 0 <= Number(parts[1]) <= 999) { return; } }
+        // CAP
+        if (line.includes('CAP')) { return; }
+        // CLEARCHAT
+        if (line.includes('CLEARCHAT')) { log.info(`Cleared chat for ${this.channel}`, `${SOURCE}-${this.channel}`); return; }
         // GLOBALUSERSTATE
         const globalUserState = line.match(/@.*display-name=(\w+);.*user-id=(\d+).*? :.* GLOBALUSERSTATE.*/);
         if (globalUserState) {
@@ -137,7 +132,12 @@ export class TwitchIRC extends EventEmitter {
             if (!isNaN(userIdInt)) { this.emit(EventTypes._botuserstate, { userId: userIdInt }); }
             return;
         }
-
+        // JOIN
+        if (line.includes('JOIN')) { log.info(`Joined ${this.channel}`, `${SOURCE}-${this.channel}`); return; }
+        // NOTICE
+        if (line.includes('NOTICE')) { log.info(`Response handled: ${line}`, `${SOURCE}-${this.channel}`); return; }
+        // PING/PONG keep‑alive
+        if (line.startsWith('PING')) { this.send(`PONG ${line.split(' ')[1]}`); return; }
         // PRIVMSG
         // Example: @tags :nick!ident@host PRIVMSG #channel :message
         const privmsg = line.match(/^(@[^ ]+ )?:(\S+?)!(\S+?)@(\S+) PRIVMSG #(\S+) :(.*)$/);
@@ -146,6 +146,25 @@ export class TwitchIRC extends EventEmitter {
             const tags = this.parseTags(tagsPart);
             const privileges = this.getPrivileges(tags);
             this.emit(EventTypes.message, { username: nickname, identity: ident, host: host, channel: chan, message: message, tags: tags, privileges: privileges });
+            return;
+        }
+        // RECONNECT
+        if (line.includes('RECONNECT')) { log.info('Twitch IRC reconnect requested', `${SOURCE}-${this.channel}`); this.ws.close(1000, "Twitch IRC reconnect requested"); return; }
+        // ROOMSTATE
+        const roomstate = line.match(/@.*room-id=(\d+).*? :.* ROOMSTATE #.*/);
+        if (roomstate) {
+            const [_, roomidText] = roomstate;
+            const roomidInt = parseInt(roomidText);
+            if (!isNaN(roomidInt)) { this.emit(EventTypes._roomstate, { roomId: roomidInt }); }
+            return;
+        }
+        // USERSTATE
+        const userstate = line.match(/^@([^ ]+) :.* USERSTATE #(.+)$/);
+        if (userstate) {
+            const [_, tagsPart, chan] = userstate;
+            const tags = this.parseTags(tagsPart);
+            const badges = this.parseBadges(tags.badges || '');
+            this.emit(EventTypes._userstate, { badges: badges, channel: chan });
             return;
         }
 
@@ -188,10 +207,10 @@ export class TwitchIRC extends EventEmitter {
         };
     }
 
-    handleError(error) { log.error(`WS error: ${error}`, SOURCE); }
+    handleError(error) { log.error(`WS error: ${error}`, `${SOURCE}-${this.channel}`); }
 
     handleClose(code, reason) {
-        log.warn(`WS closed (code=${code} reason=${reason}). Reconnecting...`, SOURCE);
+        log.warn(`WS closed (code=${code} reason=${reason}). Reconnecting...`, `${SOURCE}-${this.channel}`);
         this.reconnect();
     }
 
@@ -200,7 +219,7 @@ export class TwitchIRC extends EventEmitter {
             this.emit(EventTypes.disconnect, { message: 'Max reconnect attempts reached! Disconnected.' });
             return;
         }
-        const delay = Math.min(1000 * 2 * this.reconnectAttempts, maxReconnectDelay);
+        const delay = Math.min(1000 * 1 * this.reconnectAttempts, maxReconnectDelay);
         setTimeout(_ => {
             this.reconnectAttempts++;
             this.connect();

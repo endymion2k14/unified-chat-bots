@@ -3,7 +3,7 @@ import { EventEmitter } from 'node:events';
 import { log, sleep } from '../../utils.mjs';
 import { EventTypes } from './irc.mjs';
 
-const SOURCE = 'TwitchAPI';
+const SOURCE = 'Twitch-API';
 const USERS_PER_CHUNK = 100;
 
 export class TwitchAPI extends EventEmitter {
