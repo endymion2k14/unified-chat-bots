@@ -123,7 +123,7 @@ export class TwitchIRC extends EventEmitter {
         // CAP
         if (line.includes('CAP')) { return; }
         // CLEARCHAT
-        if (line.includes('CLEARCHAT')) { log.info(`Cleared chat for ${this.channel}`, `${SOURCE}-${this.channel}`); return; }
+        if (line.includes('CLEARCHAT')) { return; }
         // GLOBALUSERSTATE
         const globalUserState = line.match(/@.*display-name=(\w+);.*user-id=(\d+).*? :.* GLOBALUSERSTATE.*/);
         if (globalUserState) {
@@ -134,7 +134,7 @@ export class TwitchIRC extends EventEmitter {
             return;
         }
         // JOIN
-        if (line.includes('JOIN')) { log.info(`Joined ${this.channel}`, `${SOURCE}-${this.channel}`); return; }
+        if (line.includes('JOIN')) { log.info(`Joined #${this.channel}`, `${SOURCE}-${this.channel}`); return; }
         // NOTICE
         if (line.includes('NOTICE')) { log.info(`Response handled: ${line}`, `${SOURCE}-${this.channel}`); return; }
         // PING/PONG keep‑alive
