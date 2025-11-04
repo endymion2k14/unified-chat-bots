@@ -31,13 +31,14 @@ export const EventTypes = {
 }
 
 export class TwitchIRC extends EventEmitter {
-    constructor({ username, oauth, channel }) {
+    constructor({ username, oauth, channel, chat_show }) {
         super();
 
         this.username   = username.toLowerCase();
         // Token is expected to have: channel:moderate, chat:edit, chat:read, moderator:read:followers
         this.oauth      = `oauth:${oauth}`;
         this.channel    = channel.replace(/^#/, ''); // strip leading # - incase we do #username
+        this.chat_show  = chat_show;
 
         // Socket
         this.reconnectAttempts  = 0;
@@ -103,7 +104,7 @@ export class TwitchIRC extends EventEmitter {
         while (next && next.length === 0 && this.messageQueue.length > 0) { next = this.messageQueue.shift(); }
         if (!next) return;
 
-        log.info(`${this.username}: ${next}`, `${SOURCE}-${this.channel}`);
+        if (this.chat_show) { log.info(`${this.username}: ${next}`, `${SOURCE}-${this.channel}`); }
         this.send(`PRIVMSG #${this.channel} :${next}`);
         this.messagesInPeriod++;
 
