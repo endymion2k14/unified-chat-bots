@@ -19,7 +19,7 @@ export class TwitchEventSub extends EventEmitter {
 
     connect() {
         this.ws = new WebSocket('wss://eventsub.wss.twitch.tv/ws');
-        this.ws.on('open', () => { log.info('Connected to Twitch EventSub', `${SOURCE}-${this.channel}`); this.reconnectAttempts = 0; });
+        this.ws.on('open', () => { this.reconnectAttempts = 0; });
         this.ws.on('message', (data) => { try { const message = JSON.parse(data.toString()); this.handleMessage(message); } catch (err) { log.error(`Failed to parse EventSub message: ${err}`, `${SOURCE}-${this.channel}`); } });
         this.ws.on('error', (error) => { log.error(`EventSub WS error: ${error}`, `${SOURCE}-${this.channel}`); });
         this.ws.on('close', (code, reason) => {
