@@ -67,7 +67,7 @@ export class ClientTwitch extends EventEmitter {
             else {
                 this.channel = this._settings.settings.channel;
                 this.api = new TwitchAPI(this._settings.secrets.token, this.channel, this._settings.secrets.id, this._settings.secrets.secret, this._settings.secrets.usertoken, this._settings.secrets.refresh, this._settings.secrets.expiry);
-                this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this.channel } );
+                this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this.channel, chat_show: this._settings.settings.chat_show } );
                 if ('prefix'       in this._settings.settings) { if (this._settings.settings.prefix.length > 0) { this.prefix = this._settings.settings.prefix; } }
                 if ('chat_show'    in this._settings.settings) { this.chat_show = this._settings.settings.chat_show; }
                 if ('chat_delay'   in this._settings.settings) { this.chat_delay = this._settings.settings.chat_delay; }
@@ -127,7 +127,7 @@ export class ClientTwitch extends EventEmitter {
                     }); }
                 else { this.emit(EventTypes.message, event); }
             });
-            this._backend.addListener(EventTypes._userstate, event => { log.info(`Bot badges updated: ${JSON.stringify(event.badges)}`, `${SOURCE}-IRC-${this._settings.name}`); this.botBadges = event.badges; });
+            this._backend.addListener(EventTypes._userstate, event => { this.botBadges = event.badges; });
         };
 
         this._setupSystems = async function() {
