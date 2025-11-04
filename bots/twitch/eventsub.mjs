@@ -23,7 +23,7 @@ export class TwitchEventSub extends EventEmitter {
         this.ws.on('message', (data) => { try { const message = JSON.parse(data.toString()); this.handleMessage(message); } catch (err) { log.error(`Failed to parse EventSub message: ${err}`, `${SOURCE}-${this.channel}`); } });
         this.ws.on('error', (error) => { log.error(`EventSub WS error: ${error}`, `${SOURCE}-${this.channel}`); });
         this.ws.on('close', (code, reason) => {
-            log.warn(`EventSub WS closed (code=${code} reason=${reason}). Reconnecting...`, `${SOURCE}-${this.channel}`);
+            log.warn(`WS closed (code=${code} reason=${reason}). Reconnecting...`, `${SOURCE}-${this.channel}`);
             this.sessionId = null;
             // Twitch or ISP dropped the connection. Give Twitch 1 minute to properly close the connection.
             if (code === 1006) { setTimeout(() => this.reconnect(), 60000); } else { this.reconnect(); }
