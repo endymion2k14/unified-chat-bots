@@ -1,4 +1,5 @@
 export default {
     name: 'lurk',
-    async reply(params, client, event) { client.sendMessage(`Thank you for lurking ${event.username}!`); }
+    systems: ['channelLive'],
+    async reply(params, client, event) { if (!client.getSystem('channelLive')._live) { return; } client.sendMessage(`Thank you for lurking ${event.username}!`); }
 }

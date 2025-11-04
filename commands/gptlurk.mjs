@@ -6,8 +6,9 @@ const system_prompt = 'Give a witty response about their message as short and co
 
 export default {
     name: 'gptlurk',
-    systems: ['gpt'],
+    systems: ['gpt', 'channelLive'],
     async reply(params, client, event) {
+        if (!client.getSystem('channelLive')._live) { return; }
         if (params.length > 0) {
             try {
                 const system = client.getSystem('gpt');

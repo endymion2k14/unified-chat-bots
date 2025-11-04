@@ -9,8 +9,9 @@ const system_prompt =   'Format: {Username}: {Message}\n' +
 
 export default {
     name: 'gptrecap',
-    systems: ['gptrecap'],
+    systems: ['gptrecap', 'channelLive'],
     async reply(params, client, event) {
+        if (!client.getSystem('channelLive')._live) { return; }
         if (event.privileges.super       ||
             event.privileges.broadcaster ||
             event.privileges.moderator) {

@@ -2,8 +2,10 @@ import { getTimeDifference, sleep } from '../utils.mjs';
 
 export default {
     name: 'alarm',
+    systems: ['channelLive'],
     aliases: ['timer'],
     async reply(params, client, event) {
+        if (!client.getSystem('channelLive')._live) { return; }
         if (!event.privileges.moderator && !event.privileges.broadcaster && !event.privileges.super) {
             client.sendMessage('You need to be a moderator or higher to use this command!');
             return;
