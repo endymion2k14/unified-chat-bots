@@ -63,7 +63,7 @@ export class WebConsole extends EventEmitter {
             const bot = this.settings.twitch[index];
             if (!bot.secrets.secret) { return res.status(400).send('Client secret not configured for this bot'); }
             const redirectUri = bot.secrets.redirectUri || `http://localhost:${this.port}/oauth/callback`;
-            const scope = bot.secrets.scopes || 'chat:read chat:edit channel:moderate';
+            const scope = bot.secrets.scopes || 'chat:read chat:edit channel:moderate channel:read:follows';
             const state = index.toString();
             const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${bot.secrets.id}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}`;
             res.redirect(authUrl);
@@ -105,6 +105,9 @@ export class WebConsole extends EventEmitter {
     }
 
     parseObject(obj, prefix = '', depth = 0) {
+        // Unsure why this fix is suddently needed for WebConsole to show output?
+        if (obj === null) return ['', ''];
+
         let nav = '';
         let data = '';
         if (depth > MAX_DEPTH) { return [nav, data]; }

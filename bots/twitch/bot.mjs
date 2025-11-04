@@ -75,8 +75,10 @@ export class ClientTwitch extends EventEmitter {
                 if ('superusers'   in this._settings.settings) { this._supers = this._settings.settings.superusers; }
                 if ('usersIgnore'  in this._settings.settings) { this._ignore = this._settings.settings.usersIgnore; }
                 this._setupEvents();
-                this.api.startAutoRefresh();
                 await this._setupSystems();
+                // Call after Systems are ready.
+                if ('token_refresh' in this._settings.settings && this._settings.settings.token_refresh) { this.api.startAutoRefresh(); }
+                if ('eventsub' in this._settings.settings && this._settings.settings.eventsub) { this.api.startEventSub(); }
                 this._loadCommands().catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); });
             }
         };
@@ -85,7 +87,7 @@ export class ClientTwitch extends EventEmitter {
             // api
             this.api.addListener('error', err => { log.error(err, `${SOURCE}-API`); });
             this.api.addListener('token_refreshed', data => {
-                if (data.usertoken) { this._settings.secrets.usertoken = data.usertoken; this.api._data.usertoken = data.usertoken; }
+                if (data.usertoken) { this._settings.secrets.usertoken = data.usertoken; this.api._data.usertoken = data.usertoken; this.api.eventsub.updateToken(data.usertoken); }
                 if (data.refresh) { this._settings.secrets.refresh = data.refresh; this.api._data.refresh = data.refresh; }
                 if (data.expiry) { this._settings.secrets.expiry = data.expiry; this.api._data.tokenExpiry = data.expiry; }
                 this.api.startAutoRefresh();
@@ -98,7 +100,6 @@ export class ClientTwitch extends EventEmitter {
                         if (data.refresh) { currentSettings.twitch[botIndex].secrets.refresh = data.refresh; }
                         if (data.expiry) { currentSettings.twitch[botIndex].secrets.expiry = data.expiry; }
                         fs.writeFileSync(configPath, JSON.stringify(currentSettings, null, 2));
-                        log.info('Tokens updated in secrets.json', `${SOURCE}-${this._settings.name}`);
                     } else {
                         log.warn('Could not find bot in settings to update tokens', `${SOURCE}-${this._settings.name}`);
                     }
@@ -106,6 +107,8 @@ export class ClientTwitch extends EventEmitter {
                     log.error(`Failed to update secrets.json: ${err}`, `${SOURCE}-${this._settings.name}`);
                 }
             });
+            // TODO: Update Followers Array
+            this.api.addListener('follow', event => { log.info(`New follower: ${event.user_name}`, `${SOURCE}-${this._settings.name}`); this.emit('follow', event); });
 
             // backend
             this._backend.addListener(EventTypes.connect      , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.connect   , event); });

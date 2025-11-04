@@ -2,6 +2,7 @@ import https from 'https';
 import { EventEmitter } from 'node:events';
 import { log, sleep } from '../../utils.mjs';
 import { EventTypes } from './irc.mjs';
+import { TwitchEventSub } from './eventsub.mjs';
 
 const SOURCE = 'Twitch-API';
 const USERS_PER_CHUNK = 100;
@@ -27,10 +28,12 @@ export class TwitchAPI extends EventEmitter {
         this._data.usertoken = usertoken;
         this._data.refresh = refresh;
         this._data.tokenExpiry = expiry;
+        this.eventsub = null;
     }
 
     isReady() { return !(this._data.token === 0 || this._data.roomId === 0 || this._data.channel === 0 || this._data.applicationId === 0); }
 
+    // OAuth Tokens
     async refreshToken() {
         if (!this._data.refresh || !this._data.secret || !this._data.applicationId) { throw new Error('Missing refresh token, client secret, or client ID for refresh'); }
         const response = await fetch('https://id.twitch.tv/oauth2/token', {
@@ -54,16 +57,36 @@ export class TwitchAPI extends EventEmitter {
 
     startAutoRefresh() {
         if (!this._data.refresh) { log.info('No refresh token available, skipping auto-refresh', `${SOURCE}-${this._data.channel}`); return; }
-        if (this._refreshTimeout) { clearTimeout(this._refreshTimeout); }
         this._scheduleNextRefresh();
-        log.info('Auto-refresh started', `${SOURCE}-${this._data.channel}`);
     }
 
     _scheduleNextRefresh() {
+        if (this._refreshTimeout) { clearTimeout(this._refreshTimeout); }
         const bufferMs = 5 * 60 * 1000;
         const timeUntilExpiry = this._data.tokenExpiry - Date.now() - bufferMs;
         const intervalMs = Math.max(1000, timeUntilExpiry);
-        this._refreshTimeout = setTimeout(() => { this.refreshToken().then(() => this._scheduleNextRefresh()).catch(err => { log.error(`Auto-refresh failed: ${err.message}`, SOURCE); this._scheduleNextRefresh(); }); }, intervalMs);
+        log.info(`Next OAuth token refresh at ${new Date(Date.now() + intervalMs).toLocaleString()}`, `${SOURCE}-${this._data.channel}`);
+        this._refreshTimeout = setTimeout(() => { this.refreshToken().catch(err => { log.error(`Auto-refresh failed: ${err.message}`, SOURCE); this._scheduleNextRefresh(); }); }, intervalMs);
+    }
+
+    // EventSubs
+    startEventSub() {
+        if (!this._data.usertoken || !this._data.applicationId) { log.info('No usertoken available, skipping EventSub', `${SOURCE}-${this._data.channel}`); return; }
+        this.eventsub = new TwitchEventSub(this._data.usertoken, this._data.applicationId, this._data.channel);
+        log.info('Started loading subscriptions', `Twitch-EventSub-${this._data.channel}`);
+        this.eventsub.on('ready', () => { this.subscribeToEvents(); });
+        this.eventsub.on('channel.follow', (event) => this.emit('follow', event));
+    }
+
+    async subscribeToEvents() {
+        if (!this.eventsub || !this.isReady()) return;
+        try {
+            // Requires: channel:read:follows
+            // Example of subscription: event.type, version, condition
+            await this.eventsub.subscribe('channel.follow', 2, { broadcaster_user_id: this._data.roomId.toString(), moderator_user_id: this._data.userId.toString() });
+        } catch (err) {
+            log.error(`Failed to subscribe to EventSub events: ${err.message}`, SOURCE);
+        }
     }
 
     // Token is expected to have: moderator:manage:chat_messages
