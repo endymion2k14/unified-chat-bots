@@ -59,7 +59,6 @@ export class TwitchAPI extends EventEmitter {
     startAutoRefresh() {
         if (!this._data.refresh) { log.info('No refresh token available, skipping auto-refresh', `${SOURCE}-${this._data.channel}`); return; }
         this._scheduleNextRefresh();
-        log.info('Token auto-refresh started', `${SOURCE}-${this._data.channel}`);
     }
 
     _scheduleNextRefresh() {
