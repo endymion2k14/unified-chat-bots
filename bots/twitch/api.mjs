@@ -74,7 +74,7 @@ export class TwitchAPI extends EventEmitter {
     startEventSub() {
         if (!this._data.usertoken || !this._data.applicationId) { log.info('No usertoken available, skipping EventSub', `${SOURCE}-${this._data.channel}`); return; }
         this.eventsub = new TwitchEventSub(this._data.usertoken, this._data.applicationId, this._data.channel);
-        log.info('EventSub started loading subscriptions', `${SOURCE}-${this._data.channel}`);
+        log.info('Started loading subscriptions', `Twitch-EventSub-${this._data.channel}`);
         this.eventsub.on('ready', () => { this.subscribeToEvents(); });
         this.eventsub.on('channel.follow', (event) => this.emit('follow', event));
     }
