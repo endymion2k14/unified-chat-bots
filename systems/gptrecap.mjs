@@ -47,18 +47,8 @@ export default {
                     while (totalMessages >= this.max_messages) {
                         let oldestUser = null;
                         let oldestTime = Date.now();
-                        for (const [user, msgs] of Object.entries(this.data[client.channel].userMessages)) {
-                            if (msgs.length > 0 && msgs[0].timestamp < oldestTime) {
-                                oldestTime = msgs[0].timestamp;
-                                oldestUser = user;
-                            }
-                        }
-                        if (oldestUser) {
-                            this.data[client.channel].userMessages[oldestUser].shift();
-                            totalMessages--;
-                        } else {
-                            break;
-                        }
+                        for (const [user, msgs] of Object.entries(this.data[client.channel].userMessages)) { if (msgs.length > 0 && msgs[0].timestamp < oldestTime) { oldestTime = msgs[0].timestamp; oldestUser = user; } }
+                        if (oldestUser) { this.data[client.channel].userMessages[oldestUser].shift(); totalMessages--; } else { break; }
                     }
                 }
                 this.data[client.channel].userMessages[event.username].push({ message: event.message, timestamp: Date.now() });
