@@ -78,8 +78,8 @@ export class ClientTwitch extends EventEmitter {
                 this._setupEvents();
                 await this._setupSystems();
                 // Call after Systems are ready.
-                this.api.startAutoRefresh();
-                this.api.startEventSub();
+                if ('token_refresh' in this._settings.settings && this._settings.settings.token_refresh) { this.api.startAutoRefresh(); }
+                if ('eventsub' in this._settings.settings && this._settings.settings.eventsub) { this.api.startEventSub(); }
                 this._loadCommands().catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); });
             }
         };
