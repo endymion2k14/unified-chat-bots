@@ -34,7 +34,6 @@ export class TwitchEventSub extends EventEmitter {
         switch (message.metadata.message_type) {
             case 'session_welcome':
                 this.sessionId = message.payload.session.id;
-                log.info(`EventSub session established`, `${SOURCE}-${this.channel}`);
                 this.emit('ready', this.sessionId);
                 break;
             case 'session_reconnect':
