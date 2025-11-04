@@ -52,7 +52,7 @@ export class TwitchAPI extends EventEmitter {
         if (!response.ok) { throw new Error(`Token refresh failed: ${data.message}`); }
         if (data.refresh_token) { this._data.refresh = data.refresh_token; }
         if (data.expires_in) { this._data.tokenExpiry = Date.now() + (data.expires_in * 1000); }
-        log.info(`Token refreshed, next expiry: ${new Date(this._data.tokenExpiry).toISOString()}`, `${SOURCE}-${this._data.channel}`);
+        log.info(`Token refreshed, next expiry: ${new Date(this._data.tokenExpiry).toLocaleString()}`, `${SOURCE}-${this._data.channel}`);
         this.emit('token_refreshed', { usertoken: data.access_token, refresh: this._data.refresh, expiry: this._data.tokenExpiry });
     }
 
@@ -66,7 +66,7 @@ export class TwitchAPI extends EventEmitter {
         const bufferMs = 5 * 60 * 1000;
         const timeUntilExpiry = this._data.tokenExpiry - Date.now() - bufferMs;
         const intervalMs = Math.max(1000, timeUntilExpiry);
-        log.info(`Next token refresh at ${new Date(Date.now() + intervalMs).toISOString()}`, `${SOURCE}-${this._data.channel}`);
+        log.info(`Next token refresh at ${new Date(Date.now() + intervalMs).toLocaleString()}`, `${SOURCE}-${this._data.channel}`);
         this._refreshTimeout = setTimeout(() => { this.refreshToken().catch(err => { log.error(`Auto-refresh failed: ${err.message}`, SOURCE); this._scheduleNextRefresh(); }); }, intervalMs);
     }
 
