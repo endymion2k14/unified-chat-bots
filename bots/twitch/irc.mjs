@@ -150,7 +150,7 @@ export class TwitchIRC extends EventEmitter {
             return;
         }
         // RECONNECT
-        if (line.includes('RECONNECT')) { log.info('Twitch IRC reconnect requested', `${SOURCE}-${this.channel}`); this.ws.close(1000, "Twitch IRC reconnect requested"); return; }
+        if (line.includes('RECONNECT')) { log.info('Twitch IRC reconnect requested', `${SOURCE}-${this.channel}`); this.ws.close(4000, "Twitch IRC reconnect requested"); return; }
         // ROOMSTATE
         const roomstate = line.match(/@.*room-id=(\d+).*? :.* ROOMSTATE #.*/);
         if (roomstate) {
