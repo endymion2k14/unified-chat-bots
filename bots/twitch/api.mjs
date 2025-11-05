@@ -81,7 +81,7 @@ export class TwitchAPI extends EventEmitter {
     async subscribeToEvents() {
         if (!this.eventsub || !this.isReady()) return;
         try {
-            // Requires: channel:read:follows
+            // Requires: moderator:read:followers
             // Example of subscription: event.type, version, condition
             await this.eventsub.subscribe('channel.follow', 2, { broadcaster_user_id: this._data.roomId.toString(), moderator_user_id: this._data.userId.toString() });
         } catch (err) {
