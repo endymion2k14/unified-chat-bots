@@ -69,8 +69,7 @@ export class TwitchEventSub extends EventEmitter {
 
     updateToken(newToken) {
         this.usertoken = newToken;
-        log.info('EventSub token updated, reconnecting...', `${SOURCE}-${this.channel}`);
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) { this.ws.close(); }
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) { this.ws.close(1000, "EventSub token updated, reconnecting"); }
     }
 
     async subscribe(type, version, condition) {
