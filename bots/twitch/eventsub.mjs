@@ -39,7 +39,7 @@ export class TwitchEventSub extends EventEmitter {
             case 'session_reconnect':
                 log.info('EventSub session reconnect requested', `${SOURCE}-${this.channel}`);
                 this.sessionId = message.payload.session.id;
-                this.ws.close(4013, "EventSub session reconnect requested");
+                this.ws.close();
             case 'revocation':
                 // Revoked Moderator or VIP?
                 // TODO: Investigate what we get.
@@ -69,7 +69,7 @@ export class TwitchEventSub extends EventEmitter {
 
     updateToken(newToken) {
         this.usertoken = newToken;
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) { this.ws.close(4012, "EventSub token updated, reconnecting"); }
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) { this.ws.close(); }
     }
 
     async subscribe(type, version, condition) {
