@@ -65,7 +65,7 @@ export class TwitchAPI extends EventEmitter {
         const bufferMs = 5 * 60 * 1000;
         const timeUntilExpiry = this._data.tokenExpiry - Date.now() - bufferMs;
         const intervalMs = Math.max(1000, timeUntilExpiry);
-        log.info(`Next OAuth token refresh at ${new Date(Date.now() + intervalMs).toLocaleString()}`, `${SOURCE}-${this._data.channel}`);
+        log.info(`Next OAuth token (auto) refresh at ${new Date(Date.now() + intervalMs).toLocaleString()}`, `${SOURCE}-${this._data.channel}`);
         this._refreshTimeout = setTimeout(() => { this.refreshToken().catch(err => { log.error(`Auto-refresh failed: ${err.message}`, SOURCE); this._scheduleNextRefresh(); }); }, intervalMs);
     }
 
@@ -81,7 +81,7 @@ export class TwitchAPI extends EventEmitter {
     async subscribeToEvents() {
         if (!this.eventsub || !this.isReady()) return;
         try {
-            // Requires: channel:read:follows
+            // Requires: moderator:read:followers
             // Example of subscription: event.type, version, condition
             await this.eventsub.subscribe('channel.follow', 2, { broadcaster_user_id: this._data.roomId.toString(), moderator_user_id: this._data.userId.toString() });
         } catch (err) {

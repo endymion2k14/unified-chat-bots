@@ -6,8 +6,9 @@ const system_prompt = 'Please describe this image as short and concise as possib
 
 export default {
     name: 'gptimage',
-    systems: ['gptimage'],
+    systems: ['gptimage', 'channelLive'],
     async reply(params, client, event) {
+        if (!client.getSystem('channelLive')._live) { return; }
         if (event.privileges.super       ||
             event.privileges.broadcaster ||
             event.privileges.moderator   ||
@@ -19,7 +20,8 @@ export default {
                     const messages = [];
                     if (equals(params[0].toLowerCase(), 'live')) {
                         log.info("Grabbing live image", SOURCE);
-                        const base64Image = await urlToBase64(`https://static-cdn.jtvnw.net/previews-ttv/live_user_${client._settings.settings.channel}-${system.resolution}.jpg?t=${Date.now()}`); // Date.now() so it cannot 'pre cache' the image - has to be refreshed by Twitch
+                        // Date.now() so it cannot 'pre cache' the image - has to be refreshed by Twitch
+                        const base64Image = await urlToBase64(`https://static-cdn.jtvnw.net/previews-ttv/live_user_${client._settings.settings.channel}-${system.resolution}.jpg?t=${Date.now()}`);
                         messages.push({ role: system.ROLES.USER, content: system_prompt, images: [base64Image] });
                     } else if (params[0].startsWith('http')) {
                         log.info("Grabbing image from URL", SOURCE);

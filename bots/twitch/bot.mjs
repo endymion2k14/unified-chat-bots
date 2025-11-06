@@ -87,7 +87,7 @@ export class ClientTwitch extends EventEmitter {
             // api
             this.api.addListener('error', err => { log.error(err, `${SOURCE}-API`); });
             this.api.addListener('token_refreshed', data => {
-                if (data.usertoken) { this._settings.secrets.usertoken = data.usertoken; this.api._data.usertoken = data.usertoken; this.api.eventsub.updateToken(data.usertoken); }
+                if (data.usertoken) { this._settings.secrets.usertoken = data.usertoken; this.api._data.usertoken = data.usertoken; if (this.api.eventsub) this.api.eventsub.updateToken(data.usertoken); }
                 if (data.refresh) { this._settings.secrets.refresh = data.refresh; this.api._data.refresh = data.refresh; }
                 if (data.expiry) { this._settings.secrets.expiry = data.expiry; this.api._data.tokenExpiry = data.expiry; }
                 this.api.startAutoRefresh();
@@ -115,8 +115,8 @@ export class ClientTwitch extends EventEmitter {
             this._backend.addListener(EventTypes.disconnect   , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.disconnect, event); });
             this._backend.addListener(EventTypes.ban          , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.ban       , event); });
             this._backend.addListener(EventTypes.raid         , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.raid      , event); });
-            this._backend.addListener(EventTypes._roomstate   , event => { log.info(`Obtained room-id: ${event.roomId}`, `${SOURCE}-IRC-${this._settings.name}`); if (this.api) { this.api._data.roomId = event.roomId; } });
-            this._backend.addListener(EventTypes._botuserstate, event => { log.info(`Obtained user-id: ${event.userId}`, `${SOURCE}-IRC-${this._settings.name}`); if (this.api) { this.api._data.userId = event.userId; } });
+            this._backend.addListener(EventTypes._roomstate   , event => { if (this.api) { this.api._data.roomId = event.roomId; } });
+            this._backend.addListener(EventTypes._botuserstate, event => { if (this.api) { this.api._data.userId = event.userId; } });
             this._backend.addListener(EventTypes.message      , event => {
                 for (let i = 0;i < this._ignore.length; i++) { if (equals(this._ignore[i], event.identity)) { return; } } // Ignore messages from certain users
                 if (this.chat_show) { log.info(`${event.username}: ${event.message}`, `${SOURCE}-IRC-${this._settings.name}`); }
