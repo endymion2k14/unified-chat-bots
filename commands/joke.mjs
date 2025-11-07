@@ -8,8 +8,7 @@ const requestOptions = {
 
 export default {
     name: 'joke',
-    systems: ['channelLive'],
-    async reply(params, client, event) { if (!client.getSystem('channelLive')._live) { return; } client.sendMessage(await getDadJoke()); }
+    async reply(params, client, event) { client.sendMessage(await getDadJoke()); }
 };
 
 async function getDadJoke() {

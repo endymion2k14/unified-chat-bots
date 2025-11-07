@@ -6,9 +6,8 @@ const system_prompt = 'Please describe this image as short and concise as possib
 
 export default {
     name: 'gptimage',
-    systems: ['gptimage', 'channelLive'],
+    systems: ['gptimage'],
     async reply(params, client, event) {
-        if (!client.getSystem('channelLive')._live) { return; }
         if (event.privileges.super       ||
             event.privileges.broadcaster ||
             event.privileges.moderator   ||
