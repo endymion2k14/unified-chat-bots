@@ -133,6 +133,29 @@ export class TwitchAPI extends EventEmitter {
             req.end();
         });
     }
+    // Token is expected to have: clips:edit
+    // https://dev.twitch.tv/docs/api/clips/#creating-clips
+    // If Delay is true, it captures from the VOD instead of the Live stream. We should be able to go back upto 80 minutes.
+    async createClip(broadcasterId, hasDelay = false) {
+        const response = await fetch('https://api.twitch.tv/helix/clips', {
+            method: 'POST',
+            headers: {
+                'Client-ID': `${this._data.applicationId}`,
+                'Authorization': `Bearer ${this._data.usertoken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                broadcaster_id: broadcasterId,
+                has_delay: hasDelay
+            })
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(`Clip creation failed: ${errorData.message || response.status}`);
+        }
+        const data = await response.json();
+        return data.data[0];
+    }
 
     async isChannelLive() {
         const response = await fetch(`https://api.twitch.tv/helix/streams?user_login=${this._data.channel}`, {
