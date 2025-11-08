@@ -4,9 +4,8 @@ const SOURCE = 'vanish.mjs';
 
 export default {
     name: 'vanish',
-    systems: ['vanish', 'channelLive'],
+    systems: ['vanish'],
     async reply(params, client, event) {
-        if (!client.getSystem('channelLive')._live) { return; }
         if (event.privileges.broadcaster || event.privileges.moderator) { client.sendMessage(`Broadcasters and Moderators cannot vanish themselves ${event.username}.`); return; }
         const system = client.getSystem('vanish');
         if (system.data[client.channel] && system.data[client.channel].userMessages) {

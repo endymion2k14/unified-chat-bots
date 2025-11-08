@@ -68,12 +68,13 @@ export class ClientTwitch extends EventEmitter {
                 this.channel = this._settings.settings.channel;
                 this.api = new TwitchAPI(this._settings.secrets.token, this.channel, this._settings.secrets.id, this._settings.secrets.secret, this._settings.secrets.usertoken, this._settings.secrets.refresh, this._settings.secrets.expiry);
                 this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.token, channel: this.channel, chat_show: this._settings.settings.chat_show } );
-                if ('prefix'       in this._settings.settings) { if (this._settings.settings.prefix.length > 0) { this.prefix = this._settings.settings.prefix; } }
-                if ('chat_show'    in this._settings.settings) { this.chat_show = this._settings.settings.chat_show; }
-                if ('chat_delay'   in this._settings.settings) { this.chat_delay = this._settings.settings.chat_delay; }
-                if ('chat_silence' in this._settings.settings) { this.chat_silence = this._settings.settings.chat_silence; }
-                if ('superusers'   in this._settings.settings) { this._supers = this._settings.settings.superusers; }
-                if ('usersIgnore'  in this._settings.settings) { this._ignore = this._settings.settings.usersIgnore; }
+                if ('prefix'           in this._settings.settings) { if (this._settings.settings.prefix.length > 0) { this.prefix = this._settings.settings.prefix; } }
+                if ('chat_show'        in this._settings.settings) { this.chat_show = this._settings.settings.chat_show; }
+                if ('chat_delay'       in this._settings.settings) { this.chat_delay = this._settings.settings.chat_delay; }
+                if ('chat_silence'     in this._settings.settings) { this.chat_silence = this._settings.settings.chat_silence; }
+                if ('superusers'       in this._settings.settings) { this._supers = this._settings.settings.superusers; }
+                if ('usersIgnore'      in this._settings.settings) { this._ignore = this._settings.settings.usersIgnore; }
+                if ('commandsOffline'  in this._settings.settings) { this.commandsOffline = this._settings.settings.commandsOffline; }
                 this._setupEvents();
                 await this._setupSystems();
                 // Call after Systems are ready.
@@ -253,6 +254,9 @@ export class ClientTwitch extends EventEmitter {
                     let isSuper = false;
                     for (let i = 0; i < this._supers.length; i++) { if (equals(this._supers[i].toLowerCase(), event.username.toLowerCase())) { isSuper = true; break; } }
                     event.privileges.super = isSuper;
+
+                    // Check if command requires live stream
+                    if (!this.commandsOffline.includes(commandName) && !this.getSystem('channelLive')._live) { return; }
 
                     command.reply(params, this, event).catch(error => { // Command pass-through
                         log.error(error, `${SOURCE}-command-${command.name.toLowerCase()}`);
