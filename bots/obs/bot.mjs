@@ -118,23 +118,7 @@ export class ClientOBS extends EventEmitter {
         }
     }
 
-    async playMedia(sourceName) {
-        if (!this.connected) throw new Error('OBS not connected');
-        try {
-            await this.obs.call('TriggerMediaInputAction', { inputName: sourceName, mediaAction: 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY' });
-        } catch (error) {
-            throw new Error(`Failed to play media: ${error.message}`);
-        }
-    }
 
-    async stopMedia(sourceName) {
-        if (!this.connected) throw new Error('OBS not connected');
-        try {
-            await this.obs.call('TriggerMediaInputAction', { inputName: sourceName, mediaAction: 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP' });
-        } catch (error) {
-            throw new Error(`Failed to stop media: ${error.message}`);
-        }
-    }
 
     async startRecording() {
         if (!this.connected) throw new Error('OBS not connected');

@@ -2,11 +2,11 @@ import { equals } from '../utils.mjs';
 
 export default {
     name: 'obs',
-    aliases: ['scene', 'source', 'stats', 'reconnect', 'media', 'record', 'stream', 'audio'],
+    aliases: ['scene', 'source', 'stats', 'reconnect', 'record', 'stream', 'audio'],
     async reply(params, client, event) {
         if (event.privileges.super || event.privileges.broadcaster || event.privileges.moderator) {
             if (params.length === 0) {
-                client.sendMessage('Usage: !obs scene <scene_name> [bot_index] | !obs source enable/disable <source_name> [scene_name] [duration_seconds] [bot_index] | !obs stats [bot_index] | !obs reconnect [bot_index] | !obs media play/stop <source_name> [bot_index] | !obs record start/stop [bot_index] | !obs stream start/stop [bot_index] | !obs audio mute/unmute <source_name> [bot_index]');
+                client.sendMessage('Usage: !obs scene <scene_name> [bot_index] | !obs source enable/disable <source_name> [scene_name] [duration_seconds] [bot_index] | !obs stats [bot_index] | !obs reconnect [bot_index] | !obs record start/stop [bot_index] | !obs stream start/stop [bot_index] | !obs audio mute/unmute <source_name> [bot_index]');
                 return;
             }
             const subcommand = params.shift().toLowerCase();
@@ -105,35 +105,6 @@ export default {
                 const obsClient = client.obsClients[botIndex];
                 obsClient.reconnect();
                 client.sendMessage(`Attempting to reconnect to OBS on bot ${botIndex}`);
-            } else if (subcommand === 'media') {
-                if (params.length < 2) {
-                    client.sendMessage('Usage: !obs media play/stop <source_name> [bot_index]');
-                    return;
-                }
-                const action = params.shift().toLowerCase();
-                const sourceName = params.shift();
-                let botIndex = 0;
-                if (params.length > 0 && !isNaN(params[params.length - 1])) {
-                    botIndex = parseInt(params.pop());
-                }
-                if (botIndex < 0 || botIndex >= client.obsClients.length) {
-                    client.sendMessage(`Invalid bot index. Available: 0-${client.obsClients.length - 1}`);
-                    return;
-                }
-                const obsClient = client.obsClients[botIndex];
-                try {
-                    if (action === 'play') {
-                        await obsClient.playMedia(sourceName);
-                        client.sendMessage(`Playing media '${sourceName}' on OBS bot ${botIndex}`);
-                    } else if (action === 'stop') {
-                        await obsClient.stopMedia(sourceName);
-                        client.sendMessage(`Stopping media '${sourceName}' on OBS bot ${botIndex}`);
-                    } else {
-                        client.sendMessage('Invalid action. Use play or stop');
-                    }
-                } catch (error) {
-                    client.sendMessage(`Failed to control media: ${error.message}`);
-                }
             } else if (subcommand === 'record') {
                 if (params.length < 1) {
                     client.sendMessage('Usage: !obs record start/stop [bot_index]');
@@ -214,7 +185,7 @@ export default {
                     client.sendMessage(`Failed to control audio: ${error.message}`);
                 }
             } else {
-                client.sendMessage('Unknown subcommand. Use !obs scene, !obs source, !obs stats, !obs reconnect, !obs media, !obs record, !obs stream, or !obs audio');
+                client.sendMessage('Unknown subcommand. Use !obs scene, !obs source, !obs stats, !obs reconnect, !obs record, !obs stream, or !obs audio');
             }
         } else { client.sendMessage(`You need to be at least a moderator to use this command ${event.username}.`); }
     }
