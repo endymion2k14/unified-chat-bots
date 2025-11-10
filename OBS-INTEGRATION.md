@@ -97,7 +97,7 @@ Use `!obs` in Twitch chat (requires superuser or appropriate permissions). Comma
 
 - `bots/obs/bot.mjs`: `ClientOBS` class handling WebSocket connection and OBS calls.
 - `commands/obs.mjs`: Command handler for `!obs` (accesses OBS via `client.obsClients`).
-- `systems/obsIntegration.mjs`: Placeholder system with commented examples for event-driven integrations.
+- `systems/obsIntegration.mjs`: Configurable system for event-driven OBS integrations via JSON.
 - `bots/twitch/bot.mjs`: Modified to accept OBS clients for shared access.
 - `main.mjs`: Loads OBS bots.
 - `bots/webconsole/webconsole.mjs`: Displays OBS bot status in web console.
@@ -123,13 +123,63 @@ The OBS integration includes automatic reconnection. If the connection drops or 
 
 ## Extending with Events
 
-The `obsIntegration` system includes commented examples for integrating OBS control with Twitch events. To activate:
+The `obsIntegration` system allows configuring event-driven OBS integrations through JSON configuration. Add integrations to your `systems.json` file:
 
-1. Uncomment the desired example in `systems/obsIntegration.mjs`.
-2. Customize scene/source names and bot indices.
-3. Ensure the system is enabled in your bot's config (add to `systemsIgnore` to disable).
+```json
+{
+  "obsIntegration": {
+    "your.bot.config.name": {
+      "enabled": true,
+      "integrations": [
+        {
+          "event": "follow",
+          "actions": [
+            {
+              "type": "changeScene",
+              "sceneName": "FollowerScene",
+              "botIndex": 0
+            },
+            {
+              "type": "setTextSource",
+              "sceneName": "FollowerScene",
+              "sourceName": "FollowerName",
+              "text": "Welcome {user_name}!",
+              "botIndex": 0
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
 
-Examples include changing scenes on follows, enabling sources on raids, or playing sounds on bans.
+### Supported Events
+- `follow` - When someone follows the channel
+- `raid` - When the channel receives a raid
+- `ban` - When a user is banned
+- `timeout` - When a user is timed out
+- `cheer` - When someone cheers bits
+- `subscription` - When someone subscribes
+
+### Supported Actions
+- `changeScene` - Switch to a different scene
+- `setSourceEnabled` - Show/hide a source with optional duration
+- `setTextSource` - Update text in a text source (supports placeholders like {user_name})
+- `setAudioMute` - Mute/unmute an audio source
+- `startRecording` - Start OBS recording
+- `stopRecording` - Stop OBS recording
+- `startStreaming` - Start OBS streaming
+- `stopStreaming` - Stop OBS streaming
+
+### Action Parameters
+- `botIndex` (optional) - Which OBS bot to target (0-based, defaults to 0)
+- `sceneName` (required for scene/source actions) - OBS scene name
+- `sourceName` (required for source actions) - OBS source name
+- `enabled` (for setSourceEnabled) - true/false to show/hide
+- `duration` (optional) - Seconds to wait before reverting action
+- `text` (for setTextSource) - Text content with optional placeholders
+- `mute` (for setAudioMute) - true/false to mute/unmute
 
 ## Notes
 
@@ -137,5 +187,7 @@ Examples include changing scenes on follows, enabling sources on raids, or playi
 - Commands require the OBS bot to be connected and will report errors if operations fail.
 - Automatic reconnection prevents needing to restart the bot on connection drops.
 - Timing uses `setTimeout` for reversion (not persistent across restarts).
-- OBS clients are passed to chat bots for access, enabling shared control across platforms.</content>
+- OBS clients are passed to chat bots for access, enabling shared control across platforms.
+- Event integrations are configured through `systems.json` - no code editing required.
+- Scene and source names must match your OBS configuration exactly.</content>
 <parameter name="filePath">OBS-INTEGRATION.md
