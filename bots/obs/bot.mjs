@@ -18,7 +18,7 @@ export class ClientOBS extends EventEmitter {
             const { host = 'localhost', port = 4455, password } = this._settings.settings || {};
             await this.obs.connect(`ws://${host}:${port}`, password);
             this.connected = true;
-            log.info('Connected to OBS', SOURCE);
+            log.info('Connected to OBS', `${SOURCE}-${this._settings.name}`);
 
             // Set up event listeners
             this.obs.on('ConnectionOpened', () => this.emit('connect'));
@@ -28,7 +28,7 @@ export class ClientOBS extends EventEmitter {
             this.obs.on('RecordingStopped', () => this.emit('recordingStopped'));
             // Add more events as needed
         } catch (error) {
-            log.error(`Failed to connect to OBS: ${error}`, SOURCE);
+            log.error(`Failed to connect to OBS: ${error}`, `${SOURCE}-${this._settings.name}`);
         }
     }
 
@@ -37,7 +37,7 @@ export class ClientOBS extends EventEmitter {
         try {
             await this.obs.call('SetCurrentScene', { 'scene-name': sceneName });
         } catch (error) {
-            log.error(`Failed to change scene: ${error}`, SOURCE);
+            log.error(`Failed to change scene: ${error}`, `${SOURCE}-${this._settings.name}`);
         }
     }
 
@@ -47,7 +47,7 @@ export class ClientOBS extends EventEmitter {
             const response = await this.obs.call('GetCurrentScene');
             return response.name;
         } catch (error) {
-            log.error(`Failed to get current scene: ${error}`, SOURCE);
+            log.error(`Failed to get current scene: ${error}`, `${SOURCE}-${this._settings.name}`);
             return null;
         }
     }
@@ -70,7 +70,7 @@ export class ClientOBS extends EventEmitter {
                 }, duration * 1000);
             }
         } catch (error) {
-            log.error(`Failed to set source enabled: ${error}`, SOURCE);
+            log.error(`Failed to set source enabled: ${error}`, `${SOURCE}-${this._settings.name}`);
         }
     }
 
