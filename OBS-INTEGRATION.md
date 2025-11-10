@@ -72,6 +72,34 @@ Use `!obs` in Twitch chat (requires superuser or appropriate permissions). Comma
     - `!obs reconnect`: Reconnect bot 0.
     - `!obs reconnect 1`: Reconnect bot 1.
 
+### Media Control
+- `!obs media play <source_name> [bot_index]`: Play media source.
+- `!obs media stop <source_name> [bot_index]`: Stop media source.
+  - Examples:
+    - `!obs media play Video`: Play "Video" on bot 0.
+    - `!obs media stop Music 1`: Stop "Music" on bot 1.
+
+### Recording Control
+- `!obs record start [bot_index]`: Start recording.
+- `!obs record stop [bot_index]`: Stop recording.
+  - Examples:
+    - `!obs record start`: Start recording on bot 0.
+    - `!obs record stop 1`: Stop recording on bot 1.
+
+### Streaming Control
+- `!obs stream start [bot_index]`: Start streaming.
+- `!obs stream stop [bot_index]`: Stop streaming.
+  - Examples:
+    - `!obs stream start`: Start streaming on bot 0.
+    - `!obs stream stop 1`: Stop streaming on bot 1.
+
+### Audio Control
+- `!obs audio mute <source_name> [bot_index]`: Mute audio source.
+- `!obs audio unmute <source_name> [bot_index]`: Unmute audio source.
+  - Examples:
+    - `!obs audio mute Mic`: Mute "Mic" on bot 0.
+    - `!obs audio unmute Music 1`: Unmute "Music" on bot 1.
+
 ## Code Structure
 
 - `bots/obs/bot.mjs`: `ClientOBS` class handling WebSocket connection and OBS calls.
@@ -90,6 +118,13 @@ Use `!obs` in Twitch chat (requires superuser or appropriate permissions). Comma
 - `getCurrentScene()`: Get current scene name.
 - `setSourceEnabled(sceneName, sourceName, enabled, duration)`: Toggle source with optional revert timer.
 - `setTextSource(sceneName, sourceName, text)`: Set text on a text source.
+- `playMedia(sourceName)`: Play media source.
+- `stopMedia(sourceName)`: Stop media source.
+- `startRecording()`: Start recording.
+- `stopRecording()`: Stop recording.
+- `startStreaming()`: Start streaming.
+- `stopStreaming()`: Stop streaming.
+- `setAudioMute(sourceName, mute)`: Mute/unmute audio source.
 
 ## Reconnection
 

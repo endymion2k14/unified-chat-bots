@@ -118,5 +118,68 @@ export class ClientOBS extends EventEmitter {
         }
     }
 
+    async playMedia(sourceName) {
+        if (!this.connected) throw new Error('OBS not connected');
+        try {
+            await this.obs.call('TriggerMediaInputAction', { inputName: sourceName, mediaAction: 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_PLAY' });
+        } catch (error) {
+            throw new Error(`Failed to play media: ${error.message}`);
+        }
+    }
+
+    async stopMedia(sourceName) {
+        if (!this.connected) throw new Error('OBS not connected');
+        try {
+            await this.obs.call('TriggerMediaInputAction', { inputName: sourceName, mediaAction: 'OBS_WEBSOCKET_MEDIA_INPUT_ACTION_STOP' });
+        } catch (error) {
+            throw new Error(`Failed to stop media: ${error.message}`);
+        }
+    }
+
+    async startRecording() {
+        if (!this.connected) throw new Error('OBS not connected');
+        try {
+            await this.obs.call('StartRecord');
+        } catch (error) {
+            throw new Error(`Failed to start recording: ${error.message}`);
+        }
+    }
+
+    async stopRecording() {
+        if (!this.connected) throw new Error('OBS not connected');
+        try {
+            await this.obs.call('StopRecord');
+        } catch (error) {
+            throw new Error(`Failed to stop recording: ${error.message}`);
+        }
+    }
+
+    async startStreaming() {
+        if (!this.connected) throw new Error('OBS not connected');
+        try {
+            await this.obs.call('StartStream');
+        } catch (error) {
+            throw new Error(`Failed to start streaming: ${error.message}`);
+        }
+    }
+
+    async stopStreaming() {
+        if (!this.connected) throw new Error('OBS not connected');
+        try {
+            await this.obs.call('StopStream');
+        } catch (error) {
+            throw new Error(`Failed to stop streaming: ${error.message}`);
+        }
+    }
+
+    async setAudioMute(sourceName, mute) {
+        if (!this.connected) throw new Error('OBS not connected');
+        try {
+            await this.obs.call('SetInputMute', { inputName: sourceName, inputMuted: mute });
+        } catch (error) {
+            throw new Error(`Failed to set audio mute: ${error.message}`);
+        }
+    }
+
     // Only essential methods kept
 }

@@ -24,12 +24,15 @@ export default {
         // });
 
         // Example: Play ban sound via OBS media source
-        // Uncomment to enable - requires OBS media source named 'BanSound' in 'Main' scene
+        // Uncomment to enable - requires OBS media source named 'BanSound' in the current scene
         // client.on('ban', async (event) => {
         //     if (client.obsClients && client.obsClients.length > 0) {
         //         const obsClient = client.obsClients[0];
-        //         // Enable sound source for 5 seconds
-        //         await obsClient.setSourceEnabled('Main', 'BanSound', true, 5);
+        //         const currentScene = await obsClient.getCurrentScene();
+        //         if (currentScene) {
+        //             // Enable sound source for 5 seconds in current scene
+        //             await obsClient.setSourceEnabled(currentScene, 'BanSound', true, 5);
+        //         }
         //     }
         // });
 
