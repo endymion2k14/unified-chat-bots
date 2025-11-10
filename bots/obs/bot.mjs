@@ -76,5 +76,16 @@ export class ClientOBS extends EventEmitter {
         }
     }
 
+    async getStreamStats() {
+        if (!this.connected) return null;
+        try {
+            const response = await this.obs.call('GetStreamStatus');
+            return response;
+        } catch (error) {
+            log.error(`Failed to get stream stats: ${error}`, `${SOURCE}-${this._settings.name}`);
+            return null;
+        }
+    }
+
     // Only essential methods kept
 }

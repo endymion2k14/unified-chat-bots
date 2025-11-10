@@ -2,11 +2,11 @@ import { equals } from '../utils.mjs';
 
 export default {
     name: 'obs',
-    aliases: ['scene', 'source'],
+    aliases: ['scene', 'source', 'stats'],
     async reply(params, client, event) {
         if (event.privileges.super || event.privileges.broadcaster || event.privileges.moderator) {
             if (params.length === 0) {
-                client.sendMessage('Usage: !obs scene <scene_name> [bot_index] | !obs source enable/disable <source_name> [scene_name] [duration_seconds] [bot_index]');
+                client.sendMessage('Usage: !obs scene <scene_name> [bot_index] | !obs source enable/disable <source_name> [scene_name] [duration_seconds] [bot_index] | !obs stats [bot_index]');
                 return;
             }
             const subcommand = params.shift().toLowerCase();
@@ -60,8 +60,32 @@ export default {
                 await obsClient.setSourceEnabled(sceneName, sourceName, enabled, duration);
                 const durationMsg = duration > 0 ? ` for ${duration} seconds` : '';
                 client.sendMessage(`${enabled ? 'Enabled' : 'Disabled'} source '${sourceName}' in scene '${sceneName}'${durationMsg} on OBS bot ${botIndex}`);
+            } else if (subcommand === 'stats') {
+                // Parse bot index from the end
+                let botIndex = 0;
+                if (params.length > 0 && !isNaN(params[params.length - 1])) {
+                    botIndex = parseInt(params.pop());
+                }
+                if (botIndex < 0 || botIndex >= client.obsClients.length) {
+                    client.sendMessage(`Invalid bot index. Available: 0-${client.obsClients.length - 1}`);
+                    return;
+                }
+                const obsClient = client.obsClients[botIndex];
+                const stats = await obsClient.getStreamStats();
+                if (!stats) {
+                    client.sendMessage('Could not retrieve OBS stats.');
+                    return;
+                }
+                let msg = `OBS Stats (Bot ${botIndex}): Streaming: ${stats.outputActive ? 'Active' : 'Inactive'}`;
+                if (stats.outputActive) {
+                    const bitrate = stats.outputBytes ? Math.round((stats.outputBytes * 8) / (stats.outputDuration / 1000) / 1000) : 0;
+                    const fps = stats.outputTotalFrames ? Math.round(stats.outputTotalFrames / (stats.outputDuration / 1000)) : 0;
+                    const dropped = stats.outputSkippedFrames || 0;
+                    msg += `, Bitrate: ${bitrate} kbps, FPS: ${fps}, Dropped Frames: ${dropped}`;
+                }
+                client.sendMessage(msg);
             } else {
-                client.sendMessage('Unknown subcommand. Use !obs scene or !obs source');
+                client.sendMessage('Unknown subcommand. Use !obs scene, !obs source, or !obs stats');
             }
         } else { client.sendMessage(`You need to be at least a moderator to use this command ${event.username}.`); }
     }
