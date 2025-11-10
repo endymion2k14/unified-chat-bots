@@ -11,6 +11,18 @@ export class ClientOBS extends EventEmitter {
         this._settings = settings;
         this.obs = new OBSWebSocket();
         this.connected = false;
+        this.reconnecting = false;
+        this.retryDelay = 1000;
+        this.maxRetryDelay = 30000;
+
+        // Set up event listeners once
+        this.obs.on('ConnectionOpened', () => this.emit('connect'));
+        this.obs.on('ConnectionClosed', () => { this.connected = false; this.emit('disconnect'); this.reconnect(); });
+        this.obs.on('ConnectionError', () => this.reconnect());
+        this.obs.on('CurrentSceneChanged', (data) => this.emit('sceneChanged', data));
+        this.obs.on('RecordingStarted', () => this.emit('recordingStarted'));
+        this.obs.on('RecordingStopped', () => this.emit('recordingStopped'));
+        // Add more events as needed
     }
 
     async connect() {
@@ -19,25 +31,35 @@ export class ClientOBS extends EventEmitter {
             await this.obs.connect(`ws://${host}:${port}`, password);
             this.connected = true;
             log.info('Connected to OBS', `${SOURCE}-${this._settings.name}`);
-
-            // Set up event listeners
-            this.obs.on('ConnectionOpened', () => this.emit('connect'));
-            this.obs.on('ConnectionClosed', () => { this.connected = false; this.emit('disconnect'); });
-            this.obs.on('CurrentSceneChanged', (data) => this.emit('sceneChanged', data));
-            this.obs.on('RecordingStarted', () => this.emit('recordingStarted'));
-            this.obs.on('RecordingStopped', () => this.emit('recordingStopped'));
-            // Add more events as needed
         } catch (error) {
             log.error(`Failed to connect to OBS: ${error}`, `${SOURCE}-${this._settings.name}`);
+            this.reconnect();
+        }
+    }
+
+    async reconnect() {
+        if (this.reconnecting || this.connected) return;
+        this.reconnecting = true;
+        try {
+            await this.connect();
+            this.reconnecting = false;
+            this.retryDelay = 1000;
+        } catch (error) {
+            log.error(`Reconnect failed, retrying in ${this.retryDelay}ms: ${error}`, `${SOURCE}-${this._settings.name}`);
+            setTimeout(() => {
+                this.reconnecting = false;
+                this.retryDelay = Math.min(this.retryDelay * 2, this.maxRetryDelay);
+                this.reconnect();
+            }, this.retryDelay);
         }
     }
 
     async changeScene(sceneName) {
-        if (!this.connected) return;
+        if (!this.connected) throw new Error('OBS not connected');
         try {
             await this.obs.call('SetCurrentProgramScene', { sceneName });
         } catch (error) {
-            log.error(`Failed to change scene: ${error}`, `${SOURCE}-${this._settings.name}`);
+            throw new Error(`Failed to change scene: ${error.message}`);
         }
     }
 
@@ -53,7 +75,7 @@ export class ClientOBS extends EventEmitter {
     }
 
     async setSourceEnabled(sceneName, sourceName, enabled, duration = 0) {
-        if (!this.connected) return;
+        if (!this.connected) throw new Error('OBS not connected');
         try {
             const idResponse = await this.obs.call('GetSceneItemId', { sceneName, sourceName });
             const sceneItemId = idResponse.sceneItemId;
@@ -72,7 +94,7 @@ export class ClientOBS extends EventEmitter {
                 }, duration * 1000);
             }
         } catch (error) {
-            log.error(`Failed to set source enabled: ${error}`, `${SOURCE}-${this._settings.name}`);
+            throw new Error(`Failed to set source enabled: ${error.message}`);
         }
     }
 
@@ -84,6 +106,15 @@ export class ClientOBS extends EventEmitter {
         } catch (error) {
             log.error(`Failed to get stream stats: ${error}`, `${SOURCE}-${this._settings.name}`);
             return null;
+        }
+    }
+
+    async setTextSource(sceneName, sourceName, text) {
+        if (!this.connected) throw new Error('OBS not connected');
+        try {
+            await this.obs.call('SetInputSettings', { inputName: sourceName, inputSettings: { text } });
+        } catch (error) {
+            throw new Error(`Failed to set text source: ${error.message}`);
         }
     }
 
