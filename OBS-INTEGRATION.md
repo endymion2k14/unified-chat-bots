@@ -66,6 +66,12 @@ Use `!obs` in Twitch chat (requires superuser or appropriate permissions). Comma
     - `!obs stats`: Show stats for bot 0.
     - `!obs stats 1`: Show stats for bot 1.
 
+### Reconnection
+- `!obs reconnect [bot_index]`: Manually trigger reconnection to OBS.
+  - Examples:
+    - `!obs reconnect`: Reconnect bot 0.
+    - `!obs reconnect 1`: Reconnect bot 1.
+
 ## Code Structure
 
 - `bots/obs/bot.mjs`: `ClientOBS` class handling WebSocket connection and OBS calls.
@@ -79,9 +85,15 @@ Use `!obs` in Twitch chat (requires superuser or appropriate permissions). Comma
 
 `ClientOBS` provides:
 - `connect()`: Connect to OBS WebSocket.
+- `reconnect()`: Attempt to reconnect with exponential backoff.
 - `changeScene(sceneName)`: Switch scene.
 - `getCurrentScene()`: Get current scene name.
 - `setSourceEnabled(sceneName, sourceName, enabled, duration)`: Toggle source with optional revert timer.
+- `setTextSource(sceneName, sourceName, text)`: Set text on a text source.
+
+## Reconnection
+
+The OBS integration includes automatic reconnection. If the connection drops or fails initially, it will attempt to reconnect with exponential backoff (starting at 1 second, doubling up to 30 seconds). The bot starts even if OBS is unavailable. Use `!obs reconnect` to manually trigger reconnection.
 
 ## Extending with Events
 
@@ -96,7 +108,8 @@ Examples include changing scenes on follows, enabling sources on raids, or playi
 ## Notes
 
 - Ensure OBS WebSocket is running and accessible.
-- Commands require the OBS bot to be connected.
+- Commands require the OBS bot to be connected and will report errors if operations fail.
+- Automatic reconnection prevents needing to restart the bot on connection drops.
 - Timing uses `setTimeout` for reversion (not persistent across restarts).
 - OBS clients are passed to chat bots for access, enabling shared control across platforms.</content>
 <parameter name="filePath">OBS-INTEGRATION.md
