@@ -20,9 +20,9 @@ export default {
             let duration = 0;
             if (subcommand === 'source') {
                 if (params.length > 0 && !isNaN(params[params.length - 1])) {
-                    botIndex = parseInt(params.pop());
+                    duration = parseInt(params.pop());
                     if (params.length > 0 && !isNaN(params[params.length - 1])) {
-                        duration = parseInt(params.pop());
+                        botIndex = parseInt(params.pop());
                     }
                 }
             } else if (subcommand === 'scene') {
