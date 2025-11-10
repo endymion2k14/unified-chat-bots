@@ -4,6 +4,7 @@ export default {
     name: 'obs',
     aliases: ['scene', 'source'],
     async reply(params, client, event) {
+    if (event.privileges.super || event.privileges.broadcaster || event.privileges.moderator) {
         if (params.length === 0) {
             client.sendMessage('Usage: !obs scene <scene_name> [bot_index] | !obs source enable/disable <source_name> [scene_name] [duration_seconds] [bot_index]');
             return;
@@ -62,5 +63,5 @@ export default {
         } else {
             client.sendMessage('Unknown subcommand. Use !obs scene or !obs source');
         }
-    }
+    } else { client.sendMessage(`You need to be at least a moderator to use this command ${event.username}.`); }
 }
