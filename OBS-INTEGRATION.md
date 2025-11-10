@@ -35,13 +35,11 @@ The OBS integration connects to OBS Studio via WebSocket and provides commands t
      ]
      ```
 
-3. **Dependencies**: The project uses `obs-websocket-js` (automatically installed).
-
-4. **Loading**: The OBS bot loads automatically if enabled in config. It connects on startup.
+3. **Loading**: The OBS bot loads automatically if enabled in config. It connects on startup.
 
 ## Commands
 
-Use `!obs` in Twitch/Discord chat (requires superuser or appropriate permissions). Commands target the first OBS bot by default; append a bot index (0-based) to target a specific one.
+Use `!obs` in Twitch chat (requires superuser or appropriate permissions). Commands target the first OBS bot by default; append a bot index (0-based) to target a specific one.
 
 ### Scene Switching
 - `!obs scene <scene_name> [bot_index]`: Switch to the specified scene.
