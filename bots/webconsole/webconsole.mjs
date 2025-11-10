@@ -12,14 +12,16 @@ const app = express();
 export class WebConsole extends EventEmitter {
     getTwitch = 0;
     getDiscord = 0;
+    getOBS = 0;
     port = 0;
     settings = {};
 
-    constructor(functorTwitch, functorDiscord, settings) {
+    constructor(functorTwitch, functorDiscord, functorOBS, settings) {
         super();
 
         this.getTwitch  = functorTwitch;
         this.getDiscord = functorDiscord;
+        this.getOBS = functorOBS;
         this.settings = settings;
     }
 
@@ -29,7 +31,7 @@ export class WebConsole extends EventEmitter {
             return;
         }
         this.port = port;
-        if (this.getTwitch === 0 || this.getDiscord === 0) {
+        if (this.getTwitch === 0 || this.getDiscord === 0 || this.getOBS === 0) {
             log.error(`No functors obtained for collecting the info to display on the page `, SOURCE);
             return;
         }
@@ -41,6 +43,7 @@ export class WebConsole extends EventEmitter {
             let data = '';
             const twitch = this.getTwitch();
             const discord = this.getDiscord();
+            const obs = this.getOBS();
 
             for (let i = 0; i < twitch.length; i++) {
                 const [objNav, objData] = this.parseObject(twitch[i], `twitch.${i}`);
@@ -50,6 +53,11 @@ export class WebConsole extends EventEmitter {
             for (let i = 0; i < discord.length; i++) {
                 const [objNav, objData] = this.parseObject(discord[i], `discord.${i}`);
                 nav += `<li>Discord<ul>${objNav}</ul></li>`;
+                data += `${objData}`;
+            }
+            for (let i = 0; i < obs.length; i++) {
+                const [objNav, objData] = this.parseObject(obs[i], `obs.${i}`);
+                nav += `<li>OBS<ul>${objNav}</ul></li>`;
                 data += `${objData}`;
             }
 
