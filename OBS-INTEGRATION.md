@@ -54,11 +54,17 @@ Use `!obs` in Twitch chat (requires superuser or appropriate permissions). Comma
   - `duration_seconds` is optional; if provided, the source reverts after that time (0 = permanent).
   - `bot_index` is optional; if omitted, targets bot 0.
   - Parsing handles numeric scene names correctly by assuming numbers at the end are duration/bot_index.
+   - Examples:
+     - `!obs source enable Alert`: Enable "Alert" in current scene on bot 0.
+     - `!obs source disable Overlay Main 10`: Disable "Overlay" in "Main" scene for 10 seconds on bot 0.
+     - `!obs source enable Banner 1`: Enable "Banner" in current scene on bot 1.
+     - `!obs source disable Alert Main 10 1`: Disable "Alert" in "Main" scene for 10 seconds on bot 1.
+
+### Stats
+- `!obs stats [bot_index]`: Display current streaming statistics including streaming status, bitrate, FPS, and dropped frames.
   - Examples:
-    - `!obs source enable Alert`: Enable "Alert" in current scene on bot 0.
-    - `!obs source disable Overlay Main 10`: Disable "Overlay" in "Main" scene for 10 seconds on bot 0.
-    - `!obs source enable Banner 1`: Enable "Banner" in current scene on bot 1.
-    - `!obs source disable Alert Main 10 1`: Disable "Alert" in "Main" scene for 10 seconds on bot 1.
+    - `!obs stats`: Show stats for bot 0.
+    - `!obs stats 1`: Show stats for bot 1.
 
 ## Code Structure
 
