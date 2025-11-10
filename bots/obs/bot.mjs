@@ -35,7 +35,7 @@ export class ClientOBS extends EventEmitter {
     async changeScene(sceneName) {
         if (!this.connected) return;
         try {
-            await this.obs.call('SetCurrentScene', { 'scene-name': sceneName });
+            await this.obs.call('SetCurrentProgramScene', { sceneName });
         } catch (error) {
             log.error(`Failed to change scene: ${error}`, `${SOURCE}-${this._settings.name}`);
         }
@@ -44,8 +44,8 @@ export class ClientOBS extends EventEmitter {
     async getCurrentScene() {
         if (!this.connected) return null;
         try {
-            const response = await this.obs.call('GetCurrentScene');
-            return response.name;
+            const response = await this.obs.call('GetCurrentProgramScene');
+            return response.currentProgramSceneName;
         } catch (error) {
             log.error(`Failed to get current scene: ${error}`, `${SOURCE}-${this._settings.name}`);
             return null;
@@ -55,17 +55,19 @@ export class ClientOBS extends EventEmitter {
     async setSourceEnabled(sceneName, sourceName, enabled, duration = 0) {
         if (!this.connected) return;
         try {
+            const idResponse = await this.obs.call('GetSceneItemId', { sceneName, sourceName });
+            const sceneItemId = idResponse.sceneItemId;
             await this.obs.call('SetSceneItemEnabled', {
-                'scene-name': sceneName,
-                'item': sourceName,
-                'enabled': enabled
+                sceneName,
+                sceneItemId,
+                sceneItemEnabled: enabled
             });
             if (duration > 0) {
                 setTimeout(async () => {
                     await this.obs.call('SetSceneItemEnabled', {
-                        'scene-name': sceneName,
-                        'item': sourceName,
-                        'enabled': !enabled
+                        sceneName,
+                        sceneItemId,
+                        sceneItemEnabled: !enabled
                     });
                 }, duration * 1000);
             }
