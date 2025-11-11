@@ -75,5 +75,55 @@
       "message_limit_per_user": 5,
       "message_time_window": 60000
     }
+  },
+  "obsIntegration": {
+    "secrets.json.bot.config.name": {
+      "enabled": true,
+      "integrations": [
+        {
+          "event": "follow",
+          "actions": [
+            {
+              "type": "changeScene",
+              "sceneName": "FollowerScene",
+              "botIndex": 0
+            },
+            {
+              "type": "setTextSource",
+              "sceneName": "FollowerScene",
+              "sourceName": "FollowerName",
+              "text": "Welcome {user_name}!",
+              "botIndex": 0
+            }
+          ]
+        },
+        {
+          "event": "raid",
+          "actions": [
+            {
+              "type": "setSourceEnabled",
+              "sceneName": "Main",
+              "sourceName": "RaidAlert",
+              "enabled": true,
+              "duration": 30,
+              "botIndex": 0
+            }
+          ]
+        },
+        {
+          "event": "ban",
+          "actions": [
+            {
+              "type": "setSourceEnabled",
+              "sceneName": null,
+              "sourceName": "BanSound",
+              "enabled": true,
+              "duration": 5,
+              "botIndex": 0
+            }
+          ]
+        }
+      ]
+    }
   }
 }
