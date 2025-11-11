@@ -13,6 +13,7 @@
     "discord.js": "^14.21.0",
     "express": "^5.1.0",
     "https": "^1.0.0",
+    "obs-websocket-js": "^5.0.7",
     "ollama": "^0.6.0",
     "ws": "^8.18.3"
   }

@@ -23,10 +23,11 @@ const configSystem = json.load('./configs/systems.json');
 const configCommand = json.load('./configs/commands.json');
 
 export class ClientTwitch extends EventEmitter {
-    constructor(settingsJSON) {
+    constructor(settingsJSON, obsClients = []) {
         super();
 
         this._settings = settingsJSON;
+        this.obsClients = obsClients;
         this._backend = null;
         this._commands = [];
         this._systems = [];
