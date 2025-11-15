@@ -7,7 +7,7 @@ const system_prompt = 'Please answer the next question as short and concise as p
 export default {
     name: 'gptknows',
     aliases: ['god'],
-    system: ['gptknows'],
+    systems: ['gptknows'],
     async reply(params, client, event) {
         if (event.privileges.super       ||
             event.privileges.broadcaster ||
