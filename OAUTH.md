@@ -9,4 +9,3 @@
  - Variable 'usertoken' can be used for Oauth tokenflow
  - Scopes editable from the json
  - Updated corresponding example files
- - secrets "refresh" variable must be empty, else it will try to renew oauth
