@@ -4,6 +4,8 @@ const SOURCE = 'gptrecap.mjs';
 
 const system_prompt =   'Tone: Playful and joyful\n' +
                         'Recapitulation: Summarize key points or highlights from previous interactions\n' +
+                        'Recapitulation: Go for engagement, include as much chatters as possible\n' +
+                        // 'Recapitulation: Go for engagement, include as much people/persons as possible\n' + ??
                         'Recapitulation: As short and concise as possible.';
 
 export default {
