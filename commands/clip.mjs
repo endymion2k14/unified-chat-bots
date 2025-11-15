@@ -10,9 +10,7 @@ export default {
             if (clipData && clipData.id) {
                 const clipUrl = `https://clips.twitch.tv/${clipData.id}`;
                 client.sendMessage(`Clip created! ${clipUrl}`);
-            } else {
-                client.sendMessage('Failed to create clip. The stream might not be live or an error occurred.');
-            }
+            } else { client.sendMessage('Failed to create clip. The stream might not be live or an error occurred.'); }
         } catch (error) {
             client.sendMessage('Something went wrong while creating the clip!');
             console.error('Clip creation error:', error);

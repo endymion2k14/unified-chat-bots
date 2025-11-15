@@ -81,14 +81,14 @@ export class TwitchIRC extends EventEmitter {
         let filteredMsgs = msgs.map(m => m.trim()).filter(m => m.length > 0);
         let allParts = [];
         for (let msg of filteredMsgs) {
-            while (msg.length >= 500) { let space = 499; for (let j = 499; j > 0; j--) { if (msg[j] === ' ') { space = j; break; } } allParts.push(msg.substring(0, space)); msg = msg.substring(space); }
+            while (msg.length >= 500) {
+                let space = 499;
+                for (let i = space; i > 0; j--) { if (msg[i] === ' ') { space = i; break; } }
+                allParts.push(msg.substring(0, space)); msg = msg.substring(space); }
             allParts.push(msg);
         }
-        if (allParts.length > 1) {
-            for (let k = 0; k < allParts.length; k++) { this.messageQueue.push(`(${k + 1}/${allParts.length}) ${allParts[k]}`); }
-        } else {
-            for (let part of allParts) { this.messageQueue.push(part); }
-        }
+        if (allParts.length > 1) { for (let i = 0; i < allParts.length; i++) { this.messageQueue.push(`(${i + 1}/${allParts.length}) ${allParts[i]}`); } }
+        else { for (let part of allParts) { this.messageQueue.push(part); } }
         this.flushQueue();
     }
 
@@ -98,7 +98,7 @@ export class TwitchIRC extends EventEmitter {
             this.periodStart = now;
             this.messagesInPeriod = 0;
         }
-        if (this.messagesInPeriod >= 20) return;    // hit limit
+        if (this.messagesInPeriod >= 20) return; // hit limit
 
         let next = this.messageQueue.shift();
         while (next && next.length === 0 && this.messageQueue.length > 0) { next = this.messageQueue.shift(); }
@@ -114,7 +114,7 @@ export class TwitchIRC extends EventEmitter {
 
     parse(chunk) {
         const lines = chunk.split('\r\n').filter(Boolean);
-        for (const line of lines) this.parseSingle(line);
+        for (const line of lines) { this.parseSingle(line); }
     }
 
     parseSingle(line) {

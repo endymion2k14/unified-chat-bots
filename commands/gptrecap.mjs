@@ -40,6 +40,6 @@ export default {
                 log.error(`Something went wrong trying to get the response from the GPT: ${err}`, SOURCE);
                 client.sendMessage(`Something went wrong trying to get a response from the GPT ${event.username}.`);
             }
-            } else { client.sendMessage(`You need to be at least a subscriber or VIP to use this command ${event.username}.`); }
+        } else { client.sendMessage(`You need to be at least a subscriber or VIP to use this command ${event.username}.`); }
     }
 }
