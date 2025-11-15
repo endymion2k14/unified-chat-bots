@@ -1,4 +1,4 @@
-import { getTimeDifference, log } from '../utils.mjs';
+import { getTimeDifference } from '../utils.mjs';
 
 export default {
     name: 'botUptime',
