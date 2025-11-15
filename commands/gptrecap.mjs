@@ -21,11 +21,8 @@ export default {
                 if (channelData) {
                     const userMessages = channelData.userMessages;
                     if (typeof userMessages === 'object' && userMessages !== null) {
-                        for (const username in userMessages) {
-                            if (userMessages.hasOwnProperty(username)) {
-                                const messagesArray = userMessages[username];
-                                if (Array.isArray(messagesArray)) { messagesArray.forEach(message => { const messageText = message.message || JSON.stringify(message); chatHistory += `${username}: ${messageText}\n`; }); }
-                            }
+                        for (const [username, messagesArray] of Object.entries(userMessages)) {
+                            if (Array.isArray(messagesArray)) { messagesArray.forEach(message => { const messageText = message.message || JSON.stringify(message); chatHistory += `${username}: ${messageText}\n`; }); }
                         }
                     }
                 }
