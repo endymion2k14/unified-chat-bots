@@ -30,7 +30,6 @@ export default {
                     }
                 }
                 chatHistory = chatHistory.trim();
-                console.log(chatHistory);
                 if (!chatHistory) { client.sendMessage(`No chat history available to recap, ${event.username}.`); return; }
                 const response = await system.getResponse([ { role: system.ROLES.SYSTEM, content: system_prompt }, { role: system.ROLES.USER, content: chatHistory }]);
                 client.sendMessage(response.message.content);
