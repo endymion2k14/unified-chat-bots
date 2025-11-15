@@ -12,6 +12,7 @@ const system_prompt =   'Tone: Playful and joyful\n' +
 export default {
     name: 'gptrecap',
     systems: ['gptrecap'],
+    aliases: ['tldr'],
     async reply(params, client, event) {
         if (event.privileges.super       ||
             event.privileges.broadcaster ||
