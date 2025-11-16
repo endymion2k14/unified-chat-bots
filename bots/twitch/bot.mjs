@@ -7,8 +7,6 @@ import { TwitchAPI } from './api.mjs';
 
 const SOURCE = 'Twitch';
 
-// TODO: Aliases overwrite each other, make it known that they are
-
 const systemProperties = ['name']
 const commandProperties = ['name', 'reply'];
 const neededSettings = [
@@ -183,6 +181,7 @@ export class ClientTwitch extends EventEmitter {
         this._loadCommands = async function() {
             log.info('Started loading commands', `${SOURCE}-Commands-${this._settings.name}`);
             this._commands.slice(0, this._commands.length);
+            const usedNames = new Set();
             const folder = new URL('../../commands', import.meta.url);
             const commandFiles = fs.readdirSync(folder).filter(file => file.endsWith('.mjs'));
             for (const file of commandFiles) {
@@ -234,11 +233,22 @@ export class ClientTwitch extends EventEmitter {
                 }
                 if (failed) { continue; } // Skip
 
-                // Set a new item in the Collection with the key as the command name and the value as the exported module
-                this._commands.push({ name: command.name.toLowerCase(), command: command });
+                // Check for name conflicts
+                const commandNameLower = command.name.toLowerCase();
+                if (usedNames.has(commandNameLower)) { log.warn(`Command '${command.name}' conflicts with existing command/alias, skipping.`, `${SOURCE}-Commands-${this._settings.name}`); continue; }
+                usedNames.add(commandNameLower);
+                this._commands.push({ name: commandNameLower, command: command });
+
                 const aliases = command.aliases || [];
-                for (const alias of aliases) { this._commands.push({ name: alias.toLowerCase(), command: command, hidden: !!command.hidden }); }
-                log.info(`Loaded command '${command.name}'${(aliases.length > 0) ? ` with aliases ['${concat(aliases, `', '`)}']` : ''}!`, `${SOURCE}-Commands-${this._settings.name}`);
+                const loadedAliases = [];
+                for (const alias of aliases) {
+                    const aliasLower = alias.toLowerCase();
+                    if (usedNames.has(aliasLower)) { log.warn(`Alias '${alias}' for command '${command.name}' conflicts with existing command/alias, skipping.`, `${SOURCE}-Commands-${this._settings.name}`); continue; }
+                    usedNames.add(aliasLower);
+                    this._commands.push({ name: aliasLower, command: command, hidden: !!command.hidden });
+                    loadedAliases.push(alias);
+                }
+                log.info(`Loaded command '${command.name}'${(loadedAliases.length > 0) ? ` with aliases ['${concat(loadedAliases, `', '`)}']` : ''}!`, `${SOURCE}-Commands-${this._settings.name}`);
             }
             log.info('Loaded all possible commands', `${SOURCE}-Commands-${this._settings.name}`);
         };
