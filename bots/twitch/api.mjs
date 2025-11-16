@@ -172,6 +172,19 @@ export class TwitchAPI extends EventEmitter {
         return isLive;
     }
 
+    async getCategory() {
+        const response = await fetch(`https://api.twitch.tv/helix/streams?user_login=${this._data.channel}`, {
+            method: 'GET',
+            headers: {
+                'Client-ID': `${this._data.applicationId}`,
+                'Authorization': `Bearer ${this._data.token}`
+            }
+        });
+        if (!response.ok) { throw new Error(`HTTP ${response.status}`); }
+        const json = await response.json();
+        return json.data.length > 0 ? json.data[0].game_name : null;
+    }
+
     async getAllFollowerData() {
         const followers = [];
 
