@@ -8,7 +8,7 @@ export default {
 
     init(client) {
         this.config = client.getSystemConfig(this.name);
-        client.api.addListener('follow', event => { if (this.config.message) { client.sendMessage(this.config.message.replaceAll('{username}', event.user_name)); } });
+        client.api.addListener('follow', event => { if (this.config.message && !this.followers.find(f => f.id === event.user_id)) { client.sendMessage(this.config.message.replaceAll('{username}', event.user_name)); } });
         this.loadFollowerData(client).catch(err => log.error(err, `followers.mjs`));
         setInterval(_ => this.loadFollowerData(client).catch(err => log.error(err, `followers.mjs`)), dayMilliseconds);
     },
