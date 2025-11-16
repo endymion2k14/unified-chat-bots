@@ -117,7 +117,7 @@ export function clamp(value, min, max) {
 // urlToBase64
 export async function urlToBase64(url) {
     try {
-        if (url.startsWith('http://')) {
+        if (url.startsWith('http://') || url.startsWith('https://')) {
             const response = await fetch(url);
             if (!response.ok) { throw new Error(`Failed to fetch image: ${response.status} ${response.statusText}`); }
             const blob = await response.blob();
