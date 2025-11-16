@@ -107,9 +107,12 @@ export class ClientTwitch extends EventEmitter {
                     log.error(`Failed to update secrets.json: ${err}`, `${SOURCE}-${this._settings.name}`);
                 }
             });
-            // TODO: Update Followers Array
-            this.api.addListener('follow', event => { log.info(`New follower: ${event.user_name}`, `${SOURCE}-${this._settings.name}`); this.emit('follow', event); });
-
+            this.api.addListener('follow', event => {
+                log.info(`New follower: ${event.user_name}`, `${SOURCE}-${this._settings.name}`);
+                const followersSystem = this.getSystem('followers');
+                const existing = followersSystem.followers.find(f => f.id === event.user_id);
+                if (!existing) { followersSystem.followers.push({ id: event.user_id, name: event.user_name, time: new Date(event.followed_at) }); }
+            });
             // backend
             this._backend.addListener(EventTypes.connect      , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.connect   , event); });
             this._backend.addListener(EventTypes.disconnect   , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.disconnect, event); });

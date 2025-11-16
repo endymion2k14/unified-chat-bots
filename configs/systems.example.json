@@ -125,5 +125,10 @@
         }
       ]
     }
-  }
+   },
+   "followers": {
+     "secrets.json.bot.config.name": {
+       "message": "Thank you for following, {username}"
+     }
+   }
 }
