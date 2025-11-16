@@ -38,5 +38,8 @@ export default {
         return 0;
     },
     getUptimeText(channel, shortened_words = true) { return getTimeDifference(this.getUptimeValue(channel), this._now(), shortened_words); },
-    callAPI(client) { client.api.isChannelLive().catch(e => {}); }
+    callAPI(client) { client.api.isChannelLive().catch(e => {}); },
+    isLive(channel) {
+        return this.data[channel] && this.data[channel].live || false;
+    }
 }

@@ -22,7 +22,7 @@ export default {
                         // Date.now() so it cannot 'pre cache' the image - has to be refreshed by Twitch
                         const base64Image = await urlToBase64(`https://static-cdn.jtvnw.net/previews-ttv/live_user_${client._settings.settings.channel}-${system.resolution}.jpg?t=${Date.now()}`);
                         messages.push({ role: system.ROLES.USER, content: system_prompt, images: [base64Image] });
-                    } else if (params[0].startsWith('http')) {
+                    } else if (params[0].startsWith('http') || params[0].startsWith('https')) {
                         log.info("Grabbing image from URL", SOURCE);
                         const base64Image = await urlToBase64(params[0]);
                         messages.push({ role: system.ROLES.USER, content: system_prompt, images: [base64Image] });
