@@ -2,7 +2,7 @@ import OBSWebSocket from 'obs-websocket-js';
 import { EventEmitter } from 'node:events';
 import { log } from '../../utils.mjs';
 
-const SOURCE = 'OBS';
+const SOURCE = 'OBS-Intergration';
 
 export class ClientOBS extends EventEmitter {
     constructor(settings) {

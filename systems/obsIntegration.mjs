@@ -1,6 +1,6 @@
 import { log } from '../utils.mjs';
 
-const SOURCE = 'obs-integration';
+const SOURCE = 'OBS-Intergration';
 
 export default {
     name: 'obsIntegration',
@@ -12,14 +12,14 @@ export default {
         const settings = client.getSystemConfig(this.name);
         if ('enabled' in settings) { this.enabled = settings.enabled; }
         if ('integrations' in settings) { this.integrations = settings.integrations || []; }
-        if (!this.enabled || this.integrations.length === 0) { log.info('OBS Integration disabled or no integrations configured', SOURCE); return; }
+        if (!this.enabled || this.integrations.length === 0) { log.info('OBS Integration disabled or no integrations configured', `${SOURCE}-${client._settings.name}`); return; }
 
         // Set up event listeners for each configured integration
         for (const integration of this.integrations) {
-            if (!integration.event || !integration.actions || !Array.isArray(integration.actions)) { log.warn(`Invalid integration configuration: ${JSON.stringify(integration)}`, SOURCE); continue; }
+            if (!integration.event || !integration.actions || !Array.isArray(integration.actions)) { log.warn(`Invalid integration configuration: ${JSON.stringify(integration)}`, `${SOURCE}-${client._settings.name}`); continue; }
             client.on(integration.event, async (event) => { await this.handleEvent(client, integration, event); });
         }
-        log.info(`OBS Integration loaded with ${this.integrations.length} integrations`, SOURCE);
+        log.info(`OBS Integration loaded with ${this.integrations.length} integrations`, `${SOURCE}-${client._settings.name}`);
     },
 
     async handleEvent(client, integration, event) {
@@ -27,7 +27,7 @@ export default {
 
         for (const action of integration.actions) {
             try { await this.executeAction(client, action, event); }
-            catch (error) { log.error(`Failed to execute OBS action: ${error.message}`, SOURCE); }
+            catch (error) { log.error(`Failed to execute OBS action: ${error.message}`, `${SOURCE}-${client._settings.name}`); }
         }
     },
 
