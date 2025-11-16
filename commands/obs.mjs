@@ -1,6 +1,5 @@
 export default {
     name: 'obs',
-    aliases: ['scene', 'source', 'stats', 'reconnect', 'record', 'stream', 'audio'],
     async reply(params, client, event) {
         if (event.privileges.super || event.privileges.broadcaster || event.privileges.moderator) {
             if (params.length === 0) { client.sendMessage('Usage: !obs scene <scene_name> [bot_index] | !obs source enable/disable <source_name> [scene_name] [duration_seconds] [bot_index] | !obs stats [bot_index] | !obs reconnect [bot_index] | !obs record start/stop [bot_index] | !obs stream start/stop [bot_index] | !obs audio mute/unmute <source_name> [bot_index]'); return; }
