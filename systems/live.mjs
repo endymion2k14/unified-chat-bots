@@ -8,10 +8,8 @@ export default {
         client.api.addListener(EventTypes.stream_start, status => {
             // Make sure data is stored
             if (!(client.channel in this.data)) { this.data[client.channel] = { live: false, startTime: 0 }; }
-
             // Check if message needs to be sent
             if (this.data[client.channel].live) { return; }
-
             // Update info
             log.info(`Channel '${client.channel}' started streaming at ${getFullTimestamp(new Date(status.started_at))}.`, 'live.mjs');
             this.data[client.channel].live = true;
@@ -20,10 +18,8 @@ export default {
         client.api.addListener(EventTypes.stream_end  , status => {
             // Make sure data is stored
             if (!(client.channel in this.data)) { this.data[client.channel] = { live: false, startTime: 0 }; }
-
             // Check if message needs to be sent
             if (!this.data[client.channel].live) { return; }
-
             // Update info
             if (this.data[client.channel].live) { log.info(`Channel '${client.channel}' went offline.`, 'live.mjs'); }
             this.data[client.channel].live = false;
@@ -39,7 +35,5 @@ export default {
     },
     getUptimeText(channel, shortened_words = true) { return getTimeDifference(this.getUptimeValue(channel), this._now(), shortened_words); },
     callAPI(client) { client.api.isChannelLive().catch(e => {}); },
-    isLive(channel) {
-        return this.data[channel] && this.data[channel].live || false;
-    }
+    isLive(channel) { return this.data[channel] && this.data[channel].live || false; }
 }
