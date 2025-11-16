@@ -1,10 +1,4 @@
 {
-  "welcome": {
-    "secrets.json.bot.config.name": {
-      "first": ["message.goes.here", "Other.message"],
-      "back": ["message.one", "message.two"]
-    }
-  },
   "automatedMessages": {
     "secrets.json.bot.config.name": {
       "enabled": true,
@@ -45,6 +39,11 @@
           ]
         }
       ]
+    }
+  },
+  "followers": {
+    "secrets.json.bot.config.name": {
+      "message": "Thank you for following, {username}"
     }
   },
   "gpt": {
@@ -124,6 +123,12 @@
           ]
         }
       ]
+    }
+   },
+  "welcome": {
+    "secrets.json.bot.config.name": {
+      "first": ["message.goes.here", "Other.message"],
+      "back": ["message.one", "message.two"]
     }
   }
 }

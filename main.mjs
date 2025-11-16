@@ -31,7 +31,7 @@ async function start() {
     if (botsDiscord.length > 0) {
         log.info(`Starting ${botsDiscord.length} discord bots`, SOURCE);
         for (let i = 0; i < botsDiscord.length; i++) {
-            for (let i = 0; i < botsDiscord.length; i++) { clientsDiscord.push(0 /* TODO: TMP! */); }
+            for (let i = 0; i < botsDiscord.length; i++) { clientsDiscord.push(0 /* TODO */); }
             for (let i = 0; i < clientsDiscord.length; i++) { /* TODO */ }
         }
     }
