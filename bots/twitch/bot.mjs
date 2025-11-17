@@ -7,7 +7,7 @@ import { TwitchAPI } from './api.mjs';
 
 const SOURCE = 'Twitch';
 
-const systemProperties = ['name']
+const systemProperties = ['name'];
 const commandProperties = ['name', 'reply'];
 const neededSettings = [
     'secrets.token',
