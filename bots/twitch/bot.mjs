@@ -248,7 +248,6 @@ export class ClientTwitch extends EventEmitter {
                     const aliasLower = alias.toLowerCase();
                     if (usedNames.has(aliasLower)) { log.warn(`Alias '${alias}' for command '${command.name}' conflicts with existing command/alias, skipping.`, `${SOURCE}-Commands-${this._settings.name}`); continue; }
                     usedNames.add(aliasLower);
-                    this._commands.push({ name: aliasLower, command: command, hidden: !!command.hidden });
                     loadedAliases.push(alias);
                 }
                 log.info(`Loaded command '${command.name}'${(loadedAliases.length > 0) ? ` with aliases ['${concat(loadedAliases, `', '`)}']` : ''}!`, `${SOURCE}-Commands-${this._settings.name}`);
@@ -261,7 +260,13 @@ export class ClientTwitch extends EventEmitter {
             const commandName = params.shift().toLowerCase(); // Shift removes the first element from the list
             let found = false;
             for (let i = 0; i < this._commands.length; i++) {
-                if (equals(commandName, this._commands[i].name)) {
+                let isCommand = equals(commandName, this._commands[i].name);
+                if (!isCommand) { // Check if given command name is the alias of currently checked command
+                    for (let alias in this._commands) {
+                        if (equals(alias.toLowerCase(), this._commands[i].name)) { isCommand = true; break; }
+                    }
+                }
+                if (isCommand) {
                     const command = this._commands[i].command;
 
                     // Check if command user is superuser
