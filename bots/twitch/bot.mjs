@@ -199,17 +199,19 @@ export class ClientTwitch extends EventEmitter {
                         failed = true;
                     }
                 }
-                if (failed || !('commandsIgnore' in this._settings.settings)) { continue; } // Skip
+                if (failed) { continue; } // Skip
 
                 // Check if command is ignored
-                let ignore = false;
-                for (let i = 0; i < this._settings.settings.commandsIgnore.length; i++) {
-                    if (equals(this._settings.settings.commandsIgnore[i].toLowerCase(), command.name.toLowerCase())) {
-                        ignore = true;
-                        break;
+                if ('commandsIgnore' in this._settings.settings) {
+                    let ignore = false;
+                    for (let i = 0; i < this._settings.settings.commandsIgnore.length; i++) {
+                        if (equals(this._settings.settings.commandsIgnore[i].toLowerCase(), command.name.toLowerCase())) {
+                            ignore = true;
+                            break;
+                        }
                     }
+                    if (ignore) { continue; } // Skip
                 }
-                if (ignore) { continue; } // Skip
 
                 // Check if the command has extra properties
                 if ('systems' in command) {
