@@ -157,6 +157,22 @@ export class TwitchAPI extends EventEmitter {
         return data.data[0];
     }
 
+    async getAccountAge(username) {
+        const url = `https://api.twitch.tv/helix/users?login=${username}`;
+        const options = {
+            method: 'GET',
+            headers: {
+                'Client-ID': `${this._data.applicationId}`,
+                'Authorization': `Bearer ${this._data.token}`
+            }
+        };
+        const response = await fetch(url, options);
+        if (!response.ok) { log.warn(`Could not fetch account info! http response: ${response.status}`, `${SOURCE}-${this._data.channel}`); return; }
+        const data = await response.json();
+        if (!data.data || data.data.length < 1) { log.warn('Error parsing json from account age', `${SOURCE}-${this._data.channel}`); return; }
+        return data.data[0];
+    }
+
     async isChannelLive() {
         const response = await fetch(`https://api.twitch.tv/helix/streams?user_login=${this._data.channel}`, {
             method: 'GET',
