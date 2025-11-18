@@ -31,6 +31,29 @@ export class TwitchAPI extends EventEmitter {
         this.eventsub = null;
     }
 
+    async _apiRequest(url, method = 'GET', body = null, tokenType = 'app') {
+        const token = tokenType === 'user' ? this._data.usertoken : this._data.token;
+        const options = {
+            method,
+            headers: {
+                'Client-ID': this._data.applicationId,
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        };
+        if (body) options.body = JSON.stringify(body);
+        const response = await fetch(url, options);
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(`HTTP ${response.status}: ${errorData.message || 'Unknown error'}`);
+        }
+        try {
+            return await response.json();
+        } catch {
+            return await response.text();
+        }
+    }
+
     isReady() { return !(this._data.token === 0 || this._data.roomId === 0 || this._data.channel === 0 || this._data.applicationId === 0); }
 
     // OAuth Tokens
@@ -66,7 +89,7 @@ export class TwitchAPI extends EventEmitter {
         const timeUntilExpiry = this._data.tokenExpiry - Date.now() - bufferMs;
         const intervalMs = Math.max(1000, timeUntilExpiry);
         log.info(`Next OAuth token refresh at ${new Date(Date.now() + intervalMs).toLocaleString()}`, `${SOURCE}-${this._data.channel}`);
-        this._refreshTimeout = setTimeout(() => { this.refreshToken().catch(err => { log.error(`Auto-refresh failed: ${err.message}`, SOURCE); this._scheduleNextRefresh(); }); }, intervalMs);
+        this._refreshTimeout = setTimeout(() => { this.refreshToken().catch(err => { log.error(`Auto-refresh failed: ${err.message}`, `${SOURCE}-${this._data.channel}`); this._scheduleNextRefresh(); }); }, intervalMs);
     }
 
     // EventSubs
@@ -85,110 +108,44 @@ export class TwitchAPI extends EventEmitter {
             // Example of subscription: event.type, version, condition
             await this.eventsub.subscribe('channel.follow', 2, { broadcaster_user_id: this._data.roomId.toString(), moderator_user_id: this._data.userId.toString() });
         } catch (err) {
-            log.error(`Failed to subscribe to EventSub events: ${err.message}`, SOURCE);
+            log.error(`Failed to subscribe to EventSub events: ${err.message}`, `${SOURCE}-${this._data.channel}`);
         }
     }
 
     // Token is expected to have: moderator:manage:chat_messages
     // https://dev.twitch.tv/docs/api/reference#delete-chat-messages
     async clearChat() {
-        const options = {
-            hostname: 'api.twitch.tv',
-            method: 'DELETE',
-            path: `/helix/moderation/chat?broadcaster_id=${this._data.roomId}&moderator_id=${this._data.userId}`,
-            headers: {
-                'Client-ID': `${this._data.applicationId}`,
-                'Authorization': `Bearer ${this._data.token}`
-            }
-        }
-        return new Promise((resolve, reject) => {
-            const req = https.request(options, res => {
-                let data = '';
-                res.setEncoding('utf8');
-                res.on('data', chunk => { data += chunk; });
-                res.on('end', () => { resolve(data); });
-            }).on('error', err => { log.error(err); reject(err); });
-            req.end();
-        });
+        return await this._apiRequest(`https://api.twitch.tv/helix/moderation/chat?broadcaster_id=${this._data.roomId}&moderator_id=${this._data.userId}`, 'DELETE');
     }
 
     // Token is expected to have: moderator:manage:chat_messages
     // https://dev.twitch.tv/docs/api/reference#delete-chat-messages
     async removeMessage(messageId) {
-        const options = {
-            hostname: 'api.twitch.tv',
-            method: 'DELETE',
-            path: `/helix/moderation/chat?broadcaster_id=${this._data.roomId}&moderator_id=${this._data.userId}&message_id=${messageId}`,
-            headers: {
-                'Client-ID': `${this._data.applicationId}`,
-                'Authorization': `Bearer ${this._data.token}`
-            }
-        }
-        return new Promise((resolve, reject) => {
-            const req = https.request(options, res => {
-                let data = '';
-                res.setEncoding('utf8');
-                res.on('data', chunk => { data += chunk; });
-                res.on('end', () => { try { resolve(JSON.parse(data)); } catch (err) { reject(err); } });
-            }).on('error', err => { log.error(err, `${SOURCE}-removeMessage-id:${messageId}`); reject(err); });
-            req.end();
-        });
+        return await this._apiRequest(`https://api.twitch.tv/helix/moderation/chat?broadcaster_id=${this._data.roomId}&moderator_id=${this._data.userId}&message_id=${messageId}`, 'DELETE');
     }
 
     // Token is expected to have: clips:edit
     // https://dev.twitch.tv/docs/api/clips/#creating-clips
     // If hasDelay is true, it captures from the VOD instead of the Live stream. We should be able to go back upto 80 minutes.
     async createClip(broadcasterId, hasDelay = false) {
-        const response = await fetch('https://api.twitch.tv/helix/clips', {
-            method: 'POST',
-            headers: {
-                'Client-ID': `${this._data.applicationId}`,
-                'Authorization': `Bearer ${this._data.usertoken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                broadcaster_id: broadcasterId,
-                has_delay: hasDelay
-            })
-        });
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(`Clip creation failed: ${errorData.message || response.status}`);
-        }
-        const data = await response.json();
+        const data = await this._apiRequest('https://api.twitch.tv/helix/clips', 'POST', {
+            broadcaster_id: broadcasterId,
+            has_delay: hasDelay
+        }, 'user');
         return data.data[0];
     }
 
+
     // https://dev.twitch.tv/docs/api/reference#get-users
     async getAccountInfo(username) {
-        const url = `https://api.twitch.tv/helix/users?login=${username}`;
-        const options = {
-            method: 'GET',
-            headers: {
-                'Client-ID': `${this._data.applicationId}`,
-                'Authorization': `Bearer ${this._data.token}`
-            }
-        };
-        const response = await fetch(url, options);
-        if (!response.ok) { log.warn(`Could not fetch account info! http response: ${response.status}`, `${SOURCE}-${this._data.channel}`); return; }
-        const data = await response.json();
+        const data = await this._apiRequest(`https://api.twitch.tv/helix/users?login=${username}`);
         if (!data.data || data.data.length < 1) { log.warn('Error parsing json from account info', `${SOURCE}-${this._data.channel}`); return; }
         return data.data[0];
     }
 
     // https://dev.twitch.tv/docs/api/reference#get-streams
     async getStreamInfo(broadcasterId) {
-        const url = `https://api.twitch.tv/helix/streams?user_id=${broadcasterId}`;
-        const options = {
-            method: 'GET',
-            headers: {
-                'Client-ID': `${this._data.applicationId}`,
-                'Authorization': `Bearer ${this._data.token}`
-            }
-        };
-        const response = await fetch(url, options);
-        if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
-        const data = await response.json();
+        const data = await this._apiRequest(`https://api.twitch.tv/helix/streams?user_id=${broadcasterId}`);
         if (!data.data || data.data.length < 1) { log.warn('Error parsing json from stream info', `${SOURCE}-${this._data.channel}`); return; }
         return data.data[0];
     }
@@ -196,170 +153,87 @@ export class TwitchAPI extends EventEmitter {
     // Token is expected to have: moderator:manage:announcements
     // https://dev.twitch.tv/docs/api/reference#send-chat-announcement
     async sendAnnouncement(broadcasterId, announcement) {
-        const url = 'https://api.twitch.tv/helix/chat/announcements';
-        const options = {
-            method: 'POST',
-            headers: {
-                'Client-ID': `${this._data.applicationId}`,
-                'Authorization': `Bearer ${this._data.usertoken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                broadcaster_id: broadcasterId,
-                moderator_id: this._data.userId,
-                message: announcement
-            })
-        };
-        const response = await fetch(url, options);
-        if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+        await this._apiRequest('https://api.twitch.tv/helix/chat/announcements', 'POST', {
+            broadcaster_id: broadcasterId,
+            moderator_id: this._data.userId,
+            message: announcement
+        }, 'user');
     }
 
     // Token is expected to have: channel:manage:broadcast
     // https://dev.twitch.tv/docs/api/reference#modify-channel-information
     async setTitle(broadcasterId, newTitle) {
-        const url = `https://api.twitch.tv/helix/channels?broadcaster_id=${broadcasterId}`;
-        const options = {
-            method: 'PATCH',
-            headers: {
-                'Client-ID': `${this._data.applicationId}`,
-                'Authorization': `Bearer ${this._data.usertoken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ title: newTitle })
-        };
         try {
-            const response = await fetch(url, options);
-            if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
-            log.info(`Stream title updated successfully.`, SOURCE);
+            await this._apiRequest(`https://api.twitch.tv/helix/channels?broadcaster_id=${broadcasterId}`, 'PATCH', { title: newTitle }, 'user');
+            log.info(`Stream title updated successfully.`, `${SOURCE}-${this._data.channel}`);
         } catch (error) {
-            log.error(`Error updating stream title: ${error}`, SOURCE);
+            log.error(`Error updating stream title: ${error}`, `${SOURCE}-${this._data.channel}`);
         }
     }
 
     // https://dev.twitch.tv/docs/api/reference#get-games
     async searchCategory(category) {
-        const url = `https://api.twitch.tv/helix/games?name=${category}`;
-        const options = {
-            method: 'GET',
-            headers: {
-                'Client-ID': `${this._data.applicationId}`,
-                'Authorization': `Bearer ${this._data.token}`
-            }
-        };
         try {
-            const response = await fetch(url, options);
-            if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
-            const responsejson = await response.json();
-            if (responsejson.data.length > 0) { const firstGame = responsejson.data[0]; log.info(`Found game: ${category} with ID: ${firstGame.id}`); return firstGame.id; }
-            else { log.warn('No game found with that name.'); return -1; }
-        } catch (error) { log.error('Error searching for game:', error); }
+            const data = await this._apiRequest(`https://api.twitch.tv/helix/games?name=${category}`);
+            if (data.data.length > 0) { const firstGame = data.data[0]; log.info(`Found game: ${category} with ID: ${firstGame.id}`, `${SOURCE}-${this._data.channel}`); return firstGame.id; }
+            else { log.warn('No game found with that name.', `${SOURCE}-${this._data.channel}`); return -1; }
+        } catch (error) { log.error(`Error searching for game: ${error}`, `${SOURCE}-${this._data.channel}`); }
     }
 
     // Token is expected to have: channel:manage:broadcast
     // https://dev.twitch.tv/docs/api/reference#modify-channel-information
     async setCategory(broadcasterId, category) {
-        const url = `https://api.twitch.tv/helix/channels?broadcaster_id=${broadcasterId}`;
         const categoryId = await this.searchCategory(category);
         if (categoryId < 0) { return; }
-        const options = {
-            method: 'PATCH',
-            headers: {
-                'Client-ID': `${this._data.applicationId}`,
-                'Authorization': `Bearer ${this._data.usertoken}`,
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                game_id: categoryId
-            })
-        };
-        try { const response = await fetch(url, options); if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); } log.info(`Stream game updated successfully.`); }
-        catch (error) { log.warn(`Error updating stream game:`, error); }
+        try {
+            await this._apiRequest(`https://api.twitch.tv/helix/channels?broadcaster_id=${broadcasterId}`, 'PATCH', { game_id: categoryId }, 'user');
+            log.info(`Stream game updated successfully.`, `${SOURCE}-${this._data.channel}`);
+        } catch (error) { log.error(`Error updating stream game: ${error}`, `${SOURCE}-${this._data.channel}`); }
     }
 
     // https://dev.twitch.tv/docs/api/reference#get-streams
     async isChannelLive() {
-        const response = await fetch(`https://api.twitch.tv/helix/streams?user_login=${this._data.channel}`, {
-            method: 'GET',
-            headers: {
-                'Client-ID': `${this._data.applicationId}`,
-                'Authorization': `Bearer ${this._data.token}`
-            }
-        });
-        if (!response.ok) { this.emit('error', `HTTP ${response.status}`); return false; }
-        const json = await response.json();
-        const isLive = json.data.length > 0;
-        this.emit(isLive ? EventTypes.stream_start : EventTypes.stream_end, { channel: this._data.channel, live: isLive, started_at: isLive ? new Date(json.data[0].started_at).getTime() : 0 });
-        return isLive;
+        try {
+            const data = await this._apiRequest(`https://api.twitch.tv/helix/streams?user_login=${this._data.channel}`);
+            const isLive = data.data.length > 0;
+            this.emit(isLive ? EventTypes.stream_start : EventTypes.stream_end, { channel: this._data.channel, live: isLive, started_at: isLive ? new Date(data.data[0].started_at).getTime() : 0 });
+            return isLive;
+        } catch (error) {
+            this.emit('error', error.message);
+            return false;
+        }
     }
 
     // https://dev.twitch.tv/docs/api/reference#get-streams
     async getCategory() {
-        const response = await fetch(`https://api.twitch.tv/helix/streams?user_login=${this._data.channel}`, {
-            method: 'GET',
-            headers: {
-                'Client-ID': `${this._data.applicationId}`,
-                'Authorization': `Bearer ${this._data.token}`
-            }
-        });
-        if (!response.ok) { throw new Error(`HTTP ${response.status}`); }
-        const json = await response.json();
-        return json.data.length > 0 ? json.data[0].game_name : null;
+        const data = await this._apiRequest(`https://api.twitch.tv/helix/streams?user_login=${this._data.channel}`);
+        return data.data.length > 0 ? data.data[0].game_name : null;
     }
 
     async getAllFollowerData() {
         const followers = [];
 
-        if (!this.isReady()) { log.error('Missing data for getAllFollowerData to request the needed data from twitch!', SOURCE); }
-        else {
-            log.info('Started loading follower data', `${SOURCE}-${this._data.channel}`);
-            let pagination = '';
-            let done = false;
-            while (!done) {
-                const options = {
-                    hostname: 'api.twitch.tv',
-                    path: `/helix/channels/followers?broadcaster_id=${this._data.roomId}&first=${USERS_PER_CHUNK}${pagination.length < 1 ? '' : `&after=${pagination}`}`,
-                    headers: {
-                        Authorization: `Bearer ${this._data.token}`,
-                        'Client-ID': this._data.applicationId
-                    }
-                }
+        if (!this.isReady()) { log.error('Missing data for getAllFollowerData to request the needed data from twitch!', `${SOURCE}-${this._data.channel}`); return followers; }
 
-                let parseData = '';
-                https.get(options, r => {
-                    r.setEncoding('utf8');
-                    r.on('data', data => { parseData += data; });
-                    r.on('end', _ => {
-                        const json = JSON.parse(parseData);
-                        if (json === undefined) { log.warn('Failed to parse follower data:', SOURCE); log.data(parseData, SOURCE); done = true; return; }
-                        if (json.status) { if (json.status === 401) { log.error('Token expired!'); done = true; return; } }
-                        if (!('cursor' in json.pagination)) { done = true; }
-                        const next = `${json.pagination.cursor}`.toString();
-                        if (!done) { pagination = next; }
-                        for (let i = 0; i < json.data.length; i++) {
-                            followers.push({
-                                id: json.data[i].user_id,
-                                name: `${json.data[i].user_name}`,
-                                time: new Date(json.data[i].followed_at)
-                            });
-                        }
-                    });
+        log.info('Started loading follower data', `${SOURCE}-${this._data.channel}`);
+        let pagination = '';
+        while (true) {
+            const url = `https://api.twitch.tv/helix/channels/followers?broadcaster_id=${this._data.roomId}&first=${USERS_PER_CHUNK}${pagination ? `&after=${pagination}` : ''}`;
+            const data = await this._apiRequest(url);
+            if (!data || !data.data) break;
+            for (const follower of data.data) {
+                followers.push({
+                    id: follower.user_id,
+                    name: follower.user_name,
+                    time: new Date(follower.followed_at)
                 });
-                if (!done) { await sleep(3); } // throttle requests to make sure we dont hit requests per minute limits
             }
+            if (!data.pagination || !data.pagination.cursor) break;
+            pagination = data.pagination.cursor;
+            await sleep(3); // throttle requests
         }
 
         log.info('Finished loading follower data', `${SOURCE}-${this._data.channel}`);
         return followers;
-    }
-
-    async getFollowerData() {
-        const result = {};
-
-        if (!this.isReady()) { log.error('Missing data for getFollowerData to request the needed data from twitch!', SOURCE); }
-        else {
-            // TODO
-        }
-
-        return result;
     }
 }
