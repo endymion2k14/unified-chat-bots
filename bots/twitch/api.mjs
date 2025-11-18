@@ -160,9 +160,34 @@ export class TwitchAPI extends EventEmitter {
         }, 'user');
     }
 
+    async validateToken(token) {
+        try {
+            const response = await fetch('https://id.twitch.tv/oauth2/validate', {
+                method: 'GET',
+                headers: {
+                    'Authorization': `OAuth ${token}`
+                }
+            });
+            const data = await response.json();
+            if (response.ok) {
+                console.log('User ID:', data.user_id);
+                console.log('Scopes:', data.scopes);
+                console.log('Has channel:manage:broadcast?', data.scopes.includes('channel:manage:broadcast'));
+            } else {
+                console.error('Validation failed:', data.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    }
+
     // Token is expected to have: channel:manage:broadcast
     // https://dev.twitch.tv/docs/api/reference#modify-channel-information
     async setTitle(newTitle) {
+        console.log(this._data);
+        //console.log(this._data);
+        //this.validateToken(this._data.token);
+        this.validateToken(this._data.usertoken);
         try {
             await this._apiRequest(`https://api.twitch.tv/helix/channels?broadcaster_id=${this._data.userId}`, 'PATCH', { title: newTitle }, 'user');
             log.info(`Stream title updated successfully.`, `${SOURCE}-${this._data.channel}`);
