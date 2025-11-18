@@ -8,8 +8,7 @@ export default {
         try {
             const userInfo = await client.api.getAccountInfo(username);
             if (!userInfo) { client.sendMessage('The Streamer does not exist or there was an error getting the required information.'); return; }
-            const broadcasterId = userInfo.id;
-            const streamInfo = await client.api.getStreamInfo(broadcasterId);
+            const streamInfo = await client.api.getStreamInfo(userInfo.id);
             let lastPlayedGame = 'they are not currently streaming';
             const config = client.getCommandConfig('shoutout');
             let messageTemplate;
@@ -18,7 +17,7 @@ export default {
             const message = messageTemplate.replace(/{username}/g, username).replace(/{lastplayed}/g, lastPlayedGame);
             client.sendMessage(message);
             // sendAnnouncement requires OAuth so is disabled in favor of 60 day token.
-            //client.api.sendAnnouncement(broadcasterId, message);
+            //client.api.sendAnnouncement(userInfo.id, message);
         } catch (error) { client.sendMessage(`Error checking user: ${error}`); }
     },
 };

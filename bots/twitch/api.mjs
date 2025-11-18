@@ -214,6 +214,68 @@ export class TwitchAPI extends EventEmitter {
         if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
     }
 
+    // Token is expected to have: channel:manage:broadcast
+    // https://dev.twitch.tv/docs/api/reference#modify-channel-information
+    async setTitle(broadcasterId, newTitle) {
+        const url = `https://api.twitch.tv/helix/channels?broadcaster_id=${broadcasterId}`;
+        const options = {
+            method: 'PATCH',
+            headers: {
+                'Client-ID': `${this._data.applicationId}`,
+                'Authorization': `Bearer ${this._data.usertoken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ title: newTitle })
+        };
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+            log.info(`Stream title updated successfully.`, SOURCE);
+        } catch (error) {
+            log.error(`Error updating stream title: ${error}`, SOURCE);
+        }
+    }
+
+    // https://dev.twitch.tv/docs/api/reference#get-games
+    async searchCategory(category) {
+        const url = `https://api.twitch.tv/helix/games?name=${category}`;
+        const options = {
+            method: 'GET',
+            headers: {
+                'Client-ID': `${this._data.applicationId}`,
+                'Authorization': `Bearer ${this._data.token}`
+            }
+        };
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+            const responsejson = await response.json();
+            if (responsejson.data.length > 0) { const firstGame = responsejson.data[0]; log.info(`Found game: ${category} with ID: ${firstGame.id}`); return firstGame.id; }
+            else { log.warn('No game found with that name.'); return -1; }
+        } catch (error) { log.error('Error searching for game:', error); }
+    }
+
+    // Token is expected to have: channel:manage:broadcast
+    // https://dev.twitch.tv/docs/api/reference#modify-channel-information
+    async setCategory(broadcasterId, category) {
+        const url = `https://api.twitch.tv/helix/channels?broadcaster_id=${broadcasterId}`;
+        const categoryId = await this.searchCategory(category);
+        if (categoryId < 0) { client.sendMessage(`Error updating stream game: No game found with that name.`); return; }
+        const options = {
+            method: 'PATCH',
+            headers: {
+                'Client-ID': `${this._data.applicationId}`,
+                'Authorization': `Bearer ${this._data.usertoken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                game_id: categoryId
+            })
+        };
+        try { const response = await fetch(url, options); if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); } client.sendMessage(`Stream game updated successfully.`); log.info(`Stream game updated successfully.`); }
+        catch (error) { log.warn(`Error updating stream game:`, error); }
+    }
+
     // https://dev.twitch.tv/docs/api/reference#get-streams
     async isChannelLive() {
         const response = await fetch(`https://api.twitch.tv/helix/streams?user_login=${this._data.channel}`, {
