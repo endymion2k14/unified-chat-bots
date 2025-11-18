@@ -14,9 +14,7 @@ export default {
     systems: ['gptrecap'],
     aliases: ['tldr'],
     async reply(params, client, event) {
-        if (event.privileges.super       ||
-            event.privileges.broadcaster ||
-            event.privileges.moderator) {
+        if (event.privileges.super || event.privileges.broadcaster || event.privileges.moderator) {
             try {
                 const system = client.getSystem('gptrecap');
                 const channelData = system.data[client.channel];
