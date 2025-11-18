@@ -8,8 +8,7 @@ export default {
         if (event.privileges.super || event.privileges.broadcaster || event.privileges.moderator) {
             if (params.length > 0) {
                 try {
-                    const userInfo = await client.api.getAccountInfo(event.channel);
-                    client.api.setCategory(userInfo.id, concat(params, ' '));
+                    client.api.setCategory(concat(params, ' '));
                 } catch (err) {
                     log.error(`Something went wrong trying to set the category: ${err}`, SOURCE);
                     client.sendMessage(`Something went wrong trying to set the category: ${event.username}.`);
