@@ -13,12 +13,8 @@ export default {
             let lastPlayedGame = 'they are not currently streaming';
             const config = client.getCommandConfig('shoutout');
             let messageTemplate;
-            if (streamInfo) {
-                lastPlayedGame = streamInfo.game_name;
-                messageTemplate = config.streamingMessage || `BIG SHOUTOUT TO @${username}, they are currently streaming in the ${lastPlayedGame} category @ https://www.twitch.tv/${username}`;
-            } else {
-                messageTemplate = config.offlineMessage || `BIG SHOUTOUT TO @${username}, ${lastPlayedGame} @ https://www.twitch.tv/${username}`;
-            }
+            if (streamInfo) { lastPlayedGame = streamInfo.game_name; messageTemplate = config.streamingMessage || `BIG SHOUTOUT TO @${username}, they are currently streaming in the ${lastPlayedGame} category @ https://www.twitch.tv/${username}`; }
+            else { messageTemplate = config.offlineMessage || `BIG SHOUTOUT TO @${username}, ${lastPlayedGame} @ https://www.twitch.tv/${username}`; }
             const message = messageTemplate.replace(/{username}/g, username).replace(/{lastplayed}/g, lastPlayedGame);
             client.sendMessage(message);
             // sendAnnouncement requires OAuth so is disabled in favor of 60 day token.
