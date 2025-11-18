@@ -260,7 +260,7 @@ export class TwitchAPI extends EventEmitter {
     async setCategory(broadcasterId, category) {
         const url = `https://api.twitch.tv/helix/channels?broadcaster_id=${broadcasterId}`;
         const categoryId = await this.searchCategory(category);
-        if (categoryId < 0) { client.sendMessage(`Error updating stream game: No game found with that name.`); return; }
+        if (categoryId < 0) { return; }
         const options = {
             method: 'PATCH',
             headers: {
@@ -272,7 +272,7 @@ export class TwitchAPI extends EventEmitter {
                 game_id: categoryId
             })
         };
-        try { const response = await fetch(url, options); if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); } client.sendMessage(`Stream game updated successfully.`); log.info(`Stream game updated successfully.`); }
+        try { const response = await fetch(url, options); if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); } log.info(`Stream game updated successfully.`); }
         catch (error) { log.warn(`Error updating stream game:`, error); }
     }
 
