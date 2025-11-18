@@ -11,16 +11,18 @@ export default {
             const broadcasterId = userInfo.id;
             const streamInfo = await client.api.getStreamInfo(broadcasterId);
             let lastPlayedGame = 'they are not currently streaming';
+            const config = client.getCommandConfig('shoutout');
+            let messageTemplate;
             if (streamInfo) {
                 lastPlayedGame = streamInfo.game_name;
-                client.sendMessage(`BIG SHOUTOUT TO @${username}, they are currently streaming in the ${lastPlayedGame} category @ https://www.twitch.tv/${username}`);
-                // sendAnnouncement requires OAuth so is disabled in favor of 60 day token.
-                //client.api.sendAnnouncement(broadcasterId, `BIG SHOUTOUT TO @${username}, they are currently streaming in the ${lastPlayedGame} category @ https://www.twitch.tv/${username}`);
+                messageTemplate = config.streamingMessage || `BIG SHOUTOUT TO @${username}, they are currently streaming in the ${lastPlayedGame} category @ https://www.twitch.tv/${username}`;
             } else {
-                client.sendMessage(`BIG SHOUTOUT TO @${username}, ${lastPlayedGame} @ https://www.twitch.tv/${username}`);
-                // sendAnnouncement requires OAuth so is disabled in favor of 60 day token.
-                //client.api.sendAnnouncement(broadcasterId, `BIG SHOUTOUT TO @${username}, ${lastPlayedGame} @ https://www.twitch.tv/${username}`);
+                messageTemplate = config.offlineMessage || `BIG SHOUTOUT TO @${username}, ${lastPlayedGame} @ https://www.twitch.tv/${username}`;
             }
+            const message = messageTemplate.replace(/{username}/g, username).replace(/{lastplayed}/g, lastPlayedGame);
+            client.sendMessage(message);
+            // sendAnnouncement requires OAuth so is disabled in favor of 60 day token.
+            //client.api.sendAnnouncement(broadcasterId, message);
         } catch (error) { client.sendMessage(`Error checking user: ${error}`); }
     },
 };
