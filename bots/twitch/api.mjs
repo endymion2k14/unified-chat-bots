@@ -184,9 +184,8 @@ export class TwitchAPI extends EventEmitter {
     // Token is expected to have: channel:manage:broadcast
     // https://dev.twitch.tv/docs/api/reference#modify-channel-information
     async setTitle(newTitle) {
-        console.log(this._data);
-        //console.log(this._data);
-        //this.validateToken(this._data.token);
+        // WTF do we need?
+        this.validateToken(this._data.token);
         this.validateToken(this._data.usertoken);
         try {
             await this._apiRequest(`https://api.twitch.tv/helix/channels?broadcaster_id=${this._data.userId}`, 'PATCH', { title: newTitle }, 'user');
