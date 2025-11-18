@@ -111,6 +111,7 @@ export class TwitchAPI extends EventEmitter {
             req.end();
         });
     }
+
     // Token is expected to have: moderator:manage:chat_messages
     // https://dev.twitch.tv/docs/api/reference#delete-chat-messages
     async removeMessage(messageId) {
@@ -133,9 +134,10 @@ export class TwitchAPI extends EventEmitter {
             req.end();
         });
     }
+
     // Token is expected to have: clips:edit
     // https://dev.twitch.tv/docs/api/clips/#creating-clips
-    // If Delay is true, it captures from the VOD instead of the Live stream. We should be able to go back upto 80 minutes.
+    // If hasDelay is true, it captures from the VOD instead of the Live stream. We should be able to go back upto 80 minutes.
     async createClip(broadcasterId, hasDelay = false) {
         const response = await fetch('https://api.twitch.tv/helix/clips', {
             method: 'POST',
@@ -157,7 +159,8 @@ export class TwitchAPI extends EventEmitter {
         return data.data[0];
     }
 
-    async getAccountAge(username) {
+    // https://dev.twitch.tv/docs/api/reference#get-users
+    async getAccountInfo(username) {
         const url = `https://api.twitch.tv/helix/users?login=${username}`;
         const options = {
             method: 'GET',
@@ -169,10 +172,49 @@ export class TwitchAPI extends EventEmitter {
         const response = await fetch(url, options);
         if (!response.ok) { log.warn(`Could not fetch account info! http response: ${response.status}`, `${SOURCE}-${this._data.channel}`); return; }
         const data = await response.json();
-        if (!data.data || data.data.length < 1) { log.warn('Error parsing json from account age', `${SOURCE}-${this._data.channel}`); return; }
+        if (!data.data || data.data.length < 1) { log.warn('Error parsing json from account info', `${SOURCE}-${this._data.channel}`); return; }
         return data.data[0];
     }
 
+    // https://dev.twitch.tv/docs/api/reference#get-streams
+    async getStreamInfo(broadcasterId) {
+        const url = `https://api.twitch.tv/helix/streams?user_id=${broadcasterId}`;
+        const options = {
+            method: 'GET',
+            headers: {
+                'Client-ID': `${this._data.applicationId}`,
+                'Authorization': `Bearer ${this._data.token}`
+            }
+        };
+        const response = await fetch(url, options);
+        if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+        const data = await response.json();
+        if (!data.data || data.data.length < 1) { log.warn('Error parsing json from stream info', `${SOURCE}-${this._data.channel}`); return; }
+        return data.data[0];
+    }
+
+    // Token is expected to have: moderator:manage:announcements
+    // https://dev.twitch.tv/docs/api/reference#send-chat-announcement
+    async sendAnnouncement(broadcasterId, announcement) {
+        const url = 'https://api.twitch.tv/helix/chat/announcements';
+        const options = {
+            method: 'POST',
+            headers: {
+                'Client-ID': `${this._data.applicationId}`,
+                'Authorization': `Bearer ${this._data.usertoken}`,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                broadcaster_id: broadcasterId,
+                moderator_id: this._data.userId,
+                message: announcement
+            })
+        };
+        const response = await fetch(url, options);
+        if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+    }
+
+    // https://dev.twitch.tv/docs/api/reference#get-streams
     async isChannelLive() {
         const response = await fetch(`https://api.twitch.tv/helix/streams?user_login=${this._data.channel}`, {
             method: 'GET',
@@ -188,6 +230,7 @@ export class TwitchAPI extends EventEmitter {
         return isLive;
     }
 
+    // https://dev.twitch.tv/docs/api/reference#get-streams
     async getCategory() {
         const response = await fetch(`https://api.twitch.tv/helix/streams?user_login=${this._data.channel}`, {
             method: 'GET',
