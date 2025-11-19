@@ -7,7 +7,7 @@ import { TwitchAPI } from './api.mjs';
 
 const SOURCE = 'Twitch';
 
-const systemProperties = ['name']
+const systemProperties = ['name'];
 const commandProperties = ['name', 'reply'];
 const neededSettings = [
     'secrets.token',
@@ -199,17 +199,19 @@ export class ClientTwitch extends EventEmitter {
                         failed = true;
                     }
                 }
-                if (failed || !('commandsIgnore' in this._settings.settings)) { continue; } // Skip
+                if (failed) { continue; } // Skip
 
                 // Check if command is ignored
-                let ignore = false;
-                for (let i = 0; i < this._settings.settings.commandsIgnore.length; i++) {
-                    if (equals(this._settings.settings.commandsIgnore[i].toLowerCase(), command.name.toLowerCase())) {
-                        ignore = true;
-                        break;
+                if ('commandsIgnore' in this._settings.settings) {
+                    let ignore = false;
+                    for (let i = 0; i < this._settings.settings.commandsIgnore.length; i++) {
+                        if (equals(this._settings.settings.commandsIgnore[i].toLowerCase(), command.name.toLowerCase())) {
+                            ignore = true;
+                            break;
+                        }
                     }
+                    if (ignore) { continue; } // Skip
                 }
-                if (ignore) { continue; } // Skip
 
                 // Check if the command has extra properties
                 if ('systems' in command) {
@@ -248,7 +250,6 @@ export class ClientTwitch extends EventEmitter {
                     const aliasLower = alias.toLowerCase();
                     if (usedNames.has(aliasLower)) { log.warn(`Alias '${alias}' for command '${command.name}' conflicts with existing command/alias, skipping.`, `${SOURCE}-Commands-${this._settings.name}`); continue; }
                     usedNames.add(aliasLower);
-                    this._commands.push({ name: aliasLower, command: command, hidden: !!command.hidden });
                     loadedAliases.push(alias);
                 }
                 log.info(`Loaded command '${command.name}'${(loadedAliases.length > 0) ? ` with aliases ['${concat(loadedAliases, `', '`)}']` : ''}!`, `${SOURCE}-Commands-${this._settings.name}`);
@@ -261,7 +262,13 @@ export class ClientTwitch extends EventEmitter {
             const commandName = params.shift().toLowerCase(); // Shift removes the first element from the list
             let found = false;
             for (let i = 0; i < this._commands.length; i++) {
-                if (equals(commandName, this._commands[i].name)) {
+                let isCommand = equals(commandName, this._commands[i].name);
+                if (!isCommand) { // Check if given command name is the alias of currently checked command
+                    for (let alias in this._commands) {
+                        if (equals(alias.toLowerCase(), this._commands[i].name)) { isCommand = true; break; }
+                    }
+                }
+                if (isCommand) {
                     const command = this._commands[i].command;
 
                     // Check if command user is superuser
