@@ -160,62 +160,6 @@ export class TwitchAPI extends EventEmitter {
         }, 'user');
     }
 
-    async validateToken(token) {
-        try {
-            const response = await fetch('https://id.twitch.tv/oauth2/validate', {
-                method: 'GET',
-                headers: {
-                    'Authorization': `OAuth ${token}`
-                }
-            });
-            const data = await response.json();
-            if (response.ok) {
-                console.log('User ID:', data.user_id);
-                console.log('Scopes:', data.scopes);
-                console.log('Has channel:manage:broadcast?', data.scopes.includes('channel:manage:broadcast'));
-            } else {
-                console.error('Validation failed:', data.message);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
-    }
-
-    // Token is expected to have: channel:manage:broadcast
-    // https://dev.twitch.tv/docs/api/reference#modify-channel-information
-    async setTitle(newTitle) {
-        // WTF do we need?
-        this.validateToken(this._data.token);
-        this.validateToken(this._data.usertoken);
-        console.log(this._data.roomId);
-        try {
-            await this._apiRequest(`https://api.twitch.tv/helix/channels?broadcaster_id=${this._data.userId}`, 'PATCH', { title: newTitle });
-            log.info(`Stream title updated successfully.`, `${SOURCE}-${this._data.channel}`);
-        } catch (error) {
-            log.error(`Error updating stream title: ${error}`, `${SOURCE}-${this._data.channel}`);
-        }
-    }
-
-    // https://dev.twitch.tv/docs/api/reference#get-games
-    async searchCategory(category) {
-        try {
-            const data = await this._apiRequest(`https://api.twitch.tv/helix/games?name=${category}`);
-            if (data.data.length > 0) { const firstGame = data.data[0]; log.info(`Found game: ${category} with ID: ${firstGame.id}`, `${SOURCE}-${this._data.channel}`); return firstGame.id; }
-            else { log.warn('No game found with that name.', `${SOURCE}-${this._data.channel}`); return -1; }
-        } catch (error) { log.error(`Error searching for game: ${error}`, `${SOURCE}-${this._data.channel}`); }
-    }
-
-    // Token is expected to have: channel:manage:broadcast
-    // https://dev.twitch.tv/docs/api/reference#modify-channel-information
-    async setCategory(category) {
-        const categoryId = await this.searchCategory(category);
-        if (categoryId < 0) { return; }
-        try {
-            await this._apiRequest(`https://api.twitch.tv/helix/channels?broadcaster_id=${this._data.userId}`, 'PATCH', { game_id: categoryId }, 'user');
-            log.info(`Stream game updated successfully.`, `${SOURCE}-${this._data.channel}`);
-        } catch (error) { log.error(`Error updating stream game: ${error}`, `${SOURCE}-${this._data.channel}`); }
-    }
-
     // https://dev.twitch.tv/docs/api/reference#get-streams
     async isChannelLive() {
         try {
