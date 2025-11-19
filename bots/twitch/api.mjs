@@ -187,8 +187,9 @@ export class TwitchAPI extends EventEmitter {
         // WTF do we need?
         this.validateToken(this._data.token);
         this.validateToken(this._data.usertoken);
+        console.log(this._data.roomId);
         try {
-            await this._apiRequest(`https://api.twitch.tv/helix/channels?broadcaster_id=${this._data.userId}`, 'PATCH', { title: newTitle }, 'user');
+            await this._apiRequest(`https://api.twitch.tv/helix/channels?broadcaster_id=${this._data.userId}`, 'PATCH', { title: newTitle });
             log.info(`Stream title updated successfully.`, `${SOURCE}-${this._data.channel}`);
         } catch (error) {
             log.error(`Error updating stream title: ${error}`, `${SOURCE}-${this._data.channel}`);
