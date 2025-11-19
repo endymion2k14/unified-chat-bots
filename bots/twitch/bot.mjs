@@ -66,7 +66,8 @@ export class ClientTwitch extends EventEmitter {
             else {
                 this.channel = this._settings.settings.channel;
                 this.api = new TwitchAPI(this._settings.secrets.appToken, this.channel, this._settings.secrets.clientId, this._settings.secrets.clientSecret, this._settings.secrets.botToken, this._settings.secrets.botRefresh, this._settings.secrets.botExpiry, this._settings.secrets.broadcasterToken, this._settings.secrets.broadcasterRefresh, this._settings.secrets.broadcasterExpiry);
-                this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: this._settings.secrets.appToken, channel: this.channel, chat_show: this._settings.settings.chat_show });
+                const ircToken = this._settings.settings.ircTokenSource === 'bot' ? this._settings.secrets.botToken : this._settings.secrets.appToken;
+                this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: ircToken, channel: this.channel, chat_show: this._settings.settings.chat_show });
                 if ('prefix'           in this._settings.settings) { if (this._settings.settings.prefix.length > 0) { this.prefix = this._settings.settings.prefix; } }
                 if ('chat_show'        in this._settings.settings) { this.chat_show = this._settings.settings.chat_show; }
                 if ('chat_delay'       in this._settings.settings) { this.chat_delay = this._settings.settings.chat_delay; }
@@ -96,6 +97,7 @@ export class ClientTwitch extends EventEmitter {
                     this._settings.secrets[tokenKey] = data.token;
                     this.api._data[tokenKey] = data.token;
                     if (!isBroadcaster && this.api.eventsub) this.api.eventsub.updateToken(data.token);
+                    if (!isBroadcaster && this._settings.settings.ircTokenSource === 'bot') this._backend.oauth = `oauth:${data.token}`;
                 }
                 if (data.refresh) {
                     this._settings.secrets[refreshKey] = data.refresh;
