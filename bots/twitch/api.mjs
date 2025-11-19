@@ -9,34 +9,43 @@ const USERS_PER_CHUNK = 100;
 
 export class TwitchAPI extends EventEmitter {
     _data = {
-        token: 0,
+        appToken: 0,
         userId: 0,
         roomId: 0,
-        applicationId: 0,
+        clientId: 0,
         channel: 0,
-        usertoken: "",
-        refresh: "",
-        tokenExpiry: 0,
+        botToken: "",
+        botRefresh: "",
+        botTokenExpiry: 0,
+        broadcasterToken: "",
+        broadcasterRefresh: "",
+        broadcasterTokenExpiry: 0,
     }
 
-    constructor(token, channel, id, secret, usertoken, refresh, expiry = 0) {
+    constructor(appToken, channel, clientId, clientSecret, botToken = "", botRefresh = "", botExpiry = 0, broadcasterToken = "", broadcasterRefresh = "", broadcasterExpiry = 0) {
         super();
-        this._data.token = token;
+        this._data.appToken = appToken;
         this._data.channel = channel;
-        this._data.applicationId = id;
-        this._data.secret = secret;
-        this._data.usertoken = usertoken;
-        this._data.refresh = refresh;
-        this._data.tokenExpiry = expiry;
+        this._data.clientId = clientId;
+        this._data.clientSecret = clientSecret;
+        this._data.botToken = botToken;
+        this._data.botRefresh = botRefresh;
+        this._data.botTokenExpiry = botExpiry;
+        this._data.broadcasterToken = broadcasterToken;
+        this._data.broadcasterRefresh = broadcasterRefresh;
+        this._data.broadcasterTokenExpiry = broadcasterExpiry;
         this.eventsub = null;
     }
 
     async _apiRequest(url, method = 'GET', body = null, tokenType = 'app') {
-        const token = tokenType === 'user' ? this._data.usertoken : this._data.token;
+        let token;
+        if (tokenType === 'bot') token = this._data.botToken;
+        else if (tokenType === 'broadcaster') token = this._data.broadcasterToken;
+        else token = this._data.appToken;
         const options = {
             method,
             headers: {
-                'Client-ID': this._data.applicationId,
+                'Client-ID': this._data.clientId,
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
             }
@@ -54,48 +63,53 @@ export class TwitchAPI extends EventEmitter {
         }
     }
 
-    isReady() { return !(this._data.token === 0 || this._data.roomId === 0 || this._data.channel === 0 || this._data.applicationId === 0); }
+    isReady() { return !(this._data.appToken === 0 || this._data.roomId === 0 || this._data.channel === 0 || this._data.clientId === 0); }
 
     // OAuth Tokens
-    async refreshToken() {
-        if (!this._data.refresh || !this._data.secret || !this._data.applicationId) { throw new Error('Missing refresh token, client secret, or client ID for refresh'); }
+    async refreshToken(tokenType = 'bot') {
+        const refreshKey = tokenType === 'broadcaster' ? 'broadcasterRefresh' : 'botRefresh';
+        if (!this._data[refreshKey] || !this._data.clientSecret || !this._data.clientId) { throw new Error(`Missing refresh token, client secret, or client ID for ${tokenType} refresh`); }
         const response = await fetch('https://id.twitch.tv/oauth2/token', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
-                client_id: this._data.applicationId,
-                client_secret: this._data.secret,
-                refresh_token: this._data.refresh,
+                client_id: this._data.clientId,
+                client_secret: this._data.clientSecret,
+                refresh_token: this._data[refreshKey],
                 grant_type: 'refresh_token',
             }),
         });
         const data = await response.json();
         if (!response.ok) { throw new Error(`Token refresh failed: ${data.message}`); }
-        if (data.refresh_token) { this._data.refresh = data.refresh_token; }
-        if (data.expires_in) { this._data.tokenExpiry = Date.now() + (data.expires_in * 1000); }
-        this.emit('token_refreshed', { usertoken: data.access_token, refresh: this._data.refresh, expiry: this._data.tokenExpiry });
+        const tokenKey = tokenType === 'broadcaster' ? 'broadcasterToken' : 'botToken';
+        const expiryKey = tokenType === 'broadcaster' ? 'broadcasterTokenExpiry' : 'botTokenExpiry';
+        if (data.refresh_token) { this._data[refreshKey] = data.refresh_token; }
+        if (data.expires_in) { this._data[expiryKey] = Date.now() + (data.expires_in * 1000); }
+        this.emit('token_refreshed', { token: data.access_token, refresh: this._data[refreshKey], expiry: this._data[expiryKey], type: tokenType });
     }
 
-    startAutoRefresh() {
-        if (!this._data.refresh) { log.info('No refresh token available, skipping auto-refresh', `${SOURCE}-${this._data.channel}`); return; }
-        this._scheduleNextRefresh();
+    startAutoRefresh(tokenType = 'bot') {
+        const refreshKey = tokenType === 'broadcaster' ? 'broadcasterRefresh' : 'botRefresh';
+        if (!this._data[refreshKey]) { log.info(`No ${tokenType} refresh token available, skipping auto-refresh`, `${SOURCE}-${this._data.channel}`); return; }
+        this._scheduleNextRefresh(tokenType);
     }
 
-    _scheduleNextRefresh() {
+    _scheduleNextRefresh(tokenType = 'bot') {
         if (this._refreshTimeout) { clearTimeout(this._refreshTimeout); }
+        const expiryKey = tokenType === 'broadcaster' ? 'broadcasterTokenExpiry' : 'botTokenExpiry';
         const bufferMs = 5 * 60 * 1000;
-        const timeUntilExpiry = this._data.tokenExpiry - Date.now() - bufferMs;
+        const timeUntilExpiry = this._data[expiryKey] - Date.now() - bufferMs;
         const intervalMs = Math.max(1000, timeUntilExpiry);
-        log.info(`Next OAuth token refresh at ${new Date(Date.now() + intervalMs).toLocaleString()}`, `${SOURCE}-${this._data.channel}`);
-        this._refreshTimeout = setTimeout(() => { this.refreshToken().catch(err => { log.error(`Auto-refresh failed: ${err.message}`, `${SOURCE}-${this._data.channel}`); this._scheduleNextRefresh(); }); }, intervalMs);
+        log.info(`Next ${tokenType} OAuth token refresh at ${new Date(Date.now() + intervalMs).toLocaleString()}`, `${SOURCE}-${this._data.channel}`);
+        this._refreshTimeout = setTimeout(() => { this.refreshToken(tokenType).catch(err => { log.error(`Auto-refresh failed: ${err.message}`, `${SOURCE}-${this._data.channel}`); this._scheduleNextRefresh(tokenType); }); }, intervalMs);
     }
 
     // EventSubs
     startEventSub() {
-        if (!this._data.usertoken || !this._data.applicationId) { log.info('No usertoken available, skipping EventSub', `${SOURCE}-${this._data.channel}`); return; }
-        this.eventsub = new TwitchEventSub(this._data.usertoken, this._data.applicationId, this._data.channel);
+        if (!this._data.botToken || !this._data.clientId) { log.info('No botToken available, skipping EventSub', `${SOURCE}-${this._data.channel}`); return; }
+        this.eventsub = new TwitchEventSub(this._data.botToken, this._data.clientId, this._data.channel);
         log.info('Started loading subscriptions', `Twitch-EventSub-${this._data.channel}`);
         this.eventsub.on('ready', () => { this.subscribeToEvents(); });
         this.eventsub.on('channel.follow', (event) => this.emit('follow', event));
