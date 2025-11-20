@@ -21,6 +21,7 @@ export class TwitchAPI extends EventEmitter {
         broadcasterRefresh: "",
         broadcasterTokenExpiry: 0,
     }
+    _refreshTimeouts = {};
 
     constructor(appToken, channel, clientId, clientSecret, botToken = "", botRefresh = "", botExpiry = 0, broadcasterToken = "", broadcasterRefresh = "", broadcasterExpiry = 0) {
         super();
@@ -97,13 +98,13 @@ export class TwitchAPI extends EventEmitter {
     }
 
     _scheduleNextRefresh(tokenType = 'bot') {
-        if (this._refreshTimeout) { clearTimeout(this._refreshTimeout); }
+        if (this._refreshTimeouts[tokenType]) { clearTimeout(this._refreshTimeouts[tokenType]); }
         const expiryKey = tokenType === 'broadcaster' ? 'broadcasterTokenExpiry' : 'botTokenExpiry';
         const bufferMs = 5 * 60 * 1000;
         const timeUntilExpiry = this._data[expiryKey] - Date.now() - bufferMs;
         const intervalMs = Math.max(1000, timeUntilExpiry);
         log.info(`Next ${tokenType} OAuth token refresh at ${new Date(Date.now() + intervalMs).toLocaleString()}`, `${SOURCE}-${this._data.channel}`);
-        this._refreshTimeout = setTimeout(() => { this.refreshToken(tokenType).catch(err => { log.error(`Auto-refresh failed: ${err.message}`, `${SOURCE}-${this._data.channel}`); this._scheduleNextRefresh(tokenType); }); }, intervalMs);
+        this._refreshTimeouts[tokenType] = setTimeout(() => { this.refreshToken(tokenType).catch(err => { log.error(`Auto-refresh failed: ${err.message}`, `${SOURCE}-${this._data.channel}`); this._scheduleNextRefresh(tokenType); }); }, intervalMs);
     }
 
     // EventSubs
