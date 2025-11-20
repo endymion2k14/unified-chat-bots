@@ -5,9 +5,9 @@ import { log } from '../../utils.mjs';
 const SOURCE = 'Twitch-EventSub';
 
 export class TwitchEventSub extends EventEmitter {
-    constructor(usertoken, clientId, channel) {
+    constructor(botToken, clientId, channel) {
         super();
-        this.usertoken = usertoken;
+        this.botToken = botToken;
         this.clientId = clientId;
         this.ws = null;
         this.sessionId = null;
@@ -68,7 +68,7 @@ export class TwitchEventSub extends EventEmitter {
     }
 
     updateToken(newToken) {
-        this.usertoken = newToken;
+        this.botToken = newToken;
         if (this.ws && this.ws.readyState === WebSocket.OPEN) { this.ws.close(); }
     }
 
@@ -77,7 +77,7 @@ export class TwitchEventSub extends EventEmitter {
         const response = await fetch('https://api.twitch.tv/helix/eventsub/subscriptions', {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${this.usertoken}`,
+                'Authorization': `Bearer ${this.botToken}`,
                 'Client-Id': this.clientId,
                 'Content-Type': 'application/json'
             },
