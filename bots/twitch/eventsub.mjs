@@ -69,7 +69,8 @@ export class TwitchEventSub extends EventEmitter {
 
     updateToken(newToken) {
         this.botToken = newToken;
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) { this.ws.close(); }
+        // lets wait it out and see if twitch sends us RECONNECT
+        // if (this.ws && this.ws.readyState === WebSocket.OPEN) { this.ws.close(); }
     }
 
     async subscribe(type, version, condition) {
