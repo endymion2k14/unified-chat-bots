@@ -175,6 +175,37 @@ export class TwitchAPI extends EventEmitter {
         }, 'bot');
     }
 
+    // Token is expected to have: channel:manage:broadcast
+    // https://dev.twitch.tv/docs/api/reference#modify-channel-information
+    async setTitle(newTitle) {
+        try {
+            await this._apiRequest(`https://api.twitch.tv/helix/channels?broadcaster_id=${this._data.userId}`, 'PATCH', { title: newTitle }, 'broadcaster');
+            log.info(`Stream title updated successfully.`, `${SOURCE}-${this._data.channel}`);
+        } catch (error) {
+            log.error(`Error updating stream title: ${error}`, `${SOURCE}-${this._data.channel}`);
+        }
+    }
+
+    // https://dev.twitch.tv/docs/api/reference#get-games
+    async searchCategory(category) {
+        try {
+            const data = await this._apiRequest(`https://api.twitch.tv/helix/games?name=${category}`);
+            if (data.data.length > 0) { const firstGame = data.data[0]; log.info(`Found game: ${category} with ID: ${firstGame.id}`, `${SOURCE}-${this._data.channel}`); return firstGame.id; }
+            else { log.warn('No game found with that name.', `${SOURCE}-${this._data.channel}`); return -1; }
+        } catch (error) { log.error(`Error searching for game: ${error}`, `${SOURCE}-${this._data.channel}`); }
+    }
+
+    // Token is expected to have: channel:manage:broadcast
+    // https://dev.twitch.tv/docs/api/reference#modify-channel-information
+    async setCategory(category) {
+        const categoryId = await this.searchCategory(category);
+        if (categoryId < 0) { return; }
+        try {
+            await this._apiRequest(`https://api.twitch.tv/helix/channels?broadcaster_id=${this._data.userId}`, 'PATCH', { game_id: categoryId }, 'broadcaster');
+            log.info(`Stream game updated successfully.`, `${SOURCE}-${this._data.channel}`);
+        } catch (error) { log.error(`Error updating stream game: ${error}`, `${SOURCE}-${this._data.channel}`); }
+    }
+
     // https://dev.twitch.tv/docs/api/reference#get-streams
     async isChannelLive() {
         try {
