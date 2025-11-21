@@ -142,6 +142,8 @@ export class TwitchAPI extends EventEmitter {
     // Token is expected to have: clips:edit
     // https://dev.twitch.tv/docs/api/clips/#creating-clips
     // If hasDelay is true, it captures from the VOD instead of the Live stream. We should be able to go back upto 80 minutes.
+    // 'bot' to create a clip under the bot username.
+    // 'broadcaster' to create a clip under the streamers username.
     async createClip(broadcasterId, hasDelay = false) {
         const data = await this._apiRequest('https://api.twitch.tv/helix/clips', 'POST', {
             broadcaster_id: broadcasterId,
