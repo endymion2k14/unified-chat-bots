@@ -145,10 +145,7 @@ export class TwitchAPI extends EventEmitter {
     // 'bot' to create a clip under the bot username.
     // 'broadcaster' to create a clip under the streamers username.
     async createClip(broadcasterId, hasDelay = false) {
-        const data = await this._apiRequest('https://api.twitch.tv/helix/clips', 'POST', {
-            broadcaster_id: broadcasterId,
-            has_delay: hasDelay
-        }, 'bot');
+        const data = await this._apiRequest('https://api.twitch.tv/helix/clips', 'POST', { broadcaster_id: broadcasterId, has_delay: hasDelay }, 'bot');
         return data.data[0];
     }
 
