@@ -146,7 +146,7 @@ export class TwitchAPI extends EventEmitter {
         const data = await this._apiRequest('https://api.twitch.tv/helix/clips', 'POST', {
             broadcaster_id: broadcasterId,
             has_delay: hasDelay
-        }, 'user');
+        }, 'bot');
         return data.data[0];
     }
 
@@ -172,7 +172,7 @@ export class TwitchAPI extends EventEmitter {
             broadcaster_id: broadcasterId,
             moderator_id: this._data.userId,
             message: announcement
-        }, 'user');
+        }, 'bot');
     }
 
     // https://dev.twitch.tv/docs/api/reference#get-streams
