@@ -166,12 +166,10 @@ export class TwitchAPI extends EventEmitter {
 
     // Token is expected to have: moderator:manage:announcements
     // https://dev.twitch.tv/docs/api/reference#send-chat-announcement
+    // 'bot' to send announcement under the bot username.
+    // 'broadcaster' to send announcement under the streamers username.
     async sendAnnouncement(broadcasterId, announcement) {
-        await this._apiRequest('https://api.twitch.tv/helix/chat/announcements', 'POST', {
-            broadcaster_id: broadcasterId,
-            moderator_id: this._data.userId,
-            message: announcement
-        }, 'bot');
+        await this._apiRequest('https://api.twitch.tv/helix/chat/announcements', 'POST', { broadcaster_id: broadcasterId, moderator_id: this._data.userId, message: announcement }, 'bot');
     }
 
     // Token is expected to have: channel:manage:broadcast
@@ -183,7 +181,6 @@ export class TwitchAPI extends EventEmitter {
         } catch (error) {
             log.error(`Error updating stream title: ${error}`, `${SOURCE}-${this._data.channel}`);
         }
-        this.validateToken(this._data.broadcasterToken);
     }
 
     // https://dev.twitch.tv/docs/api/reference#get-games
