@@ -178,7 +178,7 @@ export class TwitchAPI extends EventEmitter {
     // https://dev.twitch.tv/docs/api/reference#modify-channel-information
     async setTitle(newTitle) {
         try {
-            await this._apiRequest(`https://api.twitch.tv/helix/channels?broadcaster_id=${this._data.userId}`, 'PATCH', { title: newTitle }, 'broadcaster');
+            await this._apiRequest(`https://api.twitch.tv/helix/channels?broadcaster_id=${this._data.roomId}`, 'PATCH', { title: newTitle }, 'broadcaster');
             log.info(`Stream title updated successfully.`, `${SOURCE}-${this._data.channel}`);
         } catch (error) {
             log.error(`Error updating stream title: ${error}`, `${SOURCE}-${this._data.channel}`);
@@ -201,7 +201,7 @@ export class TwitchAPI extends EventEmitter {
         const categoryId = await this.searchCategory(category);
         if (categoryId < 0) { return; }
         try {
-            await this._apiRequest(`https://api.twitch.tv/helix/channels?broadcaster_id=${this._data.userId}`, 'PATCH', { game_id: categoryId }, 'broadcaster');
+            await this._apiRequest(`https://api.twitch.tv/helix/channels?broadcaster_id=${this._data.roomId}`, 'PATCH', { game_id: categoryId }, 'broadcaster');
             log.info(`Stream game updated successfully.`, `${SOURCE}-${this._data.channel}`);
         } catch (error) { log.error(`Error updating stream game: ${error}`, `${SOURCE}-${this._data.channel}`); }
     }
