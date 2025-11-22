@@ -99,14 +99,8 @@ export class ClientTwitch extends EventEmitter {
                     if (!isBroadcaster && this.api.eventsub) this.api.eventsub.updateToken(data.token);
                     if (!isBroadcaster && this._settings.settings.ircTokenSource === 'bot') this._backend.oauth = `oauth:${data.token}`;
                 }
-                if (data.refresh) {
-                    this._settings.secrets[refreshKey] = data.refresh;
-                    this.api._data[refreshKey] = data.refresh;
-                }
-                if (data.expiry) {
-                    this._settings.secrets[expiryKey] = data.expiry;
-                    this.api._data[isBroadcaster ? 'broadcasterTokenExpiry' : 'botTokenExpiry'] = data.expiry;
-                }
+                if (data.refresh) { this._settings.secrets[refreshKey] = data.refresh; this.api._data[refreshKey] = data.refresh; }
+                if (data.expiry) { this._settings.secrets[expiryKey] = data.expiry; this.api._data[isBroadcaster ? 'broadcasterTokenExpiry' : 'botTokenExpiry'] = data.expiry; }
                 this.api.startAutoRefresh(tokenType);
                 const configPath = path.join(process.cwd(), 'configs', 'secrets.json');
                 try {
