@@ -92,13 +92,8 @@ export class WebConsole extends EventEmitter {
             if (error) { return res.status(400).send(`OAuth error: ${error}`); }
             let type = 'bot';
             let indexStr = state;
-            if (state.startsWith('broadcaster-')) {
-                type = 'broadcaster';
-                indexStr = state.substring('broadcaster-'.length);
-            } else if (state.startsWith('bot-')) {
-                type = 'bot';
-                indexStr = state.substring('bot-'.length);
-            }
+            if (state.startsWith('broadcaster-')) { type = 'broadcaster'; indexStr = state.substring('broadcaster-'.length); }
+            else if (state.startsWith('bot-')) { type = 'bot'; indexStr = state.substring('bot-'.length); }
             const index = parseInt(indexStr);
             if (isNaN(index) || index < 0 || index >= this.settings.twitch.length) { return res.status(400).send('Invalid state'); }
             const bot = this.settings.twitch[index];
