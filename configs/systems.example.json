@@ -94,8 +94,8 @@
               "sceneName": null,
               "sourceName": "Follower-Placeholder",
               "enabled": true,
-              "delay": 2,
-              "duration": 7,
+              "delay": 1,
+              "duration": 8,
               "botIndex": 0
             },
             {
@@ -133,8 +133,8 @@
               "sceneName": null,
               "sourceName": "Raid-Placeholder",
               "enabled": true,
-              "delay": 2,
-              "duration": 7,
+              "delay": 1,
+              "duration": 8,
               "botIndex": 0
             },
             {

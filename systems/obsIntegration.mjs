@@ -50,7 +50,11 @@ export default {
                 duration = action.duration || 0;
                 const delay = action.delay || 0;
                 setTimeout(async () => {
-                    await obsClient.setSourceEnabled(sceneName, action.sourceName, enabled, duration);
+                    try {
+                        await obsClient.setSourceEnabled(sceneName, action.sourceName, enabled, duration);
+                    } catch (error) {
+                        log.error(`Failed to execute delayed setSourceEnabled: ${error.message}`, `${SOURCE}-${client._settings.name}`);
+                    }
                 }, delay * 1000);
                 break;
             case 'setTextSource':
