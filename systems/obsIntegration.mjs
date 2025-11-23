@@ -1,6 +1,6 @@
 import { log } from '../utils.mjs';
 
-const SOURCE = 'OBS-Intergration';
+const SOURCE = 'OBS-Integration';
 
 export default {
     name: 'obsIntegration',
@@ -25,18 +25,27 @@ export default {
     async handleEvent(client, integration, event) {
         if (!client.obsClients || client.obsClients.length === 0) { return; }
 
+        // Cache current scene for this event batch to avoid multiple OBS calls
+        let currentSceneCache = null;
+        const getCurrentSceneCached = async (obsClient) => {
+            if (currentSceneCache === null) {
+                currentSceneCache = await obsClient.getCurrentScene();
+            }
+            return currentSceneCache;
+        };
+
         for (const action of integration.actions) {
-            try { await this.executeAction(client, action, event); }
+            try { 
+                await this.executeAction(client, action, event, getCurrentSceneCached); 
+            }
             catch (error) { log.error(`Failed to execute OBS action: ${error.message}`, `${SOURCE}-${client._settings.name}`); }
         }
     },
 
-    async executeAction(client, action, event) {
+    async executeAction(client, action, event, getCurrentSceneCached = null) {
         const botIndex = action.botIndex || 0;
         if (botIndex < 0 || botIndex >= client.obsClients.length) { throw new Error(`Invalid bot index: ${botIndex}`); }
         const obsClient = client.obsClients[botIndex];
-        let sceneName;
-        let duration;
 
         switch (action.type) {
             case 'changeScene':
@@ -45,9 +54,9 @@ export default {
                 break;
             case 'setSourceEnabled':
                 if (!action.sourceName) { throw new Error('sourceName required for setSourceEnabled action'); }
-                sceneName = action.sceneName || await obsClient.getCurrentScene();
+                const sceneName = action.sceneName || (getCurrentSceneCached ? await getCurrentSceneCached(obsClient) : await obsClient.getCurrentScene());
                 const enabled = action.enabled !== false; // Default to true
-                duration = action.duration || 0;
+                const duration = action.duration || 0;
                 const delay = action.delay || 0;
                 setTimeout(async () => {
                     try {
@@ -59,14 +68,17 @@ export default {
                 break;
             case 'setTextSource':
                 if (!action.sourceName) { throw new Error('sourceName required for setTextSource action'); }
-                sceneName = action.sceneName || await obsClient.getCurrentScene();
+                const textSceneName = action.sceneName || (getCurrentSceneCached ? await getCurrentSceneCached(obsClient) : await obsClient.getCurrentScene());
                 let text = action.text || '';
-                // Replace placeholders with event data
-                text = text.replace(/{user_name}/g, event.user_name || '');
-                text = text.replace(/{user_login}/g, event.user_login || '');
-                text = text.replace(/{display_name}/g, event.display_name || '');
-                text = text.replace(/{viewer_count}/g, event.viewer_count || '');
-                await obsClient.setTextSource(sceneName, action.sourceName, text);
+                // Replace placeholders with event data (optimized)
+                const placeholders = {
+                    '{user_name}': event.user_name || '',
+                    '{user_login}': event.user_login || '',
+                    '{display_name}': event.display_name || '',
+                    '{viewer_count}': event.viewer_count || ''
+                };
+                text = text.replace(/{user_name}|{user_login}|{display_name}|{viewer_count}/g, match => placeholders[match]);
+                await obsClient.setTextSource(textSceneName, action.sourceName, text);
                 break;
             case 'setAudioMute':
                 if (!action.sourceName) { throw new Error('sourceName required for setAudioMute action'); }

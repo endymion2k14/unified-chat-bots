@@ -106,7 +106,17 @@ export class ClientOBS extends EventEmitter {
             const targetSceneName = groupName || sceneName;
             const params = { sceneName: targetSceneName, sceneItemId, sceneItemEnabled: enabled };
             await this.obs.call('SetSceneItemEnabled', params);
-            if (duration > 0) { setTimeout(async () => { if (!this.connected) return; const revertParams = { sceneName: targetSceneName, sceneItemId, sceneItemEnabled: !enabled }; try { await this.obs.call('SetSceneItemEnabled', revertParams); } catch (error) { log.error(`Failed to revert source: ${error.message}`, `${SOURCE}-${this._settings.name}`); } }, duration * 1000); }
+            if (duration > 0) { 
+                setTimeout(async () => { 
+                    if (!this.connected) return; 
+                    const revertParams = { sceneName: targetSceneName, sceneItemId, sceneItemEnabled: !enabled }; 
+                    try { 
+                        await this.obs.call('SetSceneItemEnabled', revertParams); 
+                    } catch (error) { 
+                        log.error(`Failed to revert source: ${error.message}`, `${SOURCE}-${this._settings.name}`); 
+                    } 
+                }, duration * 1000); 
+            }
         } catch (error) {
             throw new Error(`Failed to set source enabled: ${error.message}`);
         }
