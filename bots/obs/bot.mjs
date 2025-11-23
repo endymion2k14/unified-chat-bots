@@ -127,8 +127,13 @@ export class ClientOBS extends EventEmitter {
 
     async setTextSource(sceneName, sourceName, text) {
         if (!this.connected) throw new Error('OBS not connected');
-        try { await this.obs.call('SetInputSettings', { inputName: sourceName, inputSettings: { text } }); }
-        catch (error) { throw new Error(`Failed to set text source: ${error.message}`); }
+        try {
+            const currentSettings = await this.obs.call('GetInputSettings', { inputName: sourceName });
+            const newSettings = { ...currentSettings.inputSettings, text };
+            await this.obs.call('SetInputSettings', { inputName: sourceName, inputSettings: newSettings });
+        } catch (error) {
+            throw new Error(`Failed to set text source: ${error.message}`);
+        }
     }
 
     async getTextSource(sceneName, sourceName) {

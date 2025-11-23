@@ -87,7 +87,6 @@
               "sceneName": null,
               "sourceName": "Follower-Placeholder",
               "text": "Welcome {user_name}!",
-              "duration": 9,
               "botIndex": 0
             },
             {
@@ -127,7 +126,6 @@
               "sceneName": null,
               "sourceName": "Raid-Placeholder",
               "text": "{user_name} raided with {viewer_count} viewers!",
-              "duration": 15,
               "botIndex": 0
             },
             {

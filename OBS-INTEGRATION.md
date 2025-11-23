@@ -177,8 +177,8 @@ The `obsIntegration` system allows configuring event-driven OBS integrations thr
 - `sceneName` (required for scene actions, optional for source actions) - OBS scene name; for source actions, defaults to current scene if null
 - `sourceName` (required for source actions) - OBS source name
 - `enabled` (for setSourceEnabled) - true/false to show/hide
-- `delay` (optional) - Seconds to wait before applying action (for setTextSource)
-- `duration` (optional) - Seconds to wait before reverting action (for setSourceEnabled and setTextSource)
+- `delay` (optional) - Seconds to wait before applying action (for setSourceEnabled)
+- `duration` (optional) - Seconds to wait before reverting action (for setSourceEnabled only)
 - `text` (for setTextSource) - Text content with optional placeholders
 - `mute` (for setAudioMute) - true/false to mute/unmute
 

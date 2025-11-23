@@ -48,7 +48,10 @@ export default {
                 sceneName = action.sceneName || await obsClient.getCurrentScene();
                 const enabled = action.enabled !== false; // Default to true
                 duration = action.duration || 0;
-                await obsClient.setSourceEnabled(sceneName, action.sourceName, enabled, duration);
+                const delay = action.delay || 0;
+                setTimeout(async () => {
+                    await obsClient.setSourceEnabled(sceneName, action.sourceName, enabled, duration);
+                }, delay * 1000);
                 break;
             case 'setTextSource':
                 if (!action.sourceName) { throw new Error('sourceName required for setTextSource action'); }
@@ -59,17 +62,7 @@ export default {
                 text = text.replace(/{user_login}/g, event.user_login || '');
                 text = text.replace(/{display_name}/g, event.display_name || '');
                 text = text.replace(/{viewer_count}/g, event.viewer_count || '');
-                const delay = action.delay || 0;
-                duration = action.duration || 0;
-                const currentText = await obsClient.getTextSource(sceneName, action.sourceName);
-                setTimeout(async () => {
-                    await obsClient.setTextSource(sceneName, action.sourceName, text);
-                    if (duration > 0) {
-                        setTimeout(async () => {
-                            await obsClient.setTextSource(sceneName, action.sourceName, currentText);
-                        }, duration * 1000);
-                    }
-                }, delay * 1000);
+                await obsClient.setTextSource(sceneName, action.sourceName, text);
                 break;
             case 'setAudioMute':
                 if (!action.sourceName) { throw new Error('sourceName required for setAudioMute action'); }
