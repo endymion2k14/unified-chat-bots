@@ -35,6 +35,8 @@ export default {
         const botIndex = action.botIndex || 0;
         if (botIndex < 0 || botIndex >= client.obsClients.length) { throw new Error(`Invalid bot index: ${botIndex}`); }
         const obsClient = client.obsClients[botIndex];
+        let sceneName;
+        let duration;
 
         switch (action.type) {
             case 'changeScene':
@@ -42,20 +44,32 @@ export default {
                 await obsClient.changeScene(action.sceneName);
                 break;
             case 'setSourceEnabled':
-                if (!action.sceneName || !action.sourceName) { throw new Error('sceneName and sourceName required for setSourceEnabled action'); }
+                if (!action.sourceName) { throw new Error('sourceName required for setSourceEnabled action'); }
+                sceneName = action.sceneName || await obsClient.getCurrentScene();
                 const enabled = action.enabled !== false; // Default to true
-                const duration = action.duration || 0;
-                await obsClient.setSourceEnabled(action.sceneName, action.sourceName, enabled, duration);
+                duration = action.duration || 0;
+                await obsClient.setSourceEnabled(sceneName, action.sourceName, enabled, duration);
                 break;
             case 'setTextSource':
                 if (!action.sourceName) { throw new Error('sourceName required for setTextSource action'); }
+                sceneName = action.sceneName || await obsClient.getCurrentScene();
                 let text = action.text || '';
                 // Replace placeholders with event data
                 text = text.replace(/{user_name}/g, event.user_name || '');
                 text = text.replace(/{user_login}/g, event.user_login || '');
                 text = text.replace(/{display_name}/g, event.display_name || '');
                 text = text.replace(/{viewer_count}/g, event.viewer_count || '');
-                await obsClient.setTextSource(action.sceneName || await obsClient.getCurrentScene(), action.sourceName, text);
+                const delay = action.delay || 0;
+                duration = action.duration || 0;
+                const currentText = await obsClient.getTextSource(sceneName, action.sourceName);
+                setTimeout(async () => {
+                    await obsClient.setTextSource(sceneName, action.sourceName, text);
+                    if (duration > 0) {
+                        setTimeout(async () => {
+                            await obsClient.setTextSource(sceneName, action.sourceName, currentText);
+                        }, duration * 1000);
+                    }
+                }, delay * 1000);
                 break;
             case 'setAudioMute':
                 if (!action.sourceName) { throw new Error('sourceName required for setAudioMute action'); }

@@ -83,15 +83,38 @@
           "event": "follow",
           "actions": [
             {
-              "type": "changeScene",
-              "sceneName": "FollowerScene",
+              "type": "setTextSource",
+              "sceneName": null,
+              "sourceName": "Follower-Placeholder",
+              "text": "Welcome {user_name}!",
+              "duration": 9,
               "botIndex": 0
             },
             {
-              "type": "setTextSource",
-              "sceneName": "FollowerScene",
-              "sourceName": "FollowerName",
-              "text": "Welcome {user_name}!",
+              "type": "setSourceEnabled",
+              "sceneName": null,
+              "sourceName": "Follower-Placeholder",
+              "enabled": true,
+              "delay": 2,
+              "duration": 7,
+              "botIndex": 0
+            },
+            {
+              "type": "setSourceEnabled",
+              "sceneName": null,
+              "sourceName": "Follower-Overlay",
+              "enabled": true,
+              "delay": 0,
+              "duration": 9,
+              "botIndex": 0
+            },
+            {
+              "type": "setSourceEnabled",
+              "sceneName": null,
+              "sourceName": "Follower-Sound",
+              "enabled": true,
+              "delay": 0,
+              "duration": 5,
               "botIndex": 0
             }
           ]
@@ -100,11 +123,38 @@
           "event": "raid",
           "actions": [
             {
+              "type": "setTextSource",
+              "sceneName": null,
+              "sourceName": "Raid-Placeholder",
+              "text": "{user_name} raided with {viewer_count} viewers!",
+              "duration": 15,
+              "botIndex": 0
+            },
+            {
               "type": "setSourceEnabled",
-              "sceneName": "Main",
-              "sourceName": "RaidAlert",
+              "sceneName": null,
+              "sourceName": "Raid-Placeholder",
               "enabled": true,
-              "duration": 30,
+              "delay": 2,
+              "duration": 7,
+              "botIndex": 0
+            },
+            {
+              "type": "setSourceEnabled",
+              "sceneName": null,
+              "sourceName": "Raid-Overlay",
+              "enabled": true,
+              "delay": 0,
+              "duration": 9,
+              "botIndex": 0
+            },
+            {
+              "type": "setSourceEnabled",
+              "sceneName": null,
+              "sourceName": "Raid-Sound",
+              "enabled": true,
+              "delay": 0,
+              "duration": 15,
               "botIndex": 0
             }
           ]
@@ -115,8 +165,9 @@
             {
               "type": "setSourceEnabled",
               "sceneName": null,
-              "sourceName": "BanSound",
+              "sourceName": "Ban-Sound",
               "enabled": true,
+              "delay": 0,
               "duration": 5,
               "botIndex": 0
             }
