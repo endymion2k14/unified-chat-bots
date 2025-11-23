@@ -2,7 +2,7 @@ import OBSWebSocket from 'obs-websocket-js';
 import { EventEmitter } from 'node:events';
 import { log } from '../../utils.mjs';
 
-const SOURCE = 'OBS-Intergration';
+const SOURCE = 'OBS-Integration';
 
 export class ClientOBS extends EventEmitter {
     constructor(settings) {
@@ -25,6 +25,7 @@ export class ClientOBS extends EventEmitter {
         // Add more events as needed
     }
 
+    // Connection methods
     async connect() {
         try {
             const { host = 'localhost', port = 4455, password } = this._settings.settings || {};
@@ -54,6 +55,7 @@ export class ClientOBS extends EventEmitter {
         }
     }
 
+    // Scene methods
     async changeScene(sceneName) {
         if (!this.connected) throw new Error('OBS not connected');
         try {
@@ -64,33 +66,79 @@ export class ClientOBS extends EventEmitter {
     }
 
     async getCurrentScene() {
-        if (!this.connected) return null;
+        if (!this.connected) throw new Error('OBS not connected');
         try {
             const response = await this.obs.call('GetCurrentProgramScene');
             return response.currentProgramSceneName;
         } catch (error) {
-            log.error(`Failed to get current scene: ${error}`, `${SOURCE}-${this._settings.name}`);
-            return null;
+            throw new Error(`Failed to get current scene: ${error.message}`);
         }
+    }
+
+    async getSceneItems(sceneName) {
+        if (!this.connected) throw new Error('OBS not connected');
+        try {
+            const response = await this.obs.call('GetSceneItemList', { sceneName });
+            return response.sceneItems;
+        } catch (error) {
+            throw new Error(`Failed to get scene items for ${sceneName}: ${error.message}`);
+        }
+    }
+
+    // Source methods
+    async getSceneItemId(sceneName, sourceName) {
+        // First try direct lookup in main scene
+        try {
+            const idResponse = await this.obs.call('GetSceneItemId', { sceneName, sourceName });
+            log.info(`Found ${sourceName} directly with id ${idResponse.sceneItemId}`, `${SOURCE}-${this._settings.name}`);
+            return { sceneItemId: idResponse.sceneItemId, groupName: null };
+        } catch (error) {
+            // Not found directly, search within groups
+        }
+
+        // Get all scene items to find groups
+        try {
+            const sceneItems = await this.obs.call('GetSceneItemList', { sceneName });
+            
+            for (const item of sceneItems.sceneItems) {
+                if (item.isGroup) {
+                    try {
+                        // Search within this group
+                        const groupItems = await this.obs.call('GetGroupSceneItemList', { sceneName: item.sourceName });
+                        const foundItem = groupItems.sceneItems.find(groupItem => groupItem.sourceName === sourceName);
+                        
+                        if (foundItem) {
+                            log.info(`Found ${sourceName} in group ${item.sourceName} with id ${foundItem.sceneItemId}`, `${SOURCE}-${this._settings.name}`);
+                            return { 
+                                sceneItemId: foundItem.sceneItemId, 
+                                groupName: item.sourceName 
+                            };
+                        }
+                    } catch (groupError) {
+                        // Continue to next group if this one fails
+                        continue;
+                    }
+                }
+            }
+        } catch (error) {
+            log.error(`Failed to search groups: ${error.message}`, `${SOURCE}-${this._settings.name}`);
+        }
+
+        throw new Error(`Scene item ${sourceName} not found in scene ${sceneName} or its groups`);
     }
 
     async setSourceEnabled(sceneName, sourceName, enabled, duration = 0) {
         if (!this.connected) throw new Error('OBS not connected');
         try {
-            const idResponse = await this.obs.call('GetSceneItemId', { sceneName, sourceName });
-            const sceneItemId = idResponse.sceneItemId;
-            await this.obs.call('SetSceneItemEnabled', {
-                sceneName,
-                sceneItemId,
-                sceneItemEnabled: enabled
-            });
+            const { sceneItemId, groupName } = await this.getSceneItemId(sceneName, sourceName);
+            // Use groupName as sceneName if it exists, otherwise use the original sceneName
+            const targetSceneName = groupName || sceneName;
+            const params = { sceneName: targetSceneName, sceneItemId, sceneItemEnabled: enabled };
+            await this.obs.call('SetSceneItemEnabled', params);
             if (duration > 0) {
                 setTimeout(async () => {
-                    await this.obs.call('SetSceneItemEnabled', {
-                        sceneName,
-                        sceneItemId,
-                        sceneItemEnabled: !enabled
-                    });
+                    const revertParams = { sceneName: targetSceneName, sceneItemId, sceneItemEnabled: !enabled };
+                    await this.obs.call('SetSceneItemEnabled', revertParams);
                 }, duration * 1000);
             }
         } catch (error) {
@@ -98,14 +146,17 @@ export class ClientOBS extends EventEmitter {
         }
     }
 
-    async getStreamStats() {
-        if (!this.connected) return null;
+    async getSourceEnabled(sceneName, sourceName) {
+        if (!this.connected) throw new Error('OBS not connected');
         try {
-            const response = await this.obs.call('GetStreamStatus');
-            return response;
+            const { sceneItemId, groupName } = await this.getSceneItemId(sceneName, sourceName);
+            // Use groupName as sceneName if it exists, otherwise use the original sceneName
+            const targetSceneName = groupName || sceneName;
+            const params = { sceneName: targetSceneName, sceneItemId };
+            const enabledResponse = await this.obs.call('GetSceneItemEnabled', params);
+            return enabledResponse.sceneItemEnabled;
         } catch (error) {
-            log.error(`Failed to get stream stats: ${error}`, `${SOURCE}-${this._settings.name}`);
-            return null;
+            throw new Error(`Failed to get source enabled for ${sourceName} in ${sceneName}: ${error.message}`);
         }
     }
 
@@ -118,8 +169,27 @@ export class ClientOBS extends EventEmitter {
         }
     }
 
+    // Audio methods
+    async setAudioMute(sourceName, mute) {
+        if (!this.connected) throw new Error('OBS not connected');
+        try {
+            await this.obs.call('SetInputMute', { inputName: sourceName, inputMuted: mute });
+        } catch (error) {
+            throw new Error(`Failed to set audio mute: ${error.message}`);
+        }
+    }
 
+    async getAudioMute(sourceName) {
+        if (!this.connected) throw new Error('OBS not connected');
+        try {
+            const response = await this.obs.call('GetInputMute', { inputName: sourceName });
+            return response.inputMuted;
+        } catch (error) {
+            throw new Error(`Failed to get audio mute: ${error.message}`);
+        }
+    }
 
+    // Streaming methods
     async startRecording() {
         if (!this.connected) throw new Error('OBS not connected');
         try {
@@ -156,14 +226,14 @@ export class ClientOBS extends EventEmitter {
         }
     }
 
-    async setAudioMute(sourceName, mute) {
+    // Stats methods
+    async getStreamStats() {
         if (!this.connected) throw new Error('OBS not connected');
         try {
-            await this.obs.call('SetInputMute', { inputName: sourceName, inputMuted: mute });
+            const response = await this.obs.call('GetStreamStatus');
+            return response;
         } catch (error) {
-            throw new Error(`Failed to set audio mute: ${error.message}`);
+            throw new Error(`Failed to get stream stats: ${error.message}`);
         }
     }
-
-    // Only essential methods kept
 }
