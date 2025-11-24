@@ -111,6 +111,7 @@ Use `!obs` in Twitch chat (requires superuser or appropriate permissions). Comma
 - `getCurrentScene()`: Get current scene name.
 - `setSourceEnabled(sceneName, sourceName, enabled, duration)`: Toggle source with optional revert timer.
 - `setTextSource(sceneName, sourceName, text)`: Set text on a text source.
+- `getTextSource(sceneName, sourceName)`: Get current text from a text source.
 - `startRecording()`: Start recording.
 - `stopRecording()`: Stop recording.
 - `startStreaming()`: Start streaming.
@@ -139,11 +140,13 @@ The `obsIntegration` system allows configuring event-driven OBS integrations thr
               "sceneName": "FollowerScene",
               "botIndex": 0
             },
-            {
+             {
               "type": "setTextSource",
               "sceneName": "FollowerScene",
               "sourceName": "FollowerName",
               "text": "Welcome {user_name}!",
+              "delay": 2,
+              "duration": 10,
               "botIndex": 0
             }
           ]
@@ -157,15 +160,12 @@ The `obsIntegration` system allows configuring event-driven OBS integrations thr
 ### Supported Events
 - `follow` - When someone follows the channel
 - `raid` - When the channel receives a raid
-- `ban` - When a user is banned
-- `timeout` - When a user is timed out
-- `cheer` - When someone cheers bits
-- `subscription` - When someone subscribes
+- `ban` - When a user is banned or timed out
 
 ### Supported Actions
 - `changeScene` - Switch to a different scene
-- `setSourceEnabled` - Show/hide a source with optional duration
-- `setTextSource` - Update text in a text source (supports placeholders like {user_name})
+- `setSourceEnabled` - Show/hide a source with optional duration; sceneName is optional and defaults to current scene if null
+- `setTextSource` - Update text in a text source (supports placeholders like {user_name}); supports delay and duration for timed changes
 - `setAudioMute` - Mute/unmute an audio source
 - `startRecording` - Start OBS recording
 - `stopRecording` - Stop OBS recording
@@ -174,10 +174,11 @@ The `obsIntegration` system allows configuring event-driven OBS integrations thr
 
 ### Action Parameters
 - `botIndex` (optional) - Which OBS bot to target (0-based, defaults to 0)
-- `sceneName` (required for scene/source actions) - OBS scene name
+- `sceneName` (required for scene actions, optional for source actions) - OBS scene name; for source actions, defaults to current scene if null
 - `sourceName` (required for source actions) - OBS source name
 - `enabled` (for setSourceEnabled) - true/false to show/hide
-- `duration` (optional) - Seconds to wait before reverting action
+- `delay` (optional) - Seconds to wait before applying action (for setSourceEnabled)
+- `duration` (optional) - Seconds to wait before reverting action (for setSourceEnabled only)
 - `text` (for setTextSource) - Text content with optional placeholders
 - `mute` (for setAudioMute) - true/false to mute/unmute
 

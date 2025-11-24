@@ -94,10 +94,7 @@ export class TwitchIRC extends EventEmitter {
 
     flushQueue() {
         const now = Date.now();
-        if (now - this.periodStart >= 30000) {
-            this.periodStart = now;
-            this.messagesInPeriod = 0;
-        }
+        if (now - this.periodStart >= 30000) { this.periodStart = now; this.messagesInPeriod = 0; }
         if (this.messagesInPeriod >= 20) return; // hit limit
 
         let next = this.messageQueue.shift();
@@ -136,7 +133,26 @@ export class TwitchIRC extends EventEmitter {
         // JOIN
         if (line.includes('JOIN')) { log.info(`Joined #${this.channel}`, `${SOURCE}-${this.channel}`); return; }
         // NOTICE
-        if (line.includes('NOTICE')) { log.info(`Response handled: ${line}`, `${SOURCE}-${this.channel}`); return; }
+        const notice = line.match(/^(@[^ ]+ )?:tmi\.twitch\.tv NOTICE #(\S+) :(.*)$/);
+        if (notice) {
+            const [_, tagsPart, chan, message] = notice;
+            const tags = this.parseTags(tagsPart);
+            const msgId = tags['msg-id'];
+            if (msgId === 'ban_success' || msgId === 'timeout_success') {
+                // Ban/timeout: message like "username is now banned from talking." or "username is timed out for X seconds."
+                const username = message.split(' ')[0];
+                this.emit(EventTypes.ban, { username: username, message: message, tags: tags });
+            } else if (msgId === 'raid') {
+                // Raid: message like "username is raiding the channel with X viewers!"
+                const parts = message.split(' ');
+                const username = parts[0];
+                const viewerCount = parseInt(parts[6]) || 0; // "with X viewers!"
+                this.emit(EventTypes.raid, { username: username, viewer_count: viewerCount, message: message, tags: tags });
+            } else {
+                log.info(`NOTICE handled: ${message} (msg-id: ${msgId})`, `${SOURCE}-${this.channel}`);
+            }
+            return;
+        }
         // PING/PONG keep‑alive
         if (line.startsWith('PING')) { this.send(`PONG ${line.split(' ')[1]}`); return; }
         // PRIVMSG
