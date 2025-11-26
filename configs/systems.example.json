@@ -95,7 +95,7 @@
               "sourceName": "Follower-Placeholder",
               "enabled": true,
               "delay": 1,
-              "duration": 8,
+              "duration": 7,
               "botIndex": 0
             },
             {
@@ -134,7 +134,7 @@
               "sourceName": "Raid-Placeholder",
               "enabled": true,
               "delay": 1,
-              "duration": 8,
+              "duration": 7,
               "botIndex": 0
             },
             {
