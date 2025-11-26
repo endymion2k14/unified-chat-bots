@@ -66,6 +66,8 @@ export class ClientTwitch extends EventEmitter {
             else {
                 this.channel = this._settings.settings.channel;
                 this.api = new TwitchAPI(this._settings.secrets.appToken, this.channel, this._settings.secrets.clientId, this._settings.secrets.clientSecret, this._settings.secrets.botToken, this._settings.secrets.botRefresh, this._settings.secrets.botExpiry, this._settings.secrets.broadcasterToken, this._settings.secrets.broadcasterRefresh, this._settings.secrets.broadcasterExpiry);
+                this._setupApiEvents();
+                if (this._settings.settings.ircTokenSource === 'bot' && Date.now() > this._settings.secrets.botExpiry) { await this.api.refreshToken('bot'); }
                 const ircToken = this._settings.settings.ircTokenSource === 'bot' ? this._settings.secrets.botToken : this._settings.secrets.appToken;
                 this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: ircToken, channel: this.channel, chat_show: this._settings.settings.chat_show });
                 if ('prefix'           in this._settings.settings) { if (this._settings.settings.prefix.length > 0) { this.prefix = this._settings.settings.prefix; } }
@@ -84,7 +86,7 @@ export class ClientTwitch extends EventEmitter {
             }
         };
 
-        this._setupEvents = function() {
+        this._setupApiEvents = function() {
             // api
             this.api.addListener('error', err => { log.error(err, `${SOURCE}-API`); });
             this.api.addListener('token_refreshed', data => {
@@ -97,7 +99,7 @@ export class ClientTwitch extends EventEmitter {
                     this._settings.secrets[tokenKey] = data.token;
                     this.api._data[tokenKey] = data.token;
                     if (!isBroadcaster && this.api.eventsub) this.api.eventsub.updateToken(data.token);
-                    if (!isBroadcaster && this._settings.settings.ircTokenSource === 'bot') this._backend.oauth = `oauth:${data.token}`;
+                    if (!isBroadcaster && this._settings.settings.ircTokenSource === 'bot' && this._backend) this._backend.oauth = `oauth:${data.token}`;
                 }
                 if (data.refresh) { this._settings.secrets[refreshKey] = data.refresh; this.api._data[refreshKey] = data.refresh; }
                 if (data.expiry) { this._settings.secrets[expiryKey] = data.expiry; this.api._data[isBroadcaster ? 'broadcasterTokenExpiry' : 'botTokenExpiry'] = data.expiry; }
@@ -124,6 +126,9 @@ export class ClientTwitch extends EventEmitter {
                 const existing = followersSystem.followers.find(f => f.id === event.user_id);
                 if (!existing) { followersSystem.followers.push({ id: event.user_id, name: event.user_name, time: new Date(event.followed_at) }); }
             });
+        };
+
+        this._setupEvents = function() {
             // backend
             this._backend.addListener(EventTypes.connect      , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.connect   , event); });
             this._backend.addListener(EventTypes.disconnect   , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.disconnect, event); });

@@ -64,11 +64,7 @@ export class TwitchEventSub extends EventEmitter {
         setTimeout(() => { this.reconnectAttempts++; this.connect(); }, delay);
     }
 
-    updateToken(newToken) {
-        this.botToken = newToken;
-        // lets wait it out and see if twitch sends us RECONNECT
-        // if (this.ws && this.ws.readyState === WebSocket.OPEN) { this.ws.close(); }
-    }
+    updateToken(newToken) { this.botToken = newToken; }
 
     async subscribe(type, version, condition) {
         if (!this.sessionId) { throw new Error('EventSub session not ready'); }
