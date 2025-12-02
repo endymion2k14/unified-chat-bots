@@ -25,9 +25,8 @@ export default {
                         log.info("Grabbing image from URL", SOURCE);
                         const base64Image = await urlToBase64(params[0]);
                         messages.push({ role: system.ROLES.USER, content: system_prompt, images: [base64Image] });
-                    } else {
-                        return client.sendMessage('Invalid input. Please provide a valid live keyword or image URL.');
                     }
+                    else { return client.sendMessage('Invalid input. Please provide a valid live keyword or image URL.'); }
                     const response = await system.getResponse(messages);
                     client.sendMessage(response.message.content);
                 } catch (err) {

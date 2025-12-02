@@ -86,10 +86,8 @@ export class ClientOBS extends EventEmitter {
                             log.info(`Found ${sourceName} in group ${item.sourceName} with id ${foundItem.sceneItemId}`, `${SOURCE}-${this._settings.name}`);
                             return { sceneItemId: foundItem.sceneItemId, groupName: item.sourceName };
                         }
-                    } catch (groupError) {
-                        // Continue to next group if this one fails
-                        continue;
                     }
+                    catch (groupError) { continue; } // Continue to next group if this one fails
                 }
             }
         }
@@ -106,15 +104,12 @@ export class ClientOBS extends EventEmitter {
             const targetSceneName = groupName || sceneName;
             const params = { sceneName: targetSceneName, sceneItemId, sceneItemEnabled: enabled };
             await this.obs.call('SetSceneItemEnabled', params);
-            if (duration > 0) { 
-                setTimeout(async () => { 
-                    if (!this.connected) return; 
-                    const revertParams = { sceneName: targetSceneName, sceneItemId, sceneItemEnabled: !enabled }; 
-                    try { 
-                        await this.obs.call('SetSceneItemEnabled', revertParams); 
-                    } catch (error) { 
-                        log.error(`Failed to revert source: ${error.message}`, `${SOURCE}-${this._settings.name}`); 
-                    } 
+            if (duration > 0) {
+                setTimeout(async () => {
+                    if (!this.connected) return;
+                    const revertParams = { sceneName: targetSceneName, sceneItemId, sceneItemEnabled: !enabled };
+                    try { await this.obs.call('SetSceneItemEnabled', revertParams); }
+                    catch (error) { log.error(`Failed to revert source: ${error.message}`, `${SOURCE}-${this._settings.name}`); }
                 }, duration * 1000); 
             }
         } catch (error) {
@@ -141,9 +136,8 @@ export class ClientOBS extends EventEmitter {
             const currentSettings = await this.obs.call('GetInputSettings', { inputName: sourceName });
             const newSettings = { ...currentSettings.inputSettings, text };
             await this.obs.call('SetInputSettings', { inputName: sourceName, inputSettings: newSettings });
-        } catch (error) {
-            throw new Error(`Failed to set text source: ${error.message}`);
         }
+        catch (error) { throw new Error(`Failed to set text source: ${error.message}`); }
     }
 
     async getTextSource(sceneName, sourceName) {

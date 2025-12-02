@@ -1,4 +1,4 @@
-import { equals, getTimeDifference } from "../utils.mjs";
+import { equals, getTimeDifference } from '../utils.mjs';
 
 export default {
     name: 'followage',

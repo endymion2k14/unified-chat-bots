@@ -7,9 +7,8 @@ export default {
     async reply(params, client, event) {
         if (event.privileges.super || event.privileges.broadcaster || event.privileges.moderator) {
             if (params.length > 0) {
-                try {
-                    client.api.setCategory(concat(params, ' '));
-                } catch (err) {
+                try { client.api.setCategory(concat(params, ' ')); }
+                catch (err) {
                     log.error(`Something went wrong trying to set the category: ${err}`, SOURCE);
                     client.sendMessage(`Something went wrong trying to set the category: ${event.username}.`);
                 }

@@ -25,6 +25,7 @@ export class TwitchAPI extends EventEmitter {
 
     constructor(appToken, channel, clientId, clientSecret, botToken = "", botRefresh = "", botExpiry = 0, broadcasterToken = "", broadcasterRefresh = "", broadcasterExpiry = 0) {
         super();
+
         this._data.appToken = appToken;
         this._data.channel = channel;
         this._data.clientId = clientId;
@@ -57,11 +58,8 @@ export class TwitchAPI extends EventEmitter {
             const errorData = await response.json().catch(() => ({}));
             throw new Error(`HTTP ${response.status}: ${errorData.message || 'Unknown error'}`);
         }
-        try {
-            return await response.json();
-        } catch {
-            return await response.text();
-        }
+        try { return await response.json(); }
+        catch { return await response.text(); }
     }
 
     isReady() { return !(this._data.appToken === 0 || this._data.roomId === 0 || this._data.channel === 0 || this._data.clientId === 0); }
@@ -72,9 +70,7 @@ export class TwitchAPI extends EventEmitter {
         if (!this._data[refreshKey] || !this._data.clientSecret || !this._data.clientId) { throw new Error(`Missing refresh token, client secret, or client ID for ${tokenType} refresh`); }
         const response = await fetch('https://id.twitch.tv/oauth2/token', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded', },
             body: new URLSearchParams({
                 client_id: this._data.clientId,
                 client_secret: this._data.clientSecret,
@@ -122,22 +118,17 @@ export class TwitchAPI extends EventEmitter {
             // Requires: moderator:read:followers
             // Example of subscription: event.type, version, condition
             await this.eventsub.subscribe('channel.follow', 2, { broadcaster_user_id: this._data.roomId.toString(), moderator_user_id: this._data.userId.toString() });
-        } catch (err) {
-            log.error(`Failed to subscribe to EventSub events: ${err.message}`, `${SOURCE}-${this._data.channel}`);
         }
+        catch (err) { log.error(`Failed to subscribe to EventSub events: ${err.message}`, `${SOURCE}-${this._data.channel}`); }
     }
 
     // Token is expected to have: moderator:manage:chat_messages
     // https://dev.twitch.tv/docs/api/reference#delete-chat-messages
-    async clearChat() {
-        return await this._apiRequest(`https://api.twitch.tv/helix/moderation/chat?broadcaster_id=${this._data.roomId}&moderator_id=${this._data.userId}`, 'DELETE');
-    }
+    async clearChat() { return await this._apiRequest(`https://api.twitch.tv/helix/moderation/chat?broadcaster_id=${this._data.roomId}&moderator_id=${this._data.userId}`, 'DELETE'); }
 
     // Token is expected to have: moderator:manage:chat_messages
     // https://dev.twitch.tv/docs/api/reference#delete-chat-messages
-    async removeMessage(messageId) {
-        return await this._apiRequest(`https://api.twitch.tv/helix/moderation/chat?broadcaster_id=${this._data.roomId}&moderator_id=${this._data.userId}&message_id=${messageId}`, 'DELETE');
-    }
+    async removeMessage(messageId) { return await this._apiRequest(`https://api.twitch.tv/helix/moderation/chat?broadcaster_id=${this._data.roomId}&moderator_id=${this._data.userId}&message_id=${messageId}`, 'DELETE'); }
 
     // Token is expected to have: clips:edit
     // https://dev.twitch.tv/docs/api/clips/#creating-clips
@@ -148,7 +139,6 @@ export class TwitchAPI extends EventEmitter {
         const data = await this._apiRequest('https://api.twitch.tv/helix/clips', 'POST', { broadcaster_id: broadcasterId, has_delay: hasDelay }, 'bot');
         return data.data[0];
     }
-
 
     // https://dev.twitch.tv/docs/api/reference#get-users
     async getAccountInfo(username) {
@@ -178,9 +168,8 @@ export class TwitchAPI extends EventEmitter {
         try {
             await this._apiRequest(`https://api.twitch.tv/helix/channels?broadcaster_id=${this._data.roomId}`, 'PATCH', { title: newTitle }, 'broadcaster');
             log.info(`Stream title updated successfully.`, `${SOURCE}-${this._data.channel}`);
-        } catch (error) {
-            log.error(`Error updating stream title: ${error}`, `${SOURCE}-${this._data.channel}`);
         }
+        catch (error) { log.error(`Error updating stream title: ${error}`, `${SOURCE}-${this._data.channel}`); }
     }
 
     // https://dev.twitch.tv/docs/api/reference#get-games
@@ -208,21 +197,17 @@ export class TwitchAPI extends EventEmitter {
         try {
             const response = await fetch('https://id.twitch.tv/oauth2/validate', {
                 method: 'GET',
-                headers: {
-                    'Authorization': `OAuth ${token}`
-                }
+                headers: { 'Authorization': `OAuth ${token}` }
             });
             const data = await response.json();
             if (response.ok) {
                 console.log('User ID:', data.user_id);
                 console.log('Scopes:', data.scopes);
                 console.log('Has channel:manage:broadcast?', data.scopes.includes('channel:manage:broadcast'));
-            } else {
-                console.error('Validation failed:', data.message);
             }
-        } catch (error) {
-            console.error('Error:', error);
+            else { console.error('Validation failed:', data.message); }
         }
+        catch (error) { console.error('Error:', error); }
     }
 
     // https://dev.twitch.tv/docs/api/reference#get-streams

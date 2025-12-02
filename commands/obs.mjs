@@ -62,8 +62,7 @@ export default {
                 obsClient.reconnect();
                 client.sendMessage(`Attempting to reconnect to OBS on bot ${botIndex}`);
             } else if (subcommand === 'record') {
-                if (params.length < 1) {
-                    client.sendMessage('Usage: !obs record start/stop [bot_index]'); return; }
+                if (params.length < 1) { client.sendMessage('Usage: !obs record start/stop [bot_index]'); return; }
                 const action = params.shift().toLowerCase();
                 let botIndex = 0;
                 if (params.length > 0 && !isNaN(params[params.length - 1])) { botIndex = parseInt(params.pop()); }

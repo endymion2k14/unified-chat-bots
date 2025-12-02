@@ -42,10 +42,7 @@ export class ClientTwitch extends EventEmitter {
             // Check if settings seem valid
             try {
                 // Check if settings are passed
-                if (!this._settings) {
-                    valid = false;
-                    throw('No config specified');
-                }
+                if (!this._settings) { throw('No config specified'); }
 
                 // Check if settings have the right parameters with data
                 const missingSettings = [];
@@ -57,11 +54,8 @@ export class ClientTwitch extends EventEmitter {
                         else { missingSettings.push(neededSettings[i]); break; }
                     }
                 }
-                if (missingSettings.length > 0) {
-                    valid = false;
-                    throw(`Missing config info: ${missingSettings}`);
-                }
-            } catch (err) { log.error(err, SOURCE); }
+                if (missingSettings.length > 0) { throw(`Missing config info: ${missingSettings}`); }
+            } catch (err) { log.error(err, SOURCE); valid = false; }
             if (!valid) { log.warn('Couldn\'t start bot!', SOURCE); }
             else {
                 this.channel = this._settings.settings.channel;
@@ -111,12 +105,10 @@ export class ClientTwitch extends EventEmitter {
                         if (data.refresh) { currentSettings.twitch[botIndex].secrets[refreshKey] = data.refresh; }
                         if (data.expiry) { currentSettings.twitch[botIndex].secrets[expiryKey] = data.expiry; }
                         fs.writeFileSync(configPath, JSON.stringify(currentSettings, null, 2));
-                    } else {
-                        log.warn('Could not find bot in settings to update tokens', `${SOURCE}-${this._settings.name}`);
                     }
-                } catch (err) {
-                    log.error(`Failed to update secrets.json: ${err}`, `${SOURCE}-${this._settings.name}`);
+                    else { log.warn('Could not find bot in settings to update tokens', `${SOURCE}-${this._settings.name}`); }
                 }
+                catch (err) { log.error(`Failed to update secrets.json: ${err}`, `${SOURCE}-${this._settings.name}`); }
             });
             this.api.addListener('follow', event => {
                 log.info(`New follower: ${event.user_name}`, `${SOURCE}-${this._settings.name}`);
@@ -136,9 +128,8 @@ export class ClientTwitch extends EventEmitter {
                 if (this.chat_show) { log.info(`${event.username}: ${event.message}`, `${SOURCE}-IRC-${this._settings.name}`); }
                 if (event.message.startsWith(this.prefix)) {
                     this.emit(EventTypes.command, event);
-                    this._parseCommand(event).catch(err => {
-                        log.error(err, `${SOURCE}-IRC-${this._settings.name}`);
-                    }); }
+                    this._parseCommand(event).catch(err => { log.error(err, `${SOURCE}-IRC-${this._settings.name}`); });
+                }
                 else { this.emit(EventTypes.message, event); }
             });
             this._backend.addListener(EventTypes._userstate, event => { this.botBadges = event.badges; });
@@ -179,9 +170,8 @@ export class ClientTwitch extends EventEmitter {
                 if (ignore) { continue; } // Skip
 
                 if ('init' in system) { // Initialize system if needed
-                    try {
-                        system.init(this);
-                    } catch (error) {
+                    try { system.init(this); }
+                    catch (error) {
                         log.error(error, `${SOURCE}-Systems-${this._settings.name}`);
                         continue; // Skip adding it as a successfully loaded system
                     }

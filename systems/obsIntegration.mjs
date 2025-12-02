@@ -28,16 +28,12 @@ export default {
         // Cache current scene for this event batch to avoid multiple OBS calls
         let currentSceneCache = null;
         const getCurrentSceneCached = async (obsClient) => {
-            if (currentSceneCache === null) {
-                currentSceneCache = await obsClient.getCurrentScene();
-            }
+            if (currentSceneCache === null) { currentSceneCache = await obsClient.getCurrentScene(); }
             return currentSceneCache;
         };
 
         for (const action of integration.actions) {
-            try { 
-                await this.executeAction(client, action, event, getCurrentSceneCached); 
-            }
+            try { await this.executeAction(client, action, event, getCurrentSceneCached); }
             catch (error) { log.error(`Failed to execute OBS action: ${error.message}`, `${SOURCE}-${client._settings.name}`); }
         }
     },
@@ -59,11 +55,8 @@ export default {
                 const duration = action.duration || 0;
                 const delay = action.delay || 0;
                 setTimeout(async () => {
-                    try {
-                        await obsClient.setSourceEnabled(sceneName, action.sourceName, enabled, duration);
-                    } catch (error) {
-                        log.error(`Failed to execute delayed setSourceEnabled: ${error.message}`, `${SOURCE}-${client._settings.name}`);
-                    }
+                    try { await obsClient.setSourceEnabled(sceneName, action.sourceName, enabled, duration); }
+                    catch (error) { log.error(`Failed to execute delayed setSourceEnabled: ${error.message}`, `${SOURCE}-${client._settings.name}`); }
                 }, delay * 1000);
                 break;
             case 'setTextSource':
