@@ -129,7 +129,7 @@ export class WebConsole extends EventEmitter {
     }
 
     parseObject(obj, prefix = '', depth = 0) {
-        // Unsure why this fix is suddently needed for WebConsole to show output?
+        // Unsure why this fix is suddenly needed for WebConsole to show output?
         if (obj === null) return ['', ''];
 
         let nav = '';
