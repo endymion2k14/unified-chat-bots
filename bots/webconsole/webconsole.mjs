@@ -47,17 +47,17 @@ export class WebConsole extends EventEmitter {
 
             for (let i = 0; i < twitch.length; i++) {
                 const [objNav, objData] = this.parseObject(twitch[i], `twitch.${i}`);
-                nav += `<li>Twitch<ul>${objNav}</ul></li>`;
+                nav += `<li>Twitch${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
                 data += `${objData}`;
             }
             for (let i = 0; i < discord.length; i++) {
                 const [objNav, objData] = this.parseObject(discord[i], `discord.${i}`);
-                nav += `<li>Discord<ul>${objNav}</ul></li>`;
+                nav += `<li>Discord${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
                 data += `${objData}`;
             }
             for (let i = 0; i < obs.length; i++) {
                 const [objNav, objData] = this.parseObject(obs[i], `obs.${i}`);
-                nav += `<li>OBS<ul>${objNav}</ul></li>`;
+                nav += `<li>OBS${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
                 data += `${objData}`;
             }
 
@@ -156,7 +156,7 @@ export class WebConsole extends EventEmitter {
             switch ((typeof value).toLowerCase()) {
                 case 'object':
                     const [objNav, objData] = this.parseObject(value, depth + 1, `${newPrefix}`);
-                    nav += `<li>${key}<ul>${objNav}</ul></li>`;
+                    nav += `<li>${key}${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
                     if (objData.length > 0) { data += `<div id="${newPrefix}">${objData}</div>`; }
                     break;
                 case 'boolean':
