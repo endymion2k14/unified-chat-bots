@@ -61,7 +61,7 @@ export class WebConsole extends EventEmitter {
                 data += `${objData}`;
             }
 
-            res.send(`<ul>${nav}</ul>${data}`);
+            res.send(`<!DOCTYPE html><html lang="en"><head><link rel="stylesheet" href="style.css"></head><body><ul>${nav}</ul>${data}</body></html>`);
         });
 
         // OAuth routes for Twitch accessible for everyone
