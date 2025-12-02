@@ -1,4 +1,4 @@
-import { equals, log } from '../../utils.mjs';
+import {equals, isNumber, log} from '../../utils.mjs';
 import { EventEmitter } from 'node:events';
 import express from 'express';
 import fs from 'node:fs';
@@ -48,17 +48,17 @@ export class WebConsole extends EventEmitter {
             for (let i = 0; i < twitch.length; i++) {
                 const [objNav, objData] = this.parseObject(twitch[i], `twitch.${i}`);
                 nav += `<li>Twitch${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
-                data += `${objData}`;
+                data += `<div>${objData}</div>`;
             }
             for (let i = 0; i < discord.length; i++) {
                 const [objNav, objData] = this.parseObject(discord[i], `discord.${i}`);
                 nav += `<li>Discord${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
-                data += `${objData}`;
+                data += `<div>${objData}</div>`;
             }
             for (let i = 0; i < obs.length; i++) {
                 const [objNav, objData] = this.parseObject(obs[i], `obs.${i}`);
                 nav += `<li>OBS${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
-                data += `${objData}`;
+                data += `<div>${objData}</div>`;
             }
 
             res.send(`<!DOCTYPE html><html lang="en"><head><link rel="stylesheet" href="style.css"></head><body><ul id="nav">${nav}</ul><div id="main">${data}</div><script>document.querySelectorAll("#nav li").forEach(li => { const sub = li.querySelector("ul"); if (!sub) { li.classList.add("no-children"); return; } sub.classList.add("collapsed"); li.addEventListener("click", (e) => { const list = e.target; const ul = list.querySelector("ul"); e.stopImmediatePropagation(); e.stopPropagation(); if (!ul) { return; } ul.classList.toggle("collapsed"); list.classList.toggle("expanded"); }); }); </script></body></html>`);
@@ -135,6 +135,7 @@ export class WebConsole extends EventEmitter {
         let nav = '';
         let data = '';
         if (depth > MAX_DEPTH) { return [nav, data]; }
+        if (isNumber(prefix)) { prefix = `${prefix}.`; }
 
         // Filter what data is being presented
         const keys = Object.keys(obj);
@@ -150,7 +151,7 @@ export class WebConsole extends EventEmitter {
 
         // Recursively go through objects
         for (let i = 0; i < possible.length; i++) {
-            const newPrefix = `${prefix}${prefix.length > 0 ? '.' : ''}${possible[i]}`;
+            const newPrefix = `${prefix}${prefix.length > 0 && !(prefix.endsWith('.')) ? '.' : ''}${possible[i]}`;
             const key = possible[i];
             const value = obj[key];
             switch ((typeof value).toLowerCase()) {
