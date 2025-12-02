@@ -144,3 +144,13 @@ export function map(value, startRange1, endRange1, startRange2, endRange2) {
     const factor = (value - startRange1) / diff1;
     return (factor * diff2) + startRange2;
 }
+
+const numbers = '0123456789';
+
+export function isNumber(string) {
+    if (!string || string.length < 1) { return false; }
+    for (let i = 0; i < string.length; i++) {
+        if (!numbers.includes(string[i])) { return false; }
+    }
+    return true;
+}
