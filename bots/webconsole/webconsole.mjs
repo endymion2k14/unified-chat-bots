@@ -125,6 +125,7 @@ export class WebConsole extends EventEmitter {
         });
 
         app.listen(port, _ => { log.info(`WebConsole started on port ${this.port}`, SOURCE) });
+        app.use(express.static('./bots/webconsole/public'));
     }
 
     parseObject(obj, prefix = '', depth = 0) {
