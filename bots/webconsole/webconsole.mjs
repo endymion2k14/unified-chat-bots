@@ -61,7 +61,31 @@ export class WebConsole extends EventEmitter {
                 data += `${objData}`;
             }
 
-            res.send(`<!DOCTYPE html><html lang="en"><head><link rel="stylesheet" href="style.css"></head><body><ul>${nav}</ul>${data}</body></html>`);
+            res.send(`<!DOCTYPE html><html lang="en"><head><link rel="stylesheet" href="style.css"></head><body><ul id="nav">${nav}</ul><div id="main">${data}</div>
+<script>
+document.querySelectorAll("#nav li").forEach(li => {
+    const sub = li.querySelector("ul");
+    
+    if (!sub) {
+        li.classList.add("no-children");
+        return;
+    }
+    
+    sub.classList.add("collapsed");
+    
+    li.addEventListener("click", (e) => {
+        const list = e.target;
+        const ul = list.querySelector("ul");
+        e.stopImmediatePropagation();
+        e.stopPropagation();
+        if (!ul) { return; }
+        
+        ul.classList.toggle("collapsed");
+        list.classList.toggle("expanded");
+    });
+});
+</script>
+</body></html>`);
         });
 
         // OAuth routes for Twitch accessible for everyone
