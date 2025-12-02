@@ -1,3 +1,5 @@
+import { log } from '../utils.mjs';
+
 export default {
     name: 'clip',
     async reply(params, client, event) {
@@ -10,7 +12,7 @@ export default {
             } else { client.sendMessage('Failed to create clip. The stream might not be live or an error occurred.'); }
         } catch (error) {
             client.sendMessage('Something went wrong while creating the clip!');
-            console.error('Clip creation error:', error);
+            log.error('Clip creation error:', error);
         }
     }
 }
