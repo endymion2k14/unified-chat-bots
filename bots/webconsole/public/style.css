@@ -55,6 +55,11 @@ ul {
     transition: transform 0.15s ease;
 }
 
+#nav li a {
+    text-decoration: none;
+    color: #ddd;
+}
+
 #nav li.expanded::after {
     transform: rotate(90deg);
     color: #ccc;
