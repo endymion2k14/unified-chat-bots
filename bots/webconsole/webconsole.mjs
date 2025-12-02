@@ -177,16 +177,16 @@ export class WebConsole extends EventEmitter {
             switch ((typeof value).toLowerCase()) {
                 case 'object':
                     const [objNav, objData] = this.parseObject(value, depth + 1, `${newPrefix}`);
-                    nav += `<li>${key}${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
-                    if (objData.length > 0) { data += `<div id="${newPrefix}">${objData}</div>`; }
+                    nav += `<li><a href="#${newPrefix}">${key}</a>${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
+                    if (objData.length > 0) { data += `<div class="${newPrefix}">${objData}</div>`; }
                     break;
                 case 'boolean':
-                    nav += `<li>${key}</li>`;
-                    data += `<div id="${newPrefix}">${value ? 'true' : 'false'}</div>`;
+                    nav += `<li><a href="#${newPrefix}">${key}</a></li>`;
+                    data += `<div class="${newPrefix}">${value ? 'true' : 'false'}</div>`;
                     break;
                 default:
-                    nav += `<li>${key}</li>`;
-                    if (value.length > 0) { data += `<div id="${newPrefix}">${value}</div>`; }
+                    nav += `<li><a href="#${newPrefix}">${key}</a></li>`;
+                    if (value.length > 0) { data += `<div class="${newPrefix}">${value}</div>`; }
                     break;
             }
         }
