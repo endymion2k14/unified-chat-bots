@@ -83,7 +83,7 @@ export class TwitchIRC extends EventEmitter {
         for (let msg of filteredMsgs) {
             while (msg.length >= 500) {
                 let space = 499;
-                for (let i = space; i > 0; j--) { if (msg[i] === ' ') { space = i; break; } }
+                for (let i = space; i > 0; i--) { if (msg[i] === ' ') { space = i; break; } }
                 allParts.push(msg.substring(0, space)); msg = msg.substring(space);
             }
             allParts.push(msg);
