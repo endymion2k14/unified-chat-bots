@@ -74,8 +74,6 @@ export class WebConsole extends EventEmitter {
                 listdata = '';
                 for (let i = 0; i < obs.length; i++) {
                     const [objNav, objData] = this.parseObject(obs[i], `obs.${i}`);
-                    listnav += `<li>${i}${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
-                    listdata += `<div>${i}${objData}</div>`;
                     listnav += `<li><a href="#obs.${i}">${i}</a>${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
                     listdata += `<div id="obs.${i}">${i}${objData}</div>`;
                 }
@@ -176,19 +174,16 @@ export class WebConsole extends EventEmitter {
             const newPrefix = `${prefix}${prefix.length > 0 && !(prefix.endsWith('.')) ? '.' : ''}${possible[i]}`;
             const key = possible[i];
             const value = obj[key];
-            switch ((typeof value).toLowerCase()) {
+            const type = (typeof value).toLowerCase()
+            switch (type) {
                 case 'object':
                     const [objNav, objData] = this.parseObject(value, depth + 1, `${newPrefix}`);
                     nav += `<li><a href="#${newPrefix}">${key}</a>${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
                     if (objData.length > 0) { data += `<div class="${newPrefix}">${objData}</div>`; }
                     break;
-                case 'boolean':
-                    nav += `<li><a href="#${newPrefix}">${key}</a></li>`;
-                    data += `<div class="${newPrefix}">${value ? 'true' : 'false'}</div>`;
-                    break;
                 default:
                     nav += `<li><a href="#${newPrefix}">${key}</a></li>`;
-                    if (value.length > 0) { data += `<div class="${newPrefix}">${value}</div>`; }
+                    if (value.length > 0 || equals(type, 'boolean')) { data += `<div class="${newPrefix}">${value.toString()}</div>`; }
                     break;
             }
         }
