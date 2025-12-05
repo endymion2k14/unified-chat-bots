@@ -19,40 +19,40 @@ ul {
     background: #252526;
     border-right: 1px solid #333;
     overflow-y: auto;
-    padding-left: 10px;
-    margin-left: 10px;
 }
 
 #nav ul li {
     cursor: pointer;
-    padding: 2px 4px;
-    border-radius: 4px;
+    padding: 2px;
     position: relative;
+    margin: 0;
+}
+
+#nav li a {
+    padding-left: 0.5rem;
+}
+
+#nav li.expanded ul li a {
+    padding-left: 1rem;
 }
 
 #nav li:hover:not(:has(ul li:hover)) {
     background: #2f2f2f;
 }
 
-#nav ul li::before {
+#nav li::before {
     content: "🢒";
     position: absolute;
-    left: -8px;
     top: 0;
     width: 1px;
     height: 100%;
     background: #444;
+    left: -10px;
+    color: #888;
 }
 
 #nav .collapsed {
     display: none;
-}
-
-#nav li::before {
-    content: "🢒";
-    left: 10px;
-    position: absolute;
-    color: #888;
 }
 
 #nav li a {
