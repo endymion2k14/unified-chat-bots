@@ -50,11 +50,11 @@ export class WebConsole extends EventEmitter {
             if (twitch.length > 0) {
                 for (let i = 0; i < twitch.length; i++) {
                     const [objNav, objData] = this.parseObject(twitch[i], `twitch.${i}`);
-                    listnav += `<li>${i}${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
-                    listdata += `<div>${i}${objData}</div>`;
+                    listnav += `<li><a href="#twitch.${i}">${i}</a>${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
+                    listdata += `<div id="twitch.${i}">${i}${objData}</div>`;
                 }
-                nav += `<li>Twitch<ul>${listnav}</ul></li>`;
-                data += `<div>Twitch${listdata}</div>`;
+                nav += `<li><a href="#twitch">Twitch</a><ul>${listnav}</ul></li>`;
+                data += `<div id="twitch">Twitch${listdata}</div>`;
             }
 
             if (discord.length > 0) {
@@ -62,11 +62,11 @@ export class WebConsole extends EventEmitter {
                 listdata = '';
                 for (let i = 0; i < discord.length; i++) {
                     const [objNav, objData] = this.parseObject(discord[i], `discord.${i}`);
-                    listnav += `<li>${i}${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
-                    listdata += `<div>${i}${objData}</div>`;
+                    listnav += `<li><a href="#discord.${i}">${i}</a>${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
+                    listdata += `<div id="discord.${i}">${i}${objData}</div>`;
                 }
-                nav += `<li>Discord<ul>${listnav}</ul></li>`;
-                data += `<div>Discord${listdata}</div>`;
+                nav += `<li><a href="#discord">Discord</a><ul>${listnav}</ul></li>`;
+                data += `<div id="discord">Discord${listdata}</div>`;
             }
 
             if (obs.length > 0) {
@@ -76,9 +76,11 @@ export class WebConsole extends EventEmitter {
                     const [objNav, objData] = this.parseObject(obs[i], `obs.${i}`);
                     listnav += `<li>${i}${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
                     listdata += `<div>${i}${objData}</div>`;
+                    listnav += `<li><a href="#obs.${i}">${i}</a>${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
+                    listdata += `<div id="obs.${i}">${i}${objData}</div>`;
                 }
-                nav += `<li>OBS<ul>${listnav}</ul></li>`;
-                data += `<div>OBS${listdata}</div>`;
+                nav += `<li><a href="#obs">OBS</a><ul>${listnav}</ul></li>`;
+                data += `<div id="obs">OBS${listdata}</div>`;
             }
 
             res.send(`<!DOCTYPE html><html lang="en"><head><link rel="stylesheet" href="style.css"></head><body><ul id="nav">${nav}</ul><div id="main">${data}</div><script>document.querySelectorAll("#nav li").forEach(li => { const sub = li.querySelector("ul"); if (!sub) { li.classList.add("no-children"); return; } sub.classList.add("collapsed"); li.addEventListener("click", (e) => { const list = e.target; const ul = list.querySelector("ul"); e.stopImmediatePropagation(); e.stopPropagation(); if (!ul) { return; } ul.classList.toggle("collapsed"); list.classList.toggle("expanded"); }); }); </script></body></html>`);
