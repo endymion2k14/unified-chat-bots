@@ -44,7 +44,7 @@ ul {
     background: #444;
 }
 
-#nav ul.collapsed {
+#nav .collapsed {
     display: none;
 }
 
