@@ -51,10 +51,6 @@ ul {
     color: #888;
 }
 
-#nav .collapsed {
-    display: none;
-}
-
 #nav li a {
     text-decoration: none;
     color: #ddd;
@@ -68,6 +64,10 @@ ul {
 
 #nav li.no-children::before {
     content: "";
+}
+
+#nav .collapsed {
+    display: none;
 }
 
 #main {
