@@ -30,7 +30,7 @@ ul {
     position: relative;
 }
 
-#nav ul li:hover {
+#nav li:hover:not(:has(ul li:hover)) {
     background: #2f2f2f;
 }
 
