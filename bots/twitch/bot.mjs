@@ -283,7 +283,7 @@ export class ClientTwitch extends EventEmitter {
                     event.privileges.super = isSuper;
 
                     // Check if command requires live stream
-                    if (!this.commandsOffline.includes(command.name) && !this.getSystem('channelLive').isLive(this.channel)) { return; }
+                    if (!isSuper &&!this.commandsOffline.includes(command.name) && !this.getSystem('channelLive').isLive(this.channel)) { return; }
 
                     command.reply(params, this, event).catch(error => { // Command pass-through
                         log.error(error, `${SOURCE}-command-${command.name.toLowerCase()}`);
