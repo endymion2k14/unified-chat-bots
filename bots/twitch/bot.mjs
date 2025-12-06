@@ -36,6 +36,7 @@ export class ClientTwitch extends EventEmitter {
         this.chat_delay = 0;
         this.chat_silence = false;
         this.channel = '';
+        this.commandsOffline= [];
 
         this.connect = async function() {
             let valid = true;
