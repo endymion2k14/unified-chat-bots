@@ -23,21 +23,40 @@ export class WebConsole extends EventEmitter {
         this.getDiscord = functorDiscord;
         this.getOBS = functorOBS;
         this.settings = settings;
+        if ('port' in settings) { this.port = settings.port; }
+
+        this.trustedIPs = [
+            '::1',
+            '127.0.0.1',
+            '::ffff:127.0.0.1'
+        ];
+
+        if ('trustedIp' in settings) {
+            for (let i = 0; i < settings.trustedIp.length; i++) {
+                this.trustedIPs.push(settings.trustedIp[i]);
+            }
+        }
     }
 
-    async start(port = 0) {
-        if (port === 0) {
+    async start() {
+        if (this.port === 0) {
             log.error(`Unable to start webserver with port 0`, SOURCE);
             return;
         }
-        this.port = port;
         if (this.getTwitch === 0 || this.getDiscord === 0 || this.getOBS === 0) {
             log.error(`No functors obtained for collecting the info to display on the page `, SOURCE);
             return;
         }
         app.get('/', (req, res) => {
             const clientIP = req.ip || req.connection.remoteAddress;
-            if (clientIP !== '127.0.0.1' && clientIP !== '::1' && clientIP !== '::ffff:127.0.0.1') { return res.status(403).send('Access denied'); }
+            let trusted = false;
+            for (let i = 0; i < this.trustedIPs.length; i++) {
+                if (equals(this.trustedIPs[i], clientIP)) { trusted = true; break; }
+            }
+            if (!trusted) {
+                log.info(`Refused client! (IP: ${clientIP})`);
+                return res.status(403).send('Access denied');
+            }
 
             let nav = '';
             let data = '';
@@ -144,7 +163,7 @@ export class WebConsole extends EventEmitter {
             }
         });
 
-        app.listen(port, _ => { log.info(`WebConsole started on port ${this.port}`, SOURCE) });
+        app.listen(this.port, _ => { log.info(`WebConsole started on port ${this.port}`, SOURCE) });
         app.use(express.static('./bots/webconsole/public'));
     }
 
