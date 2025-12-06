@@ -203,7 +203,6 @@ export class TwitchAPI extends EventEmitter {
             if (response.ok) {
                 console.log('User ID:', data.user_id);
                 console.log('Scopes:', data.scopes);
-                console.log('Has channel:manage:broadcast?', data.scopes.includes('channel:manage:broadcast'));
             }
             else { console.error('Validation failed:', data.message); }
         }
