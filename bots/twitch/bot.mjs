@@ -293,7 +293,7 @@ export class ClientTwitch extends EventEmitter {
                     break;
                 }
             }
-            if (!found) { this.sendMessage(`Couldn't find the command that you tried to use ${event.username}...`); }
+            if (!found) { await this.sendMessage(`Couldn't find the command that you tried to use ${event.username}...`); }
         }
 
         this.sendMessage = async function(message) { if (!this.chat_silence) { await sleep(this.chat_delay); this._backend.say(message).catch(err => { log.error(err, `${SOURCE}-${this._settings.name}`); }); } }
