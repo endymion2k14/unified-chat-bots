@@ -71,7 +71,7 @@ export class TwitchIRC extends EventEmitter {
     }
 
     send(message) {
-        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) { log.error(`Cannot send message - WebSocket not open (readyState: ${this.ws?.readyState})`, `${SOURCE}-${this.channel}`); return false; }
+        if (!this.ws || this.ws.readyState !== WebSocket.OPEN) { log.error(`Cannot send message - WebSocket not open (readyState: ${this.ws.readyState})`, `${SOURCE}-${this.channel}`); return false; }
         try { this.ws.send(`${message}\r\n`); log.info(`Message sent successfully to WebSocket`, `${SOURCE}-${this.channel}`); return true; }
         catch (error) { log.error(`Failed to send message to WebSocket: ${error}`, `${SOURCE}-${this.channel}`); return false; }
     }
