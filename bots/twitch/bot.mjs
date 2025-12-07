@@ -123,7 +123,7 @@ export class ClientTwitch extends EventEmitter {
 
         this._setupEvents = function() {
             // backend
-            this._backend.addListener(EventTypes.connect      , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.connect   , event); });
+            this._backend.addListener(EventTypes.connect      , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.connect   , event); this.emit('ready'); });
             this._backend.addListener(EventTypes.disconnect   , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.disconnect, event); });
             this._backend.addListener(EventTypes.ban          , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.ban       , event); });
             this._backend.addListener(EventTypes.raid         , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.raid      , event); });
