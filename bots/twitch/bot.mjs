@@ -123,7 +123,7 @@ export class ClientTwitch extends EventEmitter {
 
         this._setupEvents = function() {
             // backend
-            this._backend.addListener(EventTypes.connect      , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.connect   , event); });
+            this._backend.addListener(EventTypes.connect      , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.connect   , event); this.emit('ready'); });
             this._backend.addListener(EventTypes.disconnect   , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.disconnect, event); });
             this._backend.addListener(EventTypes.ban          , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.ban       , event); });
             this._backend.addListener(EventTypes.raid         , event => { log.info(event.message, `${SOURCE}-IRC-${this._settings.name}`); this.emit(EventTypes.raid      , event); });
@@ -270,9 +270,9 @@ export class ClientTwitch extends EventEmitter {
             let found = false;
             for (let i = 0; i < this._commands.length; i++) {
                 let isCommand = equals(commandName, this._commands[i].name);
-                if (!isCommand) { // Check if given command name is the alias of currently checked command
-                    for (let alias in this._commands) {
-                        if (equals(alias.toLowerCase(), this._commands[i].name)) { isCommand = true; break; }
+                if (!isCommand && this._commands[i].command.aliases) {
+                    for (let alias of this._commands[i].command.aliases) {
+                        if (equals(commandName, alias.toLowerCase())) { isCommand = true; break; }
                     }
                 }
                 if (isCommand) {
