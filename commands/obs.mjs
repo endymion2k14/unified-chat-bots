@@ -6,8 +6,10 @@ export default {
             const subcommand = params.shift().toLowerCase();
             if (!client.obsClients || client.obsClients.length === 0) { client.sendMessage('OBS not connected.'); return; }
 
+            const getObsClient = () => { const obsClient = client.obsClients.find(c => c._settings.name === client._settings.name); return obsClient || client.obsClients[0]; };
+
             if (subcommand === 'stats') {
-                const obsClient = client.obsClients[0];
+                const obsClient = getObsClient();
                 const stats = await obsClient.getStreamStats();
                 if (!stats) { client.sendMessage('Could not retrieve OBS stats.'); return; }
                 let msg = `OBS Stats: Streaming: ${stats.outputActive ? 'Active' : 'Inactive'}`;
@@ -19,13 +21,13 @@ export default {
                 }
                 client.sendMessage(msg);
             } else if (subcommand === 'reconnect') {
-                const obsClient = client.obsClients[0];
+                const obsClient = getObsClient();
                 obsClient.reconnect();
                 client.sendMessage(`Attempting to reconnect to OBS`);
             } else if (subcommand === 'record') {
                 if (params.length < 1) { client.sendMessage('Usage: !obs record start/stop'); return; }
                 const action = params.shift().toLowerCase();
-                const obsClient = client.obsClients[0];
+                const obsClient = getObsClient();
                 try {
                     if (action === 'start') {
                         await obsClient.startRecording();
@@ -38,7 +40,7 @@ export default {
             } else if (subcommand === 'stream') {
                 if (params.length < 1) { client.sendMessage('Usage: !obs stream start/stop'); return; }
                 const action = params.shift().toLowerCase();
-                const obsClient = client.obsClients[0];
+                const obsClient = getObsClient();
                 try {
                     if (action === 'start') {
                         await obsClient.startStreaming();
