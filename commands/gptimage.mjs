@@ -15,6 +15,7 @@ export default {
                     const messages = [];
                     let content;
                     if (equals(params[0].toLowerCase(), 'live')) {
+                        if (!client.getSystem('channelLive').isLive(client.channel)) { return client.sendMessage('The channel must be live to use the live image feature.'); }
                         log.info("Grabbing live image", SOURCE);
                         const category = await client.api.getCategory();
                         content = `Current Category: ${category || 'Unknown'}\n${system_prompt}`;
