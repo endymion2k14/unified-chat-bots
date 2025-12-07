@@ -2,7 +2,7 @@ import { concat, log } from '../utils.mjs';
 
 const SOURCE = 'gptlurk.mjs';
 
-const system_prompt = 'Give a witty response about their message as short and concise as possible:';
+const system_prompt = 'Provide a witty remark about their message, short and concise, without quotation marks.';
 
 export default {
     name: 'gptlurk',
