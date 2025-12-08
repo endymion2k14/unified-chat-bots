@@ -4,11 +4,12 @@ import { equals, randomInt } from '../utils.mjs';
 export default {
     name: 'welcome',
     chatted: [],
+    lastLiveCheck: false,
 
     init(client) {
         client.addListener(EventTypes.message, event => this.welcome(client, event));
-        client.api.addListener(EventTypes.stream_start, () => { this.chatted = []; });
-        client.api.addListener(EventTypes.stream_end, () => { this.chatted = []; });
+        client.api.addListener(EventTypes.stream_start, () => { if (!this.lastLiveCheck) { this.chatted = []; this.lastLiveCheck = true; } });
+        client.api.addListener(EventTypes.stream_end, () => { if (this.lastLiveCheck) { this.chatted = []; this.lastLiveCheck = false; } });
         this.config = client.getSystemConfig(this.name);
     },
 
