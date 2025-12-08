@@ -103,6 +103,10 @@ export class TwitchAPI extends EventEmitter {
         this._refreshTimeouts[tokenType] = setTimeout(() => { this.refreshToken(tokenType).catch(err => { log.error(`Auto-refresh failed: ${err.message}`, `${SOURCE}-${this._data.channel}`); this._scheduleNextRefresh(tokenType); }); }, intervalMs);
     }
 
+    stopAutoRefresh(tokenType = 'bot') {
+        if (this._refreshTimeouts[tokenType]) { clearTimeout(this._refreshTimeouts[tokenType]); delete this._refreshTimeouts[tokenType]; log.info(`Stopped ${tokenType} auto-refresh`, `${SOURCE}-${this._data.channel}`); }
+    }
+
     // EventSubs
     startEventSub() {
         if (!this._data.botToken || !this._data.clientId) { log.info('No botToken available, skipping EventSub', `${SOURCE}-${this._data.channel}`); return; }

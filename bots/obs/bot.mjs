@@ -190,4 +190,11 @@ export class ClientOBS extends EventEmitter {
         try { const response = await this.obs.call('GetStreamStatus'); return response; }
         catch (error) { throw new Error(`Failed to get stream stats: ${error.message}`); }
     }
+
+    // Disconnect method
+    async disconnect() {
+        log.info('Disconnecting OBS client...', `${SOURCE}-${this._settings.name}`);
+        try { this.reconnecting = true; if (this.connected && this.obs) { await this.obs.disconnect(); this.connected = false; } log.info('OBS client disconnected successfully', `${SOURCE}-${this._settings.name}`); }
+        catch (error) { log.error(`Error during OBS client disconnect: ${error}`, `${SOURCE}-${this._settings.name}`); throw error; }
+    }
 }

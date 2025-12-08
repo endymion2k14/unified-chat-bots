@@ -91,4 +91,42 @@ export class TwitchEventSub extends EventEmitter {
         log.info(`Subscribed to ${type}`, `${SOURCE}-${this.channel}`);
         return data.data[0].id;
     }
+
+    async unsubscribe(subscriptionId) {
+        const response = await fetch(`https://api.twitch.tv/helix/eventsub/subscriptions?id=${subscriptionId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${this.botToken}`,
+                'Client-Id': this.clientId,
+            }
+        });
+        if (!response.ok) { 
+            const error = await response.text(); 
+            throw new Error(`EventSub unsubscribe failed: ${response.status} ${error}`); 
+        }
+        log.info(`Unsubscribed from subscription ${subscriptionId}`, `${SOURCE}-${this.channel}`);
+    }
+
+    async unsubscribeAll() {
+        log.info(`Unsubscribing from ${this.subscriptions.size} EventSub subscriptions...`, `${SOURCE}-${this.channel}`);
+        const unsubscribePromises = [];
+        for (const [type, id] of this.subscriptions) { unsubscribePromises.push( this.unsubscribe(id).catch(err => { log.error(`Failed to unsubscribe from ${type}: ${err}`, `${SOURCE}-${this.channel}`); }) ); }
+        await Promise.all(unsubscribePromises);
+        this.subscriptions.clear();
+        log.info('All EventSub subscriptions cleared', `${SOURCE}-${this.channel}`);
+    }
+
+    async disconnect() {
+        log.info('Disconnecting EventSub...', `${SOURCE}-${this.channel}`);
+        try {
+            this.reconnectAttempts = 999;
+            await this.unsubscribeAll();
+            if (this.ws && this.ws.readyState === WebSocket.OPEN) { this.ws.close(1000, 'Graceful shutdown'); this.ws = null; }
+            this.sessionId = null;
+            log.info('EventSub disconnected successfully', `${SOURCE}-${this.channel}`);
+        } catch (error) {
+            log.error(`Error during EventSub disconnect: ${error}`, `${SOURCE}-${this.channel}`);
+            throw error;
+        }
+    }
 }
