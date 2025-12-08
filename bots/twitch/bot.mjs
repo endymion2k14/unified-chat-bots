@@ -322,10 +322,8 @@ export class ClientTwitch extends EventEmitter {
                 if (this.api && this.api.eventsub) { await this.api.eventsub.disconnect(); this.api.eventsub = null; }
                 if (this._backend && this._backend.ws) { this._backend.ws.close(1000, 'Graceful shutdown'); this._backend = null; }
                 log.info('Twitch bot disconnected successfully', `${SOURCE}-${this._settings.name}`);
-            } catch (error) {
-                log.error(`Error during Twitch bot disconnect: ${error}`, `${SOURCE}-${this._settings.name}`);
-                throw error;
             }
+            catch (error) { log.error(`Error during Twitch bot disconnect: ${error}`, `${SOURCE}-${this._settings.name}`); throw error; }
         };
     }
 }
