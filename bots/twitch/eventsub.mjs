@@ -124,9 +124,7 @@ export class TwitchEventSub extends EventEmitter {
             if (this.ws && this.ws.readyState === WebSocket.OPEN) { this.ws.close(1000, 'Graceful shutdown'); this.ws = null; }
             this.sessionId = null;
             log.info('EventSub disconnected successfully', `${SOURCE}-${this.channel}`);
-        } catch (error) {
-            log.error(`Error during EventSub disconnect: ${error}`, `${SOURCE}-${this.channel}`);
-            throw error;
         }
+        catch (error) { log.error(`Error during EventSub disconnect: ${error}`, `${SOURCE}-${this.channel}`); throw error; }
     }
 }
