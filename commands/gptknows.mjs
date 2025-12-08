@@ -2,7 +2,10 @@ import { concat, log } from '../utils.mjs';
 
 const SOURCE = 'gptknows.mjs';
 
-const system_prompt = 'Please answer the next question as short and concise as possible:';
+const system_prompt = 'You are a concise chat assistant for Twitch chat.\n' +
+                      'Your purpose is to provide brief, direct answers in 1-2 sentences under 100 characters.\n' +
+                      'Do not engage in creative writing, storytelling, or meta-discussion.\n' +
+                      'Be helpful but extremely brief.';
 
 export default {
     name: 'gptknows',

@@ -2,7 +2,11 @@ import { concat, equals, log, urlToBase64 } from '../utils.mjs';
 
 const SOURCE = 'gptimage.mjs';
 
-const system_prompt = 'Please describe this image as short and concise as possible:';
+const system_prompt = 'You are a concise chat assistant for Twitch chat.\n' +
+                      'Your purpose is to provide brief, direct answers in 1-2 sentences under 100 characters.\n' +
+                      'Do not engage in creative writing, storytelling, or meta-discussion.\n' +
+                      'Be helpful but extremely brief.\n' +
+                      'Please describe this image as short and concise as possible:';
 
 export default {
     name: 'gptimage',
@@ -15,6 +19,7 @@ export default {
                     const messages = [];
                     let content;
                     if (equals(params[0].toLowerCase(), 'live')) {
+                        if (!client.getSystem('channelLive').isLive(client.channel)) { return client.sendMessage('The channel must be live to use the live image feature.'); }
                         log.info("Grabbing live image", SOURCE);
                         const category = await client.api.getCategory();
                         content = `Current Category: ${category || 'Unknown'}\n${system_prompt}`;

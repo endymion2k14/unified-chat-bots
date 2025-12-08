@@ -9,6 +9,7 @@ const clientsDiscord = [];
 const clientsTwitch = [];
 const clientsOBS = [];
 let webConsole;
+let readyPromises = [];
 
 async function start() {
     log.info('Loading settings');
@@ -26,6 +27,7 @@ async function start() {
     if (botsOBS.length > 0) {
         log.info(`Starting ${botsOBS.length} OBS bots`, SOURCE);
         for (let i = 0; i < botsOBS.length; i++) { clientsOBS.push(new ClientOBS(settings.obs[botsOBS[i]])); }
+        clientsOBS.forEach(client => readyPromises.push(new Promise(resolve => client.once('ready', resolve))));
         for (let i = 0; i < clientsOBS.length; i++) { clientsOBS[i].connect(); }
     }
     if (botsDiscord.length > 0) {
@@ -38,7 +40,18 @@ async function start() {
     if (botsTwitch .length > 0) {
         log.info(`Starting ${botsTwitch .length} twitch bots`, SOURCE);
         for (let i = 0; i < botsTwitch.length; i++) { clientsTwitch.push(new ClientTwitch(settings.twitch[botsTwitch[i]], clientsOBS)); }
+        clientsTwitch.forEach(client => readyPromises.push(new Promise(resolve => client.once('ready', resolve))));
         for (let i = 0; i < clientsTwitch.length; i++) { clientsTwitch[i].connect(); }
+    }
+
+    // Wait for all bots to be ready before starting webconsole
+    if (readyPromises.length > 0) {
+        log.info('Waiting for bots to be ready...', SOURCE);
+        const timeoutPromise = new Promise(resolve => setTimeout(() => resolve('timeout'), 30000));
+        const readyPromise = Promise.all(readyPromises).then(() => 'ready');
+        const result = await Promise.race([readyPromise, timeoutPromise]);
+        if (result === 'ready') { log.info('All bots ready, starting webconsole', SOURCE); }
+        else { log.warn('Bot readiness timeout, proceeding anyway', SOURCE); }
     }
 
     // Run the web console
