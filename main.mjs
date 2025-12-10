@@ -65,4 +65,24 @@ function getTwitchClients() { return clientsTwitch; }
 function getDiscordClients() { return clientsDiscord; }
 function getOBSClients() { return clientsOBS; }
 
+async function gracefulShutdown() {
+    log.info('Starting graceful shutdown...', SOURCE);
+    const shutdownPromises = [];
+    // Shutdown Twitch clients
+    clientsTwitch.forEach(client => { if (client && typeof client.disconnect === 'function') { shutdownPromises.push( client.disconnect().catch(err => log.error(`Error disconnecting Twitch client: ${err}`, SOURCE)) ); } });
+    // Shutdown OBS clients
+    clientsOBS.forEach(client => { if (client && typeof client.disconnect === 'function') { shutdownPromises.push( client.disconnect().catch(err => log.error(`Error disconnecting OBS client: ${err}`, SOURCE)) ); } });
+    // Shutdown Web Console
+    if (webConsole && typeof webConsole.stop === 'function') { shutdownPromises.push( webConsole.stop().catch(err => log.error(`Error stopping web console: ${err}`, SOURCE)) ); }
+    // Wait for all shutdown operations to complete, with timeout
+    const shutdownTimeout = 10000; // 10 seconds
+    await Promise.race([ Promise.all(shutdownPromises), new Promise(resolve => setTimeout(resolve, shutdownTimeout)) ]);
+    log.info('Graceful shutdown complete', SOURCE);
+    process.exit(0);
+}
+
+// Handle termination signals
+process.on('SIGINT', () => { log.info('Received SIGINT (Control+C)', SOURCE); gracefulShutdown(); });
+process.on('SIGTERM', () => { log.info('Received SIGTERM', SOURCE); gracefulShutdown(); });
+
 start().catch(err => { log.error(err); });

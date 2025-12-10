@@ -15,6 +15,7 @@ export class WebConsole extends EventEmitter {
     getOBS = 0;
     port = 0;
     settings = {};
+    server = null;
 
     constructor(functorTwitch, functorDiscord, functorOBS, settings) {
         super();
@@ -163,7 +164,7 @@ export class WebConsole extends EventEmitter {
             }
         });
 
-        app.listen(this.port, _ => { log.info(`WebConsole started on port ${this.port}`, SOURCE) });
+        this.server = app.listen(this.port, _ => { log.info(`WebConsole started on port ${this.port}`, SOURCE) });
         app.use(express.static('./bots/webconsole/public'));
     }
 
@@ -208,5 +209,12 @@ export class WebConsole extends EventEmitter {
         }
 
         return [nav, data];
+    }
+
+    // Stop method for graceful shutdown
+    async stop() {
+        log.info('Stopping WebConsole...', SOURCE);
+        try { if (this.server) { await new Promise((resolve, reject) => { this.server.close((err) => { if (err) reject(err); else resolve(); }); }); this.server = null; log.info('WebConsole stopped successfully', SOURCE); } }
+        catch (error) { log.error(`Error during WebConsole stop: ${error}`, SOURCE); throw error; }
     }
 }
