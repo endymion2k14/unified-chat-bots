@@ -24,7 +24,7 @@ export class WebConsole extends EventEmitter {
         this.getDiscord = functorDiscord;
         this.getOBS = functorOBS;
         this.settings = settings;
-        if ('port' in settings) { this.port = settings.port; }
+        if ('console' in settings && 'port' in settings.console) { this.port = settings.console.port; }
 
         this.trustedIPs = [
             '::1',
@@ -32,9 +32,9 @@ export class WebConsole extends EventEmitter {
             '::ffff:127.0.0.1'
         ];
 
-        if ('trustedIp' in settings) {
-            for (let i = 0; i < settings.trustedIp.length; i++) {
-                this.trustedIPs.push(settings.trustedIp[i]);
+        if ('console' in settings && 'trustedIp' in settings.console) {
+            for (let i = 0; i < settings.console.trustedIp.length; i++) {
+                this.trustedIPs.push(settings.console.trustedIp[i]);
             }
         }
     }
