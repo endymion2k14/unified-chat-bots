@@ -90,58 +90,28 @@ export class TwitchIRC extends EventEmitter {
             allParts.push(msg);
         }
         
-        // Debug: Log message splitting
-        //log.info(`Split message into ${allParts.length} parts`, `${SOURCE}-${this.channel}`);
-        if (allParts.length > 1) {
-            for (let i = 0; i < allParts.length; i++) {
-                const queuedMessage = `[${i + 1}/${allParts.length}] ${allParts[i]}`;
-                this.messageQueue.push(queuedMessage);
-                //log.info(`Queued message part ${i + 1}/${allParts.length}: "${queuedMessage.substring(0, 50)}..."`, `${SOURCE}-${this.channel}`);
-            }
-        }
-        else {
-            for (let part of allParts) {
-                this.messageQueue.push(part);
-                //log.info(`Queued single message: "${part.substring(0, 50)}..."`, `${SOURCE}-${this.channel}`);
-            }
-        }
+        if (allParts.length > 1) { for (let i = 0; i < allParts.length; i++) { const queuedMessage = `[${i + 1}/${allParts.length}] ${allParts[i]}`; this.messageQueue.push(queuedMessage); } }
+        else { for (let part of allParts) { this.messageQueue.push(part); } }
         this.flushQueue();
     }
 
     flushQueue() {
         const now = Date.now();
-        if (now - this.periodStart >= 30000) {
-            this.periodStart = now;
-            this.messagesInPeriod = 0;
-            //log.info(`Rate limit period reset`, `${SOURCE}-${this.channel}`);
-        }
-        
-        if (this.messagesInPeriod >= 20) {
-            //log.info(`Rate limit hit: ${this.messagesInPeriod}/20 messages in current period`, `${SOURCE}-${this.channel}`);
-            setTimeout(() => this.flushQueue(), 5000);
-            return;
-        }
-
+        if (now - this.periodStart >= 30000) { this.periodStart = now; this.messagesInPeriod = 0; }
+        if (this.messagesInPeriod >= 20) { setTimeout(() => this.flushQueue(), 5000); return; }
         let next = this.messageQueue.shift();
         while (next && next.length === 0 && this.messageQueue.length > 0) { next = this.messageQueue.shift(); }
-        if (!next) {
-            //log.info(`Message queue is empty`, `${SOURCE}-${this.channel}`);
-            return;
-        }
-
-        //log.info(`Sending message: "${next.substring(0, 50)}..." (Queue length: ${this.messageQueue.length}, Messages in period: ${this.messagesInPeriod}/20)`, `${SOURCE}-${this.channel}`);
-
+        if (!next) { return; }
         if (this.chat_show) { log.info(`${this.username}: ${next}`, `${SOURCE}-${this.channel}`); }
         const sendSuccess = this.send(`PRIVMSG #${this.channel} :${next}`);
         if (sendSuccess) { this.messagesInPeriod++; }
-        else {
-            this.messageQueue.unshift(next);
-            //log.info(`Message send failed, re-queued for retry`, `${SOURCE}-${this.channel}`);
-            setTimeout(() => this.flushQueue(), 5000);
-            return;
+        else { this.messageQueue.unshift(next); setTimeout(() => this.flushQueue(), 5000); return; }
+        if (this.messageQueue.length > 0) {
+            const progressiveDelays = [1000, 1200, 1500, 1200, 1000];
+            const delayIndex = Math.min(this.messageQueue.length, progressiveDelays.length - 1);
+            const totalDelay = progressiveDelays[delayIndex];
+            setTimeout(() => this.flushQueue(), totalDelay);
         }
-
-        if (this.messageQueue.length > 0) { const progressiveDelays = [1000, 1200, 1500, 1200, 1000]; const delayIndex = Math.min(this.messageQueue.length, progressiveDelays.length - 1); const totalDelay = progressiveDelays[delayIndex]; setTimeout(() => this.flushQueue(), totalDelay); }
     }
 
     parse(chunk) {
