@@ -134,6 +134,12 @@ export class TwitchAPI extends EventEmitter {
     // https://dev.twitch.tv/docs/api/reference#delete-chat-messages
     async removeMessage(messageId) { return await this._apiRequest(`https://api.twitch.tv/helix/moderation/chat?broadcaster_id=${this._data.roomId}&moderator_id=${this._data.userId}&message_id=${messageId}`, 'DELETE'); }
 
+    // Token is expected to have: moderator:manage:banned_users
+    // https://dev.twitch.tv/docs/api/reference#ban-user
+    async timeoutUser(userId, duration = 1, reason = '') {
+        return await this._apiRequest( `https://api.twitch.tv/helix/moderation/bans?broadcaster_id=${this._data.roomId}&moderator_id=${this._data.userId}`, 'POST', { data: { user_id: userId, duration: duration, reason: reason } }, 'bot' );
+    }
+
     // Token is expected to have: clips:edit
     // https://dev.twitch.tv/docs/api/clips/#creating-clips
     // If hasDelay is true, it captures from the VOD instead of the Live stream. We should be able to go back upto 80 minutes.
