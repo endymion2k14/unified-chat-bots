@@ -24,7 +24,7 @@ export class WebConsole extends EventEmitter {
         this.getDiscord = functorDiscord;
         this.getOBS = functorOBS;
         this.settings = settings;
-        if ('port' in settings) { this.port = settings.port; }
+        if ('console' in settings && 'port' in settings.console) { this.port = settings.console.port; }
 
         this.trustedIPs = [
             '::1',
@@ -32,9 +32,9 @@ export class WebConsole extends EventEmitter {
             '::ffff:127.0.0.1'
         ];
 
-        if ('trustedIp' in settings) {
-            for (let i = 0; i < settings.trustedIp.length; i++) {
-                this.trustedIPs.push(settings.trustedIp[i]);
+        if ('console' in settings && 'trustedIp' in settings.console) {
+            for (let i = 0; i < settings.console.trustedIp.length; i++) {
+                this.trustedIPs.push(settings.console.trustedIp[i]);
             }
         }
     }
@@ -111,7 +111,7 @@ export class WebConsole extends EventEmitter {
             const bot = this.settings.twitch[index];
             if (!bot.secrets.clientSecret) { return res.status(400).send('Client secret not configured for this bot'); }
             const redirectUri = bot.secrets.redirectUri || `http://localhost:${this.port}/oauth/callback`;
-            const scope = bot.secrets.scopes || 'chat:read chat:edit channel:moderate moderator:read:followers clips:edit moderator:manage:announcements channel:manage:broadcast';
+            const scope = bot.secrets.scopes || 'chat:read chat:edit channel:moderate moderator:read:followers clips:edit moderator:manage:announcements channel:manage:broadcast moderator:manage:banned_users';
             const state = `bot-${index}`;
             const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${bot.secrets.clientId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=${state}`;
             res.redirect(authUrl);

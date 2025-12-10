@@ -56,7 +56,7 @@ async function start() {
 
     // Run the web console
     if ('console' in settings) {
-            webConsole = new WebConsole(getTwitchClients, getDiscordClients, getOBSClients, settings.console);
+            webConsole = new WebConsole(getTwitchClients, getDiscordClients, getOBSClients, settings);
             webConsole.start().catch(err => log.error(`${err}`, SOURCE));
     }
 }
