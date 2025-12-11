@@ -32,11 +32,7 @@ export class WebConsole extends EventEmitter {
             '::ffff:127.0.0.1'
         ];
 
-        if ('console' in settings && 'trustedIp' in settings.console) {
-            for (let i = 0; i < settings.console.trustedIp.length; i++) {
-                this.trustedIPs.push(settings.console.trustedIp[i]);
-            }
-        }
+        if ('console' in settings && 'trustedIp' in settings.console) { for (let i = 0; i < settings.console.trustedIp.length; i++) { this.trustedIPs.push(settings.console.trustedIp[i]); } }
     }
 
     async start() {
