@@ -44,6 +44,7 @@ export class WebConsole extends EventEmitter {
             log.error(`No functors obtained for collecting the info to display on the page `, SOURCE);
             return;
         }
+        app.set('trust proxy', true);
         app.get('/', (req, res) => {
             const clientIP = req.ip || req.connection.remoteAddress;
             let trusted = false;
