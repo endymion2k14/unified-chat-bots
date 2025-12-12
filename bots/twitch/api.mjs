@@ -99,7 +99,7 @@ export class TwitchAPI extends EventEmitter {
         const bufferMs = 5 * 60 * 1000;
         const timeUntilExpiry = this._data[expiryKey] - Date.now() - bufferMs;
         const intervalMs = Math.max(1000, timeUntilExpiry);
-        log.info(`Next ${tokenType} OAuth token refresh at ${new Date(Date.now() + intervalMs).toLocaleString()}`, `${SOURCE}-${this._data.channel}`);
+        //log.info(`Next ${tokenType} OAuth token refresh at ${new Date(Date.now() + intervalMs).toLocaleString()}`, `${SOURCE}-${this._data.channel}`);
         this._refreshTimeouts[tokenType] = setTimeout(() => { this.refreshToken(tokenType).catch(err => { log.error(`Auto-refresh failed: ${err.message}`, `${SOURCE}-${this._data.channel}`); this._scheduleNextRefresh(tokenType); }); }, intervalMs);
     }
 
