@@ -43,7 +43,12 @@ async function start() {
         clientsTwitch.forEach(client => readyPromises.push(new Promise(resolve => client.once('ready', resolve))));
         for (let i = 0; i < clientsTwitch.length; i++) { clientsTwitch[i].connect(); }
     }
-
+    if (settings.recorder && settings.recorder.enabled) {
+        const requiredFields = ['appToken', 'clientId'];
+        const missingFields = requiredFields.filter(field => !settings.recorder[field]);
+        if (missingFields.length > 0) { log.error(`Recorder configuration missing required fields: ${missingFields.join(', ')}`, SOURCE); return; }
+        import('./systems/autoRecord.mjs').then(autoRecordSystem => { autoRecordSystem.default.init(settings.recorder); }).catch(err => { log.error(`Failed to start autoRecord system: ${err}`, SOURCE); });
+    }
     // Wait for all bots to be ready before starting webconsole
     if (readyPromises.length > 0) {
         log.info('Waiting for bots to be ready...', SOURCE);
@@ -53,25 +58,6 @@ async function start() {
         if (result === 'ready') { log.info('All bots ready, starting webconsole', SOURCE); }
         else { log.warn('Bot readiness timeout, proceeding anyway', SOURCE); }
     }
-
-    // Start standalone autoRecord system
-    if (settings.recorder && settings.recorder.enabled) {
-        // Validate required recorder configuration
-        const requiredFields = ['appToken', 'clientId'];
-        const missingFields = requiredFields.filter(field => !settings.recorder[field]);
-        
-        if (missingFields.length > 0) {
-            log.error(`Recorder configuration missing required fields: ${missingFields.join(', ')}`, SOURCE);
-            return;
-        }
-        
-        import('./systems/autoRecord.mjs').then(autoRecordSystem => {
-            autoRecordSystem.default.init(settings.recorder);
-        }).catch(err => {
-            log.error(`Failed to start autoRecord system: ${err}`, SOURCE);
-        });
-    }
-
     // Run the web console
     if ('console' in settings) {
             webConsole = new WebConsole(getTwitchClients, getDiscordClients, getOBSClients, settings);
