@@ -1,5 +1,6 @@
 .idea/
 node_modules/
+recordings/
 package-lock.json
 configs/config.json
 configs/secrets.json
