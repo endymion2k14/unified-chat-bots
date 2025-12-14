@@ -1,80 +1,197 @@
-import { EventTypes } from '../bots/twitch/irc.mjs';
-import { getFullTimestamp, log } from '../utils.mjs';
+import { log } from '../utils.mjs';
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
 const SOURCE = 'Twitch-autoRecord';
 
-export function validateTemplate(template) {
-    const requiredVars = ['%(channel)s', '%(date)s', '%(time)s'];
+class SimpleTwitchAPI {
+    constructor(appToken, clientId) {
+        this.appToken = appToken;
+        this.clientId = clientId;
+    }
+
+    async isChannelLive(channel) {
+        try {
+            const response = await fetch(
+                `https://api.twitch.tv/helix/streams?user_login=${channel}`,
+                {
+                    headers: {
+                        'Client-ID': this.clientId,
+                        'Authorization': `Bearer ${this.appToken}`,
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            
+            const data = await response.json();
+            return data.data.length > 0;
+        } catch (error) {
+            log.error(`Error checking channel ${channel}: ${error.message}`, SOURCE);
+            return false;
+        }
+    }
+}
+
+function validateTemplate(template) {
+    const requiredVars = ['%(channel)s', '%(date)s', '%(time)s', '%(ext)s'];
     const hasAllRequired = requiredVars.every(variable => template.includes(variable));
-    if (!hasAllRequired) { throw new Error('Template must include channel, date, and time variables'); }
-    if (!template.includes('%(ext)s')) { throw new Error('Template must end with %(ext)s'); }
-    if (template.includes('../') || template.includes('..\\')) { throw new Error('Template cannot contain path traversal'); }
-    if (template.length > 100) { throw new Error('Template too complex - keep it under 100 characters'); }
+    if (!hasAllRequired) {
+        throw new Error('Template must include channel, date, time, and ext variables');
+    }
     return true;
 }
 
-export function processFilenameTemplate(template, channel) {
+function processFilenameTemplate(template, channel) {
     const now = new Date();
     const date = now.toISOString().split('T')[0];
     const time = now.toTimeString().split(' ')[0].replace(/:/g, '-');
-    return template .replace('%(channel)s', channel) .replace('%(date)s', date) .replace('%(time)s', time) .replace('%(ext)s', 'mp4');
+    return template
+        .replace('%(channel)s', channel)
+        .replace('%(date)s', date)
+        .replace('%(time)s', time)
+        .replace('%(ext)s', 'mp4');
 }
 
-function startRecording(channel, config, outputPath) {
-    return new Promise((resolve, reject) => {
-        const args = [];
-        args.push('--quiet');
-        args.push('--output', outputPath);
-        args.push('--ffmpeg-video-transcode', 'copy'); args.push('--ffmpeg-audio-transcode', 'copy');
-        args.push(`https://twitch.tv/${channel}`);
-        if (config.quality && config.quality !== 'best') { args.push(config.quality); }
-        else { args.push('best'); }
-        const proc = spawn('streamlink', args, { stdio: 'inherit' });
-        proc.on('spawn', () => { log.info(`streamlink process started for ${channel}`, SOURCE); resolve(proc); });
-        proc.on('error', (err) => {
-            if (err.message.includes('No streams found')) { log.error(`Channel ${channel} appears to be offline`, SOURCE); }
-            else if (err.message.includes('unrecognized arguments')) { log.error(`Invalid configuration for ${channel}: ${err.message}`, SOURCE); }
-            else if (err.message.includes('Unable to open URL')) { log.error(`Network connectivity issues for ${channel}`, SOURCE); }
-            else { log.error(`Recording error for ${channel}: ${err.message}`, SOURCE); }
-            reject(err);
-        });
-    });
+class LeanAutoRecord {
+    constructor(config) {
+        this.api = new SimpleTwitchAPI(config.appToken, config.clientId);
+        this.channels = new Map();
+        this.recording = new Set();
+        this.pollInterval = config.pollInterval || 60000;
+    }
+
+    loadChannelConfigs() {
+        try {
+            const configSystem = JSON.parse(fs.readFileSync('./configs/systems.json', 'utf8'));
+            const autoRecordConfig = configSystem.autoRecord || {};
+            
+            for (const [channel, config] of Object.entries(autoRecordConfig)) {
+                if (config.enabled) {
+                    validateTemplate(config.template || '%(channel)s - %(date)s %(time)s.%(ext)s');
+                    this.channels.set(channel, {
+                        quality: config.quality || 'best',
+                        template: config.template || '%(channel)s - %(date)s %(time)s.%(ext)s'
+                    });
+                }
+            }
+        } catch (error) {
+            log.error(`Failed to load channel configurations: ${error.message}`, SOURCE);
+        }
+    }
+
+    async start() {
+        // Create recordings directory
+        if (!fs.existsSync('recordings')) {
+            fs.mkdirSync('recordings', { recursive: true });
+        }
+
+        // Load channel configurations
+        this.loadChannelConfigs();
+
+        if (this.channels.size === 0) {
+            log.info('No channels configured for auto recording', SOURCE);
+            return;
+        }
+
+        // Start polling loop
+        this.poll();
+        setInterval(() => this.poll(), this.pollInterval);
+
+        log.info(`Auto recording started for ${this.channels.size} channels: ${Array.from(this.channels.keys()).join(', ')}`, SOURCE);
+    }
+
+    async poll() {
+        for (const [channel, config] of this.channels) {
+            try {
+                const isLive = await this.api.isChannelLive(channel);
+                
+                if (isLive && !this.recording.has(channel)) {
+                    this.startRecording(channel, config);
+                } else if (!isLive && this.recording.has(channel)) {
+                    this.stopRecording(channel);
+                }
+            } catch (error) {
+                log.error(`Error polling channel ${channel}: ${error.message}`, SOURCE);
+            }
+        }
+    }
+
+    startRecording(channel, config) {
+        try {
+            const filename = processFilenameTemplate(config.template, channel);
+            const outputPath = path.join('recordings', filename);
+            
+            const args = [
+                '--quiet',
+                '--output', outputPath,
+                '--ffmpeg-video-transcode', 'copy',
+                '--ffmpeg-audio-transcode', 'copy',
+                `https://twitch.tv/${channel}`,
+                config.quality
+            ];
+            
+            const proc = spawn('streamlink', args, { stdio: ['inherit', 'inherit', 'pipe'] });
+            
+            proc.stderr.on('data', (data) => {
+                log.info(`Streamlink: ${data.toString().trim()}`, SOURCE);
+            });
+            
+            proc.on('spawn', () => {
+                this.recording.add(channel);
+                log.info(`Recording started: ${outputPath}`, SOURCE);
+            });
+            
+            proc.on('close', (code) => {
+                this.recording.delete(channel);
+                log.info(`Recording ended with code ${code}: ${outputPath}`, SOURCE);
+            });
+            
+            proc.on('error', (err) => {
+                this.recording.delete(channel);
+                log.error(`Recording error for ${channel}: ${err.message}`, SOURCE);
+            });
+            
+        } catch (error) {
+            log.error(`Failed to start recording for ${channel}: ${error.message}`, SOURCE);
+        }
+    }
+
+    stopRecording(channel) {
+        if (this.recording.has(channel)) {
+            log.info(`Stopping recording for ${channel}`, SOURCE);
+            // Process will be cleaned up when it naturally ends
+            this.recording.delete(channel);
+        }
+    }
 }
 
 export default {
     name: 'autoRecord',
     data: {},
-    init(client) {
-        if (!fs.existsSync('recordings')) { fs.mkdirSync('recordings', { recursive: true }); }
-        const configSystem = JSON.parse(fs.readFileSync('./configs/systems.json', 'utf8'));
-        const config = configSystem[this.name][client._settings.name];
-        if (!config || !config.enabled) { log.info(`Auto recording disabled for ${client.channel}`, SOURCE); return; }
-        this.data[client.channel] = { ffmpeg: null, config };
-        client.api.addListener(EventTypes.stream_start, async (status) => {
-            if (this.data[client.channel].ffmpeg) { log.warn(`Recording already in progress for ${client.channel}`, SOURCE); return; }
-            try {
-                log.info(`Starting auto recording for ${client.channel}`, SOURCE);
-                const defaultTemplate = '%(channel)s - %(date)s %(time)s.%(ext)s';
-                const filenameTemplate = config.filenameTemplate || defaultTemplate;
-                const outputPath = path.join('recordings', filenameTemplate);
-                try { validateTemplate(filenameTemplate); }
-                catch (error) { log.error(`Invalid filename template for ${client.channel}: ${error.message}`, SOURCE); return; }
-                const processedPath = processFilenameTemplate(outputPath, client.channel);
-                const proc = await startRecording(client.channel, config, processedPath);
-                proc.on('close', (code) => {
-                    if (code === 0) { log.info(`Recording ended successfully: ${processedPath}`, SOURCE); }
-                    else { log.warn(`Recording ended with code ${code}: ${processedPath}`, SOURCE); }
-                    this.data[client.channel].ffmpeg = null;
-                });
-                proc.on('error', (err) => { log.error(`Recording error for ${client.channel}: ${err.message}`, SOURCE); this.data[client.channel].ffmpeg = null; });
-                this.data[client.channel].ffmpeg = proc;
-                log.info(`Live recording started: ${processedPath}`, SOURCE);
-            }
-            catch (error) { log.error(`Failed to start recording for ${client.channel}: ${error.message}`, SOURCE); }
+    
+    init(recorderConfig) {
+        // Skip bot-based initialization
+        if (recorderConfig && typeof recorderConfig === 'object' && recorderConfig._settings) {
+            log.info('autoRecord system detected bot-based initialization - skipping (use standalone mode with recorder config)', SOURCE);
+            return;
+        }
+
+        // Validate required recorder configuration
+        const required = ['appToken', 'clientId'];
+        const missing = required.filter(field => !recorderConfig[field]);
+        if (missing.length > 0) {
+            throw new Error(`Missing required fields: ${missing.join(', ')}`);
+        }
+
+        // Create and start the lean auto recorder
+        const recorder = new LeanAutoRecord(recorderConfig);
+        recorder.start().catch(err => {
+            log.error(`Failed to start auto recording: ${err.message}`, SOURCE);
         });
-        client.api.addListener(EventTypes.stream_end, () => { if (this.data[client.channel].ffmpeg) { log.info(`Stopping recording for ${client.channel}`, SOURCE); this.data[client.channel].ffmpeg.kill('SIGINT'); this.data[client.channel].ffmpeg = null; } });
     }
 };
