@@ -37,6 +37,7 @@ export class TwitchAPI extends EventEmitter {
         this._data.broadcasterRefresh = broadcasterRefresh;
         this._data.broadcasterTokenExpiry = broadcasterExpiry;
         this.eventsub = null;
+        this._wasLive = false;
     }
 
     async _apiRequest(url, method = 'GET', body = null, tokenType = 'app') {
@@ -222,7 +223,7 @@ export class TwitchAPI extends EventEmitter {
         try {
             const data = await this._apiRequest(`https://api.twitch.tv/helix/streams?user_login=${this._data.channel}`);
             const isLive = data.data.length > 0;
-            this.emit(isLive ? EventTypes.stream_start : EventTypes.stream_end, { channel: this._data.channel, live: isLive, started_at: isLive ? new Date(data.data[0].started_at).getTime() : 0 });
+            if (isLive !== this._wasLive) { this.emit(isLive ? EventTypes.stream_start : EventTypes.stream_end, { channel: this._data.channel, live: isLive, started_at: isLive ? new Date(data.data[0].started_at).getTime() : 0 }); this._wasLive = isLive; }
             return isLive;
         } catch (error) {
             this.emit('error', error.message);
