@@ -49,11 +49,11 @@ export default {
     init(client) {
         if (!fs.existsSync('recordings')) { fs.mkdirSync('recordings', { recursive: true }); }
         const configSystem = JSON.parse(fs.readFileSync('./configs/systems.json', 'utf8'));
-        const config = configSystem[this.name]?.[client._settings.name];
+        const config = configSystem[this.name].[client._settings.name];
         if (!config || !config.enabled) { log.info(`Auto recording disabled for ${client.channel}`, SOURCE); return; }
         this.data[client.channel] = { ffmpeg: null, config };
         client.api.addListener(EventTypes.stream_start, async (status) => {
-            if (this.data[client.channel]?.ffmpeg) { log.warn(`Recording already in progress for ${client.channel}`, SOURCE); return; }
+            if (this.data[client.channel].ffmpeg) { log.warn(`Recording already in progress for ${client.channel}`, SOURCE); return; }
             try {
                 log.info(`Starting auto recording for ${client.channel}`, SOURCE);
                 const defaultTemplate = '%(channel)s - %(date)s %(time)s.%(ext)s';
@@ -74,6 +74,6 @@ export default {
             }
             catch (error) { log.error(`Failed to start recording for ${client.channel}: ${error.message}`, SOURCE); }
         });
-        client.api.addListener(EventTypes.stream_end, () => { if (this.data[client.channel]?.ffmpeg) { log.info(`Stopping recording for ${client.channel}`, SOURCE); this.data[client.channel].ffmpeg.kill('SIGINT'); this.data[client.channel].ffmpeg = null; } });
+        client.api.addListener(EventTypes.stream_end, () => { if (this.data[client.channel].ffmpeg) { log.info(`Stopping recording for ${client.channel}`, SOURCE); this.data[client.channel].ffmpeg.kill('SIGINT'); this.data[client.channel].ffmpeg = null; } });
     }
 };
