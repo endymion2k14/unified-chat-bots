@@ -25,10 +25,11 @@ export function processFilenameTemplate(template, channel) {
 
 function startRecording(channel, config, outputPath) {
     return new Promise((resolve, reject) => {
-        const args = ['streamlink'];
+        const args = [];
+        args.push('--quiet');
         args.push('--output', outputPath);
         args.push('--ffmpeg-video-transcode', 'copy'); args.push('--ffmpeg-audio-transcode', 'copy');
-        args.push(`twitch.tv/${channel}`);
+        args.push(`https://twitch.tv/${channel}`);
         if (config.quality && config.quality !== 'best') { args.push(config.quality); }
         else { args.push('best'); }
         const proc = spawn('streamlink', args, { stdio: 'inherit' });
