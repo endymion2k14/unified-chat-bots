@@ -49,7 +49,7 @@ export default {
     init(client) {
         if (!fs.existsSync('recordings')) { fs.mkdirSync('recordings', { recursive: true }); }
         const configSystem = JSON.parse(fs.readFileSync('./configs/systems.json', 'utf8'));
-        const config = configSystem[this.name].[client._settings.name];
+        const config = configSystem[this.name][client._settings.name];
         if (!config || !config.enabled) { log.info(`Auto recording disabled for ${client.channel}`, SOURCE); return; }
         this.data[client.channel] = { ffmpeg: null, config };
         client.api.addListener(EventTypes.stream_start, async (status) => {
