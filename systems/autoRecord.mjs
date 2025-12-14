@@ -27,7 +27,7 @@ function startRecording(channel, config, outputPath) {
     return new Promise((resolve, reject) => {
         const args = ['streamlink'];
         args.push('--output', outputPath);
-        if (config.rateLimit) { args.push('--ffmpeg-video-transcode', 'copy'); args.push('--ffmpeg-audio-transcode', 'copy'); }
+        args.push('--ffmpeg-video-transcode', 'copy'); args.push('--ffmpeg-audio-transcode', 'copy');
         args.push(`twitch.tv/${channel}`);
         if (config.quality && config.quality !== 'best') { args.push(config.quality); }
         else { args.push('best'); }
