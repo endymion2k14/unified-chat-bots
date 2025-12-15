@@ -25,7 +25,7 @@ function generateFilename(channel) {
     const now = new Date();
     const date = now.toISOString().split('T')[0];
     const time = now.toTimeString().split(' ')[0].replace(/:/g, '-');
-    const template = '%(channel)s - %(date)s %(time)s.%(ext)s';
+    const template = '%(channel)s - %(date)s - %(time)s.%(ext)s';
     return template.replace('%(channel)s', channel).replace('%(date)s', date).replace('%(time)s', time).replace('%(ext)s', 'mp4');
 }
 
