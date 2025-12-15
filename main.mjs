@@ -48,7 +48,7 @@ async function start() {
     // Setup Recorder
     let recorderConfig = null;
     try { recorderConfig = json.load('configs/recorder.json'); } catch (error) { log.info('Recorder configuration not found - auto recording disabled', SOURCE); }
-    if (recorderConfig && recorderConfig.enabled) { import('./recorder/Recorder.mjs').then(recorderModule => { recorderSystem = recorderModule.default; recorderSystem.init(recorderConfig); }).catch(err => { log.error(`Failed to start Recorder system: ${err}`, SOURCE); }); }
+    if (recorderConfig && recorderConfig.enabled) { import('./recorder/recorder.mjs').then(recorderModule => { recorderSystem = recorderModule.default; recorderSystem.init(recorderConfig); }).catch(err => { log.error(`Failed to start Recorder system: ${err}`, SOURCE); }); }
 
     // Wait for all bots to be ready before starting webconsole
     if (readyPromises.length > 0) {

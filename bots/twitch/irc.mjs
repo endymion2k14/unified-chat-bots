@@ -238,10 +238,7 @@ export class TwitchIRC extends EventEmitter {
         this.reconnect();
     }
 
-    disconnect() {
-        this.isShuttingDown = true;
-        if (this.ws && this.ws.readyState === WebSocket.OPEN) { this.ws.close(1000, 'Graceful shutdown'); }
-    }
+    disconnect() { this.isShuttingDown = true; if (this.ws && this.ws.readyState === WebSocket.OPEN) { this.ws.close(1000, 'Graceful shutdown'); } }
 
     reconnect() {
         if (this.isShuttingDown) { return; }
