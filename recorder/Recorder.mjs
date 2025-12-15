@@ -25,7 +25,7 @@ function generateFilename(channel) {
     const now = new Date();
     const date = now.toISOString().split('T')[0];
     const time = now.toTimeString().split(' ')[0].replace(/:/g, '-');
-    const template = '%(channel)s - %(date)s - %(time)s.%(ext)s';
+    const template = '%(channel)s - %(date)s %(time)s.%(ext)s';
     return template.replace('%(channel)s', channel).replace('%(date)s', date).replace('%(time)s', time).replace('%(ext)s', 'mp4');
 }
 
@@ -38,7 +38,7 @@ class Recorder {
         this.pollInterval = config.pollInterval || 60000;
     }
     loadChannelConfigs() {
-        try { const autoRecordConfig = this.config.channels || {}; for (const [channel, config] of Object.entries(autoRecordConfig)) { if (config.enabled) { this.channels.set(channel, { quality: config.quality || 'best' }); } } }
+        try { const recorderConfig = this.config.channels || {}; for (const [channel, config] of Object.entries(recorderConfig)) { if (config.enabled) { this.channels.set(channel, { quality: config.quality || 'best' }); } } }
         catch (error) { log.error(`Failed to load channel configurations: ${error.message}`, SOURCE); }
     }
     async start() {
