@@ -10,6 +10,7 @@ const clientsTwitch = [];
 const clientsOBS = [];
 let webConsole;
 let readyPromises = [];
+let recorderSystem = null;
 
 async function start() {
     log.info('Loading settings');
@@ -47,7 +48,7 @@ async function start() {
     // Setup Recorder
     let recorderConfig = null;
     try { recorderConfig = json.load('configs/recorder.json'); } catch (error) { log.info('Recorder configuration not found - auto recording disabled', SOURCE); }
-    if (recorderConfig && recorderConfig.enabled) { import('./recorder/Recorder.mjs').then(recorderSystem => { recorderSystem.default.init(recorderConfig); }).catch(err => { log.error(`Failed to start Recorder system: ${err}`, SOURCE); }); }
+    if (recorderConfig && recorderConfig.enabled) { import('./recorder/Recorder.mjs').then(recorderModule => { recorderSystem = recorderModule.default; recorderSystem.init(recorderConfig); }).catch(err => { log.error(`Failed to start Recorder system: ${err}`, SOURCE); }); }
 
     // Wait for all bots to be ready before starting webconsole
     if (readyPromises.length > 0) {
@@ -78,6 +79,8 @@ async function gracefulShutdown() {
     clientsOBS.forEach(client => { if (client && typeof client.disconnect === 'function') { shutdownPromises.push( client.disconnect().catch(err => log.error(`Error disconnecting OBS client: ${err}`, SOURCE)) ); } });
     // Shutdown Web Console
     if (webConsole && typeof webConsole.stop === 'function') { shutdownPromises.push( webConsole.stop().catch(err => log.error(`Error stopping web console: ${err}`, SOURCE)) ); }
+    // Shutdown Recorder
+    if (recorderSystem) { shutdownPromises.push( recorderSystem.shutdown().catch(err => log.error(`Error shutting down recorder: ${err}`, SOURCE)) ); }
     // Wait for all shutdown operations to complete, with timeout
     const shutdownTimeout = 10000; // 10 seconds
     await Promise.race([ Promise.all(shutdownPromises), new Promise(resolve => setTimeout(resolve, shutdownTimeout)) ]);

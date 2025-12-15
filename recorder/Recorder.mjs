@@ -35,6 +35,7 @@ class Recorder {
         this.api = new APIClient(config.appToken, config.clientId);
         this.channels = new Map();
         this.recording = new Set();
+        this.processes = new Map();
         this.pollInterval = config.pollInterval || 60000;
     }
     loadChannelConfigs() {
@@ -61,24 +62,41 @@ class Recorder {
             const outputPath = path.join('recordings', filename);
             const args = [ '--quiet', '--output', outputPath, '--ffmpeg-video-transcode', 'copy', '--ffmpeg-audio-transcode', 'copy', `https://twitch.tv/${channel}`, config.quality ];
             const proc = spawn('streamlink', args, { stdio: ['inherit', 'inherit', 'pipe'] });
+            this.processes.set(channel, proc);
             proc.stderr.on('data', (data) => { log.info(`Streamlink: ${data.toString().trim()}`, SOURCE); });
             proc.on('spawn', () => { this.recording.add(channel); log.info(`Recording started: ${outputPath}`, SOURCE); });
-            proc.on('close', (code) => { this.recording.delete(channel); log.info(`Recording ended with code ${code}: ${outputPath}`, SOURCE); });
-            proc.on('error', (err) => { this.recording.delete(channel); log.error(`Recording error for ${channel}: ${err.message}`, SOURCE); });
+            proc.on('close', (code) => { this.recording.delete(channel); this.processes.delete(channel); log.info(`Recording ended with code ${code}: ${outputPath}`, SOURCE); });
+            proc.on('error', (err) => { this.recording.delete(channel); this.processes.delete(channel); log.error(`Recording error for ${channel}: ${err.message}`, SOURCE); });
         }
         catch (error) { log.error(`Failed to start recording for ${channel}: ${error.message}`, SOURCE); }
     }
     stopRecording(channel) {
-        if (this.recording.has(channel)) { log.info(`Stopping recording for ${channel}`, SOURCE); this.recording.delete(channel); }
+        if (this.recording.has(channel)) {
+            log.info(`Stopping recording for ${channel}`, SOURCE);
+            const proc = this.processes.get(channel);
+            if (proc && !proc.killed) { proc.kill('SIGTERM'); setTimeout(() => { if (!proc.killed) { proc.kill('SIGKILL'); } }, 5000); }
+            this.recording.delete(channel);
+            this.processes.delete(channel);
+        }
+    }
+    async shutdown() {
+        log.info('Shutting down recorder...', SOURCE);
+        const channels = Array.from(this.recording);
+        for (const channel of channels) { this.stopRecording(channel); }
+        await new Promise(resolve => setTimeout(resolve, 6000));
+        log.info('Recorder shutdown complete', SOURCE);
     }
 }
+
+let recorderInstance = null;
 
 export default {
     init(recorderConfig) {
         const required = ['appToken', 'clientId'];
         const missing = required.filter(field => !recorderConfig[field]);
         if (missing.length > 0) { throw new Error(`Missing required fields: ${missing.join(', ')}`); }
-        const recorder = new Recorder(recorderConfig);
-        recorder.start().catch(err => { log.error(`Failed to start auto recording: ${err.message}`, SOURCE); });
-    }
+        recorderInstance = new Recorder(recorderConfig);
+        recorderInstance.start().catch(err => { log.error(`Failed to start auto recording: ${err.message}`, SOURCE); });
+    },
+    async shutdown() { if (recorderInstance) { await recorderInstance.shutdown(); } }
 };
