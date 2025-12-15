@@ -41,13 +41,6 @@
       ]
     }
   },
-  "autoRecord": {
-    "channel1": {
-      "enabled": false,
-      "quality": "best",
-      "template": "%(channel)s - %(date)s %(time)s.%(ext)s"
-    }
-  },
   "followers": {
     "secrets.json.bot.config.name": {
       "message": "Thank you for following, {username}"

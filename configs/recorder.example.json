@@ -1,0 +1,16 @@
+{
+  "enabled": false,
+  "appToken": "recorder_app_token",
+  "clientId": "recorder_client_id",
+  "pollInterval": 60000,
+  "channels": {
+    "channel1": {
+      "enabled": false,
+      "quality": "best"
+    },
+    "channel2": {
+      "enabled": false,
+      "quality": "720p"
+    }
+  }
+}

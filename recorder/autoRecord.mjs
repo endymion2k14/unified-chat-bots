@@ -3,14 +3,14 @@ import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
-const SOURCE = 'Twitch-autoRecord';
+const SOURCE = 'Recorder';
 
-class TwitchAPIClient {
+class APIClient {
     constructor(appToken, clientId) {
         this.appToken = appToken;
         this.clientId = clientId;
     }
-    async isChannelLive(channel) {
+    async isTwitchChannelLive(channel) {
         try {
             const response = await fetch( `https://api.twitch.tv/helix/streams?user_login=${channel}`, { headers: { 'Client-ID': this.clientId, 'Authorization': `Bearer ${this.appToken}`, 'Content-Type': 'application/json' } } );
             if (!response.ok) { throw new Error(`HTTP ${response.status}`); }
@@ -21,39 +21,24 @@ class TwitchAPIClient {
     }
 }
 
-function validateFilenameTemplate(template) {
-    const requiredVars = ['%(channel)s', '%(date)s', '%(time)s', '%(ext)s'];
-    const hasAllRequired = requiredVars.every(variable => template.includes(variable));
-    if (!hasAllRequired) { throw new Error('Template must include channel, date, time, and ext variables'); }
-    return true;
-}
-
-function generateFilename(template, channel) {
+function generateFilename(channel) {
     const now = new Date();
     const date = now.toISOString().split('T')[0];
     const time = now.toTimeString().split(' ')[0].replace(/:/g, '-');
-    return template .replace('%(channel)s', channel) .replace('%(date)s', date) .replace('%(time)s', time) .replace('%(ext)s', 'mp4');
+    const template = '%(channel)s - %(date)s - %(time)s.%(ext)s';
+    return template.replace('%(channel)s', channel).replace('%(date)s', date).replace('%(time)s', time).replace('%(ext)s', 'mp4');
 }
 
-class TwitchRecorder {
+class Recorder {
     constructor(config) {
-        this.api = new TwitchAPIClient(config.appToken, config.clientId);
+        this.config = config;
+        this.api = new APIClient(config.appToken, config.clientId);
         this.channels = new Map();
         this.recording = new Set();
         this.pollInterval = config.pollInterval || 60000;
     }
     loadChannelConfigs() {
-        try {
-            const configSystem = JSON.parse(fs.readFileSync('./configs/systems.json', 'utf8'));
-            const autoRecordConfig = configSystem.autoRecord || {};
-            
-            for (const [channel, config] of Object.entries(autoRecordConfig)) {
-                if (config.enabled) {
-                    validateFilenameTemplate(config.template || '%(channel)s - %(date)s %(time)s.%(ext)s');
-                    this.channels.set(channel, { quality: config.quality || 'best', template: config.template || '%(channel)s - %(date)s %(time)s.%(ext)s' });
-                }
-            }
-        }
+        try { const autoRecordConfig = this.config.channels || {}; for (const [channel, config] of Object.entries(autoRecordConfig)) { if (config.enabled) { this.channels.set(channel, { quality: config.quality || 'best' }); } } }
         catch (error) { log.error(`Failed to load channel configurations: ${error.message}`, SOURCE); }
     }
     async start() {
@@ -66,13 +51,13 @@ class TwitchRecorder {
     }
     async poll() {
         for (const [channel, config] of this.channels) {
-            try { const isLive = await this.api.isChannelLive(channel); if (isLive && !this.recording.has(channel)) { this.startRecording(channel, config); } else if (!isLive && this.recording.has(channel)) { this.stopRecording(channel); } }
+            try { const isLive = await this.api.isTwitchChannelLive(channel); if (isLive && !this.recording.has(channel)) { this.startRecording(channel, config); } else if (!isLive && this.recording.has(channel)) { this.stopRecording(channel); } }
             catch (error) { log.error(`Error polling channel ${channel}: ${error.message}`, SOURCE); }
         }
     }
     startRecording(channel, config) {
         try {
-            const filename = generateFilename(config.template, channel);
+            const filename = generateFilename(channel);
             const outputPath = path.join('recordings', filename);
             const args = [ '--quiet', '--output', outputPath, '--ffmpeg-video-transcode', 'copy', '--ffmpeg-audio-transcode', 'copy', `https://twitch.tv/${channel}`, config.quality ];
             const proc = spawn('streamlink', args, { stdio: ['inherit', 'inherit', 'pipe'] });
@@ -89,13 +74,11 @@ class TwitchRecorder {
 }
 
 export default {
-    name: 'autoRecord',
     init(recorderConfig) {
-        if (recorderConfig && typeof recorderConfig === 'object' && recorderConfig._settings) { log.info('autoRecord system detected bot-based initialization - skipping (use standalone mode with recorder config)', SOURCE); return; }
         const required = ['appToken', 'clientId'];
         const missing = required.filter(field => !recorderConfig[field]);
         if (missing.length > 0) { throw new Error(`Missing required fields: ${missing.join(', ')}`); }
-        const recorder = new TwitchRecorder(recorderConfig);
+        const recorder = new Recorder(recorderConfig);
         recorder.start().catch(err => { log.error(`Failed to start auto recording: ${err.message}`, SOURCE); });
     }
 };
