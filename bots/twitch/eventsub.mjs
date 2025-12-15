@@ -14,6 +14,7 @@ export class TwitchEventSub extends EventEmitter {
         this.reconnectAttempts = 0;
         this.subscriptions = new Map();
         this.channel = channel;
+        this.isShuttingDown = false;
         this.connect();
     }
 
@@ -23,6 +24,7 @@ export class TwitchEventSub extends EventEmitter {
         this.ws.on('message', (data) => { try { const message = JSON.parse(data.toString()); this.handleMessage(message); } catch (err) { log.error(`Failed to parse EventSub message: ${err}`, `${SOURCE}-${this.channel}`); } });
         this.ws.on('error', (error) => { log.error(`EventSub WS error: ${error}`, `${SOURCE}-${this.channel}`); });
         this.ws.on('close', (code, reason) => {
+            if (this.isShuttingDown) { log.info(`WS closed during shutdown (code=${code} reason=${reason})`, `${SOURCE}-${this.channel}`); this.sessionId = null; return; }
             log.warn(`WS closed (code=${code} reason=${reason}). Reconnecting...`, `${SOURCE}-${this.channel}`);
             this.sessionId = null;
             // Twitch or ISP dropped the connection. Give Twitch 1 minute to properly close the connection.
@@ -59,6 +61,7 @@ export class TwitchEventSub extends EventEmitter {
     }
 
     reconnect() {
+        if (this.isShuttingDown) { return; }
         if (this.reconnectAttempts >= 5) { log.error('Max EventSub reconnect attempts reached', `${SOURCE}-${this.channel}`); return; }
         const delay = Math.min(1000 * Math.pow(2, this.reconnectAttempts), 30000);
         setTimeout(() => { this.reconnectAttempts++; this.connect(); }, delay);
@@ -119,6 +122,7 @@ export class TwitchEventSub extends EventEmitter {
     async disconnect() {
         log.info('Disconnecting EventSub...', `${SOURCE}-${this.channel}`);
         try {
+            this.isShuttingDown = true;
             this.reconnectAttempts = 999;
             await this.unsubscribeAll();
             if (this.ws && this.ws.readyState === WebSocket.OPEN) { this.ws.close(1000, 'Graceful shutdown'); this.ws = null; }

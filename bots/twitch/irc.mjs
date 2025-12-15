@@ -43,6 +43,7 @@ export class TwitchIRC extends EventEmitter {
         // Socket
         this.reconnectAttempts  = 0;
         this.ws                 = null;
+        this.isShuttingDown     = false;
 
         // Rate-limit
         this.messageQueue       = [];
@@ -232,19 +233,20 @@ export class TwitchIRC extends EventEmitter {
     handleError(error) { log.error(`WS error: ${error}`, `${SOURCE}-${this.channel}`); }
 
     handleClose(code, reason) {
+        if (this.isShuttingDown) { log.info(`WS closed during shutdown (code=${code} reason=${reason})`, `${SOURCE}-${this.channel}`); return; }
         log.warn(`WS closed (code=${code} reason=${reason}). Reconnecting...`, `${SOURCE}-${this.channel}`);
         this.reconnect();
     }
 
+    disconnect() {
+        this.isShuttingDown = true;
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) { this.ws.close(1000, 'Graceful shutdown'); }
+    }
+
     reconnect() {
-        if (this.reconnectAttempts >= 10) {
-            this.emit(EventTypes.disconnect, { message: 'Max reconnect attempts reached! Disconnected.' });
-            return;
-        }
+        if (this.isShuttingDown) { return; }
+        if (this.reconnectAttempts >= 10) { this.emit(EventTypes.disconnect, { message: 'Max reconnect attempts reached! Disconnected.' }); return; }
         const delay = Math.min(1000 * 1 * this.reconnectAttempts, maxReconnectDelay);
-        setTimeout(_ => {
-            this.reconnectAttempts++;
-            this.connect();
-        }, delay);
+        setTimeout(_ => { this.reconnectAttempts++; this.connect(); }, delay);
     }
 }
