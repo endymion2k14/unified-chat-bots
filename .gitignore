@@ -1,9 +1,11 @@
 .idea/
 node_modules/
+recordings/
 package-lock.json
 configs/config.json
 configs/secrets.json
 configs/commands.json
+configs/recorder.json
 configs/systems.json
 commands/test.mjs
 systems/test.mjs
