@@ -87,7 +87,7 @@
               "sceneName": null,
               "sourceName": "Follower-Placeholder",
               "text": "Welcome {user_name}!",
-              "botIndex": 0
+              "obsName": "obs.bot.name"
             },
             {
               "type": "setSourceEnabled",
@@ -96,7 +96,7 @@
               "enabled": true,
               "delay": 1,
               "duration": 7,
-              "botIndex": 0
+              "obsName": "obs.bot.name"
             },
             {
               "type": "setSourceEnabled",
@@ -105,7 +105,7 @@
               "enabled": true,
               "delay": 0,
               "duration": 9,
-              "botIndex": 0
+              "obsName": "obs.bot.name"
             },
             {
               "type": "setSourceEnabled",
@@ -114,7 +114,7 @@
               "enabled": true,
               "delay": 0,
               "duration": 5,
-              "botIndex": 0
+              "obsName": "obs.bot.name"
             }
           ]
         },
@@ -126,7 +126,7 @@
               "sceneName": null,
               "sourceName": "Raid-Placeholder",
               "text": "{user_name} raided with {viewer_count} viewers!",
-              "botIndex": 0
+              "obsName": "obs.bot.name"
             },
             {
               "type": "setSourceEnabled",
@@ -135,7 +135,7 @@
               "enabled": true,
               "delay": 1,
               "duration": 7,
-              "botIndex": 0
+              "obsName": "obs.bot.name"
             },
             {
               "type": "setSourceEnabled",
@@ -144,7 +144,7 @@
               "enabled": true,
               "delay": 0,
               "duration": 9,
-              "botIndex": 0
+              "obsName": "obs.bot.name"
             },
             {
               "type": "setSourceEnabled",
@@ -153,7 +153,7 @@
               "enabled": true,
               "delay": 0,
               "duration": 15,
-              "botIndex": 0
+              "obsName": "obs.bot.name"
             }
           ]
         },
@@ -167,7 +167,7 @@
               "enabled": true,
               "delay": 0,
               "duration": 5,
-              "botIndex": 0
+              "obsName": "obs.bot.name"
             }
           ]
         }

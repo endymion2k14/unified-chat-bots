@@ -39,9 +39,10 @@ export default {
     },
 
     async executeAction(client, action, event, getCurrentSceneCached = null) {
-        const botIndex = action.botIndex || 0;
-        if (botIndex < 0 || botIndex >= client.obsClients.length) { throw new Error(`Invalid bot index: ${botIndex}`); }
-        const obsClient = client.obsClients[botIndex];
+        const obsName = action.obsName;
+        if (!obsName) { throw new Error('obsName required for action'); }
+        const obsClient = client.obsClients.find(c => c._settings.name === obsName);
+        if (!obsClient) { throw new Error(`OBS client with name '${obsName}' not found`); }
 
         switch (action.type) {
             case 'changeScene':
