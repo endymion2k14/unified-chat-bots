@@ -37,13 +37,16 @@ class Recorder {
         this.recording = new Set();
         this.processes = new Map();
         this.pollInterval = config.pollInterval || 60000;
+        this.recordingsDir = config.recordingsDir || './recordings';
     }
     loadChannelConfigs() {
         try { const recorderConfig = this.config.channels || {}; for (const [channel, config] of Object.entries(recorderConfig)) { if (config.enabled) { this.channels.set(channel, { quality: config.quality || 'best' }); } } }
         catch (error) { log.error(`Failed to load channel configurations: ${error.message}`, SOURCE); }
     }
     async start() {
-        if (!fs.existsSync('recordings')) { fs.mkdirSync('recordings', { recursive: true }); }
+        const dirToCheck = fs.existsSync(this.recordingsDir) ? this.recordingsDir : path.dirname(this.recordingsDir);
+        try { await fs.promises.access(dirToCheck, fs.constants.W_OK); } catch (error) { throw new Error(`Recordings directory '${this.recordingsDir}' is not writable: ${error.message}`); }
+        if (!fs.existsSync(this.recordingsDir)) { fs.mkdirSync(this.recordingsDir, { recursive: true }); }
         this.loadChannelConfigs();
         if (this.channels.size === 0) { log.info('No channels configured for auto recording', SOURCE); return; }
         this.poll();
@@ -59,7 +62,7 @@ class Recorder {
     startRecording(channel, config) {
         try {
             const filename = generateFilename(channel);
-            const outputPath = path.join('recordings', filename);
+            const outputPath = path.join(this.recordingsDir, filename);
             const args = [ '--quiet', '--output', outputPath, '--ffmpeg-video-transcode', 'copy', '--ffmpeg-audio-transcode', 'copy', `https://twitch.tv/${channel}`, config.quality ];
             const proc = spawn('streamlink', args, { stdio: ['inherit', 'inherit', 'pipe'] });
             this.processes.set(channel, proc);

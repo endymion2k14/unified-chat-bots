@@ -27,21 +27,36 @@ export default {
 
         // Cache current scene for this event batch to avoid multiple OBS calls
         let currentSceneCache = null;
-        const getCurrentSceneCached = async (obsClient) => {
-            if (currentSceneCache === null) { currentSceneCache = await obsClient.getCurrentScene(); }
-            return currentSceneCache;
-        };
+        const getCurrentSceneCached = async (obsClient) => { if (currentSceneCache === null) { currentSceneCache = await obsClient.getCurrentScene(); } return currentSceneCache; };
 
-        for (const action of integration.actions) {
-            try { await this.executeAction(client, action, event, getCurrentSceneCached); }
-            catch (error) { log.error(`Failed to execute OBS action: ${error.message}`, `${SOURCE}-${client._settings.name}`); }
-        }
+        for (const action of integration.actions) { try { await this.executeAction(client, action, event, getCurrentSceneCached); } catch (error) { log.error(`Failed to execute OBS action: ${error.message}`, `${SOURCE}-${client._settings.name}`); } }
+    },
+
+    replaceActionPlaceholders(action, event) {
+        // Replaces placeholders in action fields (e.g., '{sourceName}' -> 'Alert-Sound', '{delay}' -> 0)
+        const placeholders = {
+            '{user_name}': event.user_name || '',
+            '{user_login}': event.user_login || '',
+            '{display_name}': event.display_name || '',
+            '{viewer_count}': event.viewer_count || '',
+            '{sourceName}': event.sourceName || '',
+            '{delay}': event.delay || 0,
+            '{duration}': event.duration || 0
+        };
+        for (let key in action) { if (typeof action[key] === 'string') { action[key] = action[key].replace(/{user_name}|{user_login}|{display_name}|{viewer_count}|{sourceName}|{delay}|{duration}/g, match => placeholders[match]); } }
+        // Convert numeric placeholders to numbers
+        if (typeof action.delay === 'string') action.delay = parseInt(action.delay) || 0;
+        if (typeof action.duration === 'string') action.duration = parseInt(action.duration) || 0;
     },
 
     async executeAction(client, action, event, getCurrentSceneCached = null) {
-        const botIndex = action.botIndex || 0;
-        if (botIndex < 0 || botIndex >= client.obsClients.length) { throw new Error(`Invalid bot index: ${botIndex}`); }
-        const obsClient = client.obsClients[botIndex];
+        // Replace placeholders in action fields
+        this.replaceActionPlaceholders(action, event);
+
+        const obsName = action.obsName;
+        if (!obsName) { throw new Error('obsName required for action'); }
+        const obsClient = client.obsClients.find(c => c._settings.name === obsName);
+        if (!obsClient) { throw new Error(`OBS client with name '${obsName}' not found`); }
 
         switch (action.type) {
             case 'changeScene':
@@ -63,14 +78,6 @@ export default {
                 if (!action.sourceName) { throw new Error('sourceName required for setTextSource action'); }
                 const textSceneName = action.sceneName || (getCurrentSceneCached ? await getCurrentSceneCached(obsClient) : await obsClient.getCurrentScene());
                 let text = action.text || '';
-                // Replace placeholders with event data (optimized)
-                const placeholders = {
-                    '{user_name}': event.user_name || '',
-                    '{user_login}': event.user_login || '',
-                    '{display_name}': event.display_name || '',
-                    '{viewer_count}': event.viewer_count || ''
-                };
-                text = text.replace(/{user_name}|{user_login}|{display_name}|{viewer_count}/g, match => placeholders[match]);
                 await obsClient.setTextSource(textSceneName, action.sourceName, text);
                 break;
             case 'setAudioMute':
