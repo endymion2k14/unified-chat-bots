@@ -170,10 +170,40 @@
               "obsName": "obs.bot.name"
             }
           ]
+        },
+        {
+          "event": "personGreet",
+          "actions": [
+            {
+              "type": "setSourceEnabled",
+              "sourceName": "{sourceName}",
+              "enabled": true,
+              "delay": "{delay}",
+              "duration": "{duration}",
+              "obsName": "obs.bot.name"
+            }
+          ]
         }
       ]
     }
    },
+  "personGreeter": {
+    "secrets.json.bot.config.name": {
+      "enabled": true,
+      "users": {
+        "username1": {
+          "sourceName": "OBS_Source_Name_1",
+          "delay": 0,
+          "duration": 10
+        },
+        "username2": {
+          "sourceName": "OBS_Source_Name_2",
+          "delay": 2,
+          "duration": 15
+        }
+      }
+    }
+  },
   "welcome": {
     "secrets.json.bot.config.name": {
       "first": ["message.goes.here", "Other.message"],
