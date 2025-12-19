@@ -27,15 +27,9 @@ export default {
 
         // Cache current scene for this event batch to avoid multiple OBS calls
         let currentSceneCache = null;
-        const getCurrentSceneCached = async (obsClient) => {
-            if (currentSceneCache === null) { currentSceneCache = await obsClient.getCurrentScene(); }
-            return currentSceneCache;
-        };
+        const getCurrentSceneCached = async (obsClient) => { if (currentSceneCache === null) { currentSceneCache = await obsClient.getCurrentScene(); } return currentSceneCache; };
 
-        for (const action of integration.actions) {
-            try { await this.executeAction(client, action, event, getCurrentSceneCached); }
-            catch (error) { log.error(`Failed to execute OBS action: ${error.message}`, `${SOURCE}-${client._settings.name}`); }
-        }
+        for (const action of integration.actions) { try { await this.executeAction(client, action, event, getCurrentSceneCached); } catch (error) { log.error(`Failed to execute OBS action: ${error.message}`, `${SOURCE}-${client._settings.name}`); } }
     },
 
     replaceActionPlaceholders(action, event) {
@@ -49,11 +43,7 @@ export default {
             '{delay}': event.delay || 0,
             '{duration}': event.duration || 0
         };
-        for (let key in action) {
-            if (typeof action[key] === 'string') {
-                action[key] = action[key].replace(/{user_name}|{user_login}|{display_name}|{viewer_count}|{sourceName}|{delay}|{duration}/g, match => placeholders[match]);
-            }
-        }
+        for (let key in action) { if (typeof action[key] === 'string') { action[key] = action[key].replace(/{user_name}|{user_login}|{display_name}|{viewer_count}|{sourceName}|{delay}|{duration}/g, match => placeholders[match]); } }
         // Convert numeric placeholders to numbers
         if (typeof action.delay === 'string') action.delay = parseInt(action.delay) || 0;
         if (typeof action.duration === 'string') action.duration = parseInt(action.duration) || 0;
