@@ -41,6 +41,13 @@
       ]
     }
   },
+  "banHandler": {
+    "secrets.json.bot.config.name": {
+      "enabled": true,
+      "cleanup_systems": ["gptrecap", "gptknows"],
+      "log_cleanup": true
+    }
+  },
   "followers": {
     "secrets.json.bot.config.name": {
       "message": "Thank you for following, {username}"
