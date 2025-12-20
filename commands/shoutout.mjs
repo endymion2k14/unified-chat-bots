@@ -16,7 +16,7 @@ export default {
                 if (streamInfo) { lastPlayedGame = streamInfo.game_name; messageTemplate = config.streamingMessage || `BIG SHOUTOUT TO @${username}, they are currently streaming in the ${lastPlayedGame} category @ https://www.twitch.tv/${username}`; }
                 else { messageTemplate = config.offlineMessage || `BIG SHOUTOUT TO @${username}, ${lastPlayedGame} @ https://www.twitch.tv/${username}`; }
                  const message = messageTemplate.replace(/{username}/g, username).replace(/{lastplayed}/g, lastPlayedGame);
-                 if (client._settings.settings.ircTokenSource === 'bot') { client.api.sendAnnouncement(userInfo.id, message); }
+                 if (client._settings.settings.ircTokenSource === 'bot') { client.api.sendAnnouncement(client.api._data.roomId, message); }
                  else { client.sendMessage(message); }
             } catch (error) { client.sendMessage(`Error checking user: ${error}`); }
         } else { client.sendMessage(`You need to be at least a Moderator to use this command ${event.username}.`); }
