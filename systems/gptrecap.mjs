@@ -56,6 +56,8 @@ export default {
         });
     },
 
+    removeUser(channel, username) { if (this.data[channel].userMessages[username]) { delete this.data[channel].userMessages[username]; return true; } return false; },
+
     async getResponse(messages = []) {
         if (!this.ollama) { throw('Unable to contact GPT without its info being initialized.'); }
         return await this.ollama.chat({ model: this.model, stream: false, messages: messages });

@@ -27,6 +27,8 @@ export default {
         client.api.addListener(EventTypes.stream_end, status => { if (!this.data[client.channel].live) { return; } this.data[client.channel].live = false; this.data[client.channel].userMessages = {}; log.info(`Clearing GPTKnows information for channel ${client.channel}`, SOURCE); });
     },
 
+    removeUser(channel, username) { if (this.data[channel].userMessages[username]) { delete this.data[channel].userMessages[username]; return true; } return false; },
+
     async getResponse(messages = []) {
         if (!this.ollama) { throw('Unable to contact GPT without its info being initialized.'); }
         return await this.ollama.chat({ model: this.model, stream: false, messages: messages });

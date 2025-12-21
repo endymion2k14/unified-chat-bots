@@ -151,14 +151,14 @@ export class TwitchAPI extends EventEmitter {
     // https://dev.twitch.tv/docs/api/reference#get-users
     async getAccountInfo(username) {
         const data = await this._apiRequest(`https://api.twitch.tv/helix/users?login=${username}`);
-        if (!data.data || data.data.length < 1) { log.warn('Error parsing json from account info', `${SOURCE}-${this._data.channel}`); return; }
+        if (!data.data || data.data.length < 1) { log.warn('User account not found (no user data returned)', `${SOURCE}-${this._data.channel}`); return; }
         return data.data[0];
     }
 
     // https://dev.twitch.tv/docs/api/reference#get-streams
     async getStreamInfo(broadcasterId) {
         const data = await this._apiRequest(`https://api.twitch.tv/helix/streams?user_id=${broadcasterId}`);
-        if (!data.data || data.data.length < 1) { log.warn('Error parsing json from stream info', `${SOURCE}-${this._data.channel}`); return; }
+        if (!data.data || data.data.length < 1) { log.warn('User is not currently streaming (no active stream data found)', `${SOURCE}-${this._data.channel}`); return; }
         return data.data[0];
     }
 

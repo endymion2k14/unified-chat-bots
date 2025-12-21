@@ -2,7 +2,7 @@ import { equals, getTimeDifference } from '../utils.mjs';
 
 export default {
     name: 'followage',
-    aliases: ['followtime', 'followed'],
+    aliases: ['fa', 'followtime', 'followed'],
     systems: ['followers'],
     async reply(params, client, event) {
         const system = client.getSystem('followers');
