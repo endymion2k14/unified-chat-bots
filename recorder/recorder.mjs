@@ -21,12 +21,13 @@ class APIClient {
     }
 }
 
-function generateFilename(channel) {
+function generateFilename(channel, config) {
     const now = new Date();
     const date = now.toISOString().split('T')[0];
     const time = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+    const ext = config.quality === 'audio_only' ? 'mp3' : 'mp4';
     const template = '%(channel)s - %(date)s - %(time)s.%(ext)s';
-    return template.replace('%(channel)s', channel).replace('%(date)s', date).replace('%(time)s', time).replace('%(ext)s', 'mp4');
+    return template.replace('%(channel)s', channel).replace('%(date)s', date).replace('%(time)s', time).replace('%(ext)s', ext);
 }
 
 class Recorder {
@@ -61,15 +62,30 @@ class Recorder {
     }
     startRecording(channel, config) {
         try {
-            const filename = generateFilename(channel);
+            const filename = generateFilename(channel, config);
             const outputPath = path.join(this.recordingsDir, filename);
-            const args = [ '--quiet', '--output', outputPath, '--ffmpeg-video-transcode', 'copy', '--ffmpeg-audio-transcode', 'copy', `https://twitch.tv/${channel}`, config.quality ];
-            const proc = spawn('streamlink', args, { stdio: ['inherit', 'inherit', 'pipe'] });
-            this.processes.set(channel, proc);
-            proc.stderr.on('data', (data) => { log.info(`Streamlink: ${data.toString().trim()}`, SOURCE); });
-            proc.on('spawn', () => { this.recording.add(channel); log.info(`Recording started: ${outputPath}`, SOURCE); });
-            proc.on('close', (code) => { this.recording.delete(channel); this.processes.delete(channel); log.info(`Recording ended with code ${code}: ${outputPath}`, SOURCE); });
-            proc.on('error', (err) => { this.recording.delete(channel); this.processes.delete(channel); log.error(`Recording error for ${channel}: ${err.message}`, SOURCE); });
+            if (config.quality === 'audio_only') {
+                const streamlinkArgs = [ '--quiet', '--stdout', '--ffmpeg-video-transcode', 'copy', '--ffmpeg-audio-transcode', 'copy', `https://twitch.tv/${channel}`, config.quality ];
+                const streamlinkProc = spawn('streamlink', streamlinkArgs, { stdio: ['inherit', 'pipe', 'pipe'] });
+                const ffmpegArgs = ['-i', 'pipe:0', '-c:a', 'libmp3lame', '-b:a', '320k', '-f', 'mp3', outputPath];
+                const ffmpegProc = spawn('ffmpeg', ffmpegArgs, { stdio: ['pipe', 'inherit', 'pipe'] });
+                streamlinkProc.stdout.pipe(ffmpegProc.stdin);
+                this.processes.set(channel, { streamlink: streamlinkProc, ffmpeg: ffmpegProc });
+                streamlinkProc.stderr.on('data', (data) => { log.info(`Streamlink (${channel}): ${data.toString().trim()}`, SOURCE); });
+                ffmpegProc.stderr.on('data', (data) => { log.info(`FFmpeg (${channel}): ${data.toString().trim()}`, SOURCE); });
+                streamlinkProc.on('spawn', () => { this.recording.add(channel); log.info(`Recording started (MP3): ${outputPath}`, SOURCE); });
+                streamlinkProc.on('error', (err) => { this.stopRecording(channel); log.error(`Streamlink error for ${channel}: ${err.message}`, SOURCE); });
+                ffmpegProc.on('error', (err) => { this.stopRecording(channel); log.error(`FFmpeg error for ${channel}: ${err.message}`, SOURCE); });
+                ffmpegProc.on('close', (code) => { this.stopRecording(channel); log.info(`Recording ended with ffmpeg code ${code}: ${outputPath}`, SOURCE); });
+            } else {
+                const args = [ '--quiet', '--output', outputPath, '--ffmpeg-video-transcode', 'copy', '--ffmpeg-audio-transcode', 'copy', `https://twitch.tv/${channel}`, config.quality ];
+                const proc = spawn('streamlink', args, { stdio: ['inherit', 'inherit', 'pipe'] });
+                this.processes.set(channel, proc);
+                proc.stderr.on('data', (data) => { log.info(`Streamlink (${channel}): ${data.toString().trim()}`, SOURCE); });
+                proc.on('spawn', () => { this.recording.add(channel); log.info(`Recording started: ${outputPath}`, SOURCE); });
+                proc.on('close', (code) => { this.recording.delete(channel); this.processes.delete(channel); log.info(`Recording ended with code ${code}: ${outputPath}`, SOURCE); });
+                proc.on('error', (err) => { this.recording.delete(channel); this.processes.delete(channel); log.error(`Recording error for ${channel}: ${err.message}`, SOURCE); });
+            }
         }
         catch (error) { log.error(`Failed to start recording for ${channel}: ${error.message}`, SOURCE); }
     }
@@ -77,7 +93,15 @@ class Recorder {
         if (this.recording.has(channel)) {
             log.info(`Stopping recording for ${channel}`, SOURCE);
             const proc = this.processes.get(channel);
-            if (proc && !proc.killed) { proc.kill('SIGTERM'); setTimeout(() => { if (!proc.killed) { proc.kill('SIGKILL'); } }, 5000); }
+            if (proc) {
+                if (proc.streamlink && proc.ffmpeg) {
+                    if (!proc.streamlink.killed) { proc.streamlink.kill('SIGTERM'); }
+                    if (!proc.ffmpeg.killed) { proc.ffmpeg.kill('SIGTERM'); }
+                    setTimeout(() => { if (!proc.streamlink.killed) { proc.streamlink.kill('SIGKILL'); } if (!proc.ffmpeg.killed) { proc.ffmpeg.kill('SIGKILL'); } }, 5000);
+                } else {
+                    if (!proc.killed) { proc.kill('SIGTERM'); setTimeout(() => { if (!proc.killed) { proc.kill('SIGKILL'); } }, 5000); }
+                }
+            }
             this.recording.delete(channel);
             this.processes.delete(channel);
         }
