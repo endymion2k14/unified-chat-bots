@@ -17,7 +17,7 @@ export default {
     },
 
     welcome(client, event) {
-        if (event.privileges.broadcaster) ( return; )
+        if (event.privileges.broadcaster) { return; }
         if (event.tags['first-msg'] !== '0') {
             const timeoutId = setTimeout(() => {
                 this.reply(client, this.config.first[randomInt(0, this.config.first.length)], event.username);
