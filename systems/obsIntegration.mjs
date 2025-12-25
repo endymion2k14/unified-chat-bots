@@ -1,4 +1,5 @@
 import { log } from '../utils.mjs';
+import { EventTypes } from '../bots/twitch/irc.mjs';
 
 const SOURCE = 'OBS-Integration';
 
@@ -19,11 +20,17 @@ export default {
             if (!integration.event || !integration.actions || !Array.isArray(integration.actions)) { log.warn(`Invalid integration configuration: ${JSON.stringify(integration)}`, `${SOURCE}-${client._settings.name}`); continue; }
             client.on(integration.event, async (event) => { await this.handleEvent(client, integration, event); });
         }
+
+        // Auto-connect OBS when stream goes live
+        const liveSystem = client.getSystem('channelLive');
+        if (liveSystem.isLive(client.channel)) { this.connectObsClient(client); }
+        client.api.addListener(EventTypes.stream_start, () => { this.connectObsClient(client); });
+
         log.info(`OBS Integration loaded with ${this.integrations.length} integrations`, `${SOURCE}-${client._settings.name}`);
     },
 
     async handleEvent(client, integration, event) {
-        if (!client.obsClients || client.obsClients.length === 0) { return; }
+        if (!client.obsClient) { return; }
 
         // Cache current scene for this event batch to avoid multiple OBS calls
         let currentSceneCache = null;
@@ -53,10 +60,8 @@ export default {
         // Replace placeholders in action fields
         this.replaceActionPlaceholders(action, event);
 
-        const obsName = action.obsName;
-        if (!obsName) { throw new Error('obsName required for action'); }
-        const obsClient = client.obsClients.find(c => c._settings.name === obsName);
-        if (!obsClient) { throw new Error(`OBS client with name '${obsName}' not found`); }
+        const obsClient = client.obsClient;
+        if (!obsClient) { throw new Error('No OBS client configured for this channel'); }
 
         switch (action.type) {
             case 'changeScene':
@@ -99,6 +104,15 @@ export default {
                 break;
             default:
                 throw new Error(`Unknown action type: ${action.type}`);
+        }
+    },
+
+    connectObsClient(client) {
+        if (!client.obsClient) { return; }
+        const obsClient = client.obsClient;
+        if (!obsClient.connected) {
+            try { obsClient.connect(); log.info('Auto-connected OBS client due to live stream', `${SOURCE}-${client._settings.name}`); }
+            catch (error) { log.error(`Failed to auto-connect OBS client: ${error}`, `${SOURCE}-${client._settings.name}`); }
         }
     }
 }
