@@ -50,7 +50,7 @@ export default {
             '{sourceName}': event.sourceName || '',
             '{delay}': event.delay || 0,
             '{duration}': event.duration || 0
-        };
+         }
         for (let key in action) { if (typeof action[key] === 'string') { action[key] = action[key].replace(/{user_name}|{user_login}|{display_name}|{viewer_count}|{sourceName}|{delay}|{duration}/g, match => placeholders[match]); } }
         // Convert numeric placeholders to numbers
         if (typeof action.delay === 'string') action.delay = parseInt(action.delay) || 0;
@@ -77,7 +77,7 @@ export default {
                 const delay = action.delay || 0;
                 setTimeout(async () => {
                     try { await obsClient.setSourceEnabled(sceneName, action.sourceName, enabled, duration); }
-                    catch (error) { log.error(`Failed to execute delayed setSourceEnabled: ${error.message}`, `${SOURCE}-${client._settings.name}`); }
+                     catch (error) { log.error(`Failed to execute delayed setSourceEnabled: ${error.message}`, `${SOURCE}-${client._settings.name}`); }
                 }, delay * 1000);
                 break;
             case 'setTextSource':
@@ -103,7 +103,7 @@ export default {
             case 'stopStreaming':
                 await obsClient.stopStreaming();
                 break;
-            default:
+             default:
                 throw new Error(`Unknown action type: ${action.type}`);
         }
     },
@@ -115,7 +115,7 @@ export default {
             try { obsClient.connect(); log.info('Auto-connected OBS client due to live stream', `${SOURCE}-${client._settings.name}`); }
             catch (error) { log.error(`Failed to auto-connect OBS client: ${error}`, `${SOURCE}-${client._settings.name}`); }
         }
-    }
+    },
 
     disconnectObsClient(client) {
         if (!client.obsClient) { return; }

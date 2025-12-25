@@ -27,7 +27,7 @@ export class ClientOBS extends EventEmitter {
 
     // Connection methods
     async connect() {
-        try { const { host = 'localhost', port = 4455, password } = this._settings.settings || {}; await Promise.race([ this.obs.connect(`ws://${host}:${port}`, password), new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout after 1 second')), 1000)) ]); this.connected = true; this.emit('ready'); log.info('Connected to OBS', `${SOURCE}-${this._settings.name}`); }
+        try { const { host = 'localhost', port = 4455, password } = this._settings.obs?.settings || {}; await Promise.race([ this.obs.connect(`ws://${host}:${port}`, password), new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout after 5 seconds')), 5000)) ]); this.connected = true; this.emit('ready'); log.info('Connected to OBS', `${SOURCE}-${this._settings.name}`); }
         catch (error) { log.error(`Failed to connect to OBS: ${error}`, `${SOURCE}-${this._settings.name}`); this.reconnect(); }
     }
 
