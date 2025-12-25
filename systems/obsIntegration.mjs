@@ -103,7 +103,7 @@ export default {
             case 'stopStreaming':
                 await obsClient.stopStreaming();
                 break;
-             default:
+            default:
                 throw new Error(`Unknown action type: ${action.type}`);
         }
     },
