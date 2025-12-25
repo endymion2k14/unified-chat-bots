@@ -25,6 +25,7 @@ export default {
         const liveSystem = client.getSystem('channelLive');
         if (liveSystem.isLive(client.channel)) { this.connectObsClient(client); }
         client.api.addListener(EventTypes.stream_start, () => { this.connectObsClient(client); });
+        client.api.addListener(EventTypes.stream_end, () => { this.disconnectObsClient(client); });
 
         log.info(`OBS Integration loaded with ${this.integrations.length} integrations`, `${SOURCE}-${client._settings.name}`);
     },
@@ -113,6 +114,15 @@ export default {
         if (!obsClient.connected) {
             try { obsClient.connect(); log.info('Auto-connected OBS client due to live stream', `${SOURCE}-${client._settings.name}`); }
             catch (error) { log.error(`Failed to auto-connect OBS client: ${error}`, `${SOURCE}-${client._settings.name}`); }
+        }
+    }
+
+    disconnectObsClient(client) {
+        if (!client.obsClient) { return; }
+        const obsClient = client.obsClient;
+        if (obsClient.connected) {
+            try { obsClient.disconnect(); log.info('Auto-disconnected OBS client due to stream end', `${SOURCE}-${client._settings.name}`); }
+            catch (error) { log.error(`Failed to auto-disconnect OBS client: ${error}`, `${SOURCE}-${client._settings.name}`); }
         }
     }
 }
