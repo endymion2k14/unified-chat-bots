@@ -22,16 +22,20 @@ export default {
         }
 
         // Auto-connect OBS when stream goes live
-        const liveSystem = client.getSystem('channelLive');
-        if (liveSystem.isLive(client.channel)) { this.connectObsClient(client); }
-        client.api.addListener(EventTypes.stream_start, () => { this.connectObsClient(client); });
-        client.api.addListener(EventTypes.stream_end, () => { this.disconnectObsClient(client); });
+        if (client.api?.addListener) {
+            const liveSystem = client.getSystem('channelLive');
+            if (liveSystem.isLive(client.channel)) { this.connectObsClient(client); }
+            client.api.addListener(EventTypes.stream_start, () => { this.connectObsClient(client); });
+            client.api.addListener(EventTypes.stream_end, () => { this.disconnectObsClient(client); });
+        } else {
+            log.warn('No API listener available, skipping OBS auto-connect/disconnect', `${SOURCE}-${client._settings.name}`);
+        }
 
         log.info(`OBS Integration loaded with ${this.integrations.length} integrations`, `${SOURCE}-${client._settings.name}`);
     },
 
     async handleEvent(client, integration, event) {
-        if (!client.obsClient) { return; }
+        if (!client.obsClient || !client.obsClient.connected) { return; }
 
         // Cache current scene for this event batch to avoid multiple OBS calls
         let currentSceneCache = null;
@@ -40,7 +44,8 @@ export default {
         for (const action of integration.actions) { try { await this.executeAction(client, action, event, getCurrentSceneCached); } catch (error) { log.error(`Failed to execute OBS action: ${error.message}`, `${SOURCE}-${client._settings.name}`); } }
     },
 
-    replaceActionPlaceholders(action, event) {
+    replaceActionPlaceholders(action, event, client) {
+        action = structuredClone(action);
         // Replaces placeholders in action fields (e.g., '{sourceName}' -> 'Alert-Sound', '{delay}' -> 0)
         const placeholders = {
             '{user_name}': event.user_name || '',
@@ -52,14 +57,21 @@ export default {
             '{duration}': event.duration || 0
         };
         for (let key in action) { if (typeof action[key] === 'string') { action[key] = action[key].replace(/{user_name}|{user_login}|{display_name}|{viewer_count}|{sourceName}|{delay}|{duration}/g, match => placeholders[match]); } }
-        // Convert numeric placeholders to numbers
-        if (typeof action.delay === 'string') action.delay = parseInt(action.delay) || 0;
-        if (typeof action.duration === 'string') action.duration = parseInt(action.duration) || 0;
+        // Convert and validate numeric placeholders
+        if (typeof action.delay === 'string') {
+            const parsed = parseInt(action.delay);
+            if (isNaN(parsed)) { log.warn(`Invalid delay '${action.delay}', defaulting to 0`, `${SOURCE}-${client._settings.name}`); action.delay = 0; } else { action.delay = Math.max(0, Math.min(parsed, 3600)); }
+        }
+        if (typeof action.duration === 'string') {
+            const parsed = parseInt(action.duration);
+            if (isNaN(parsed)) { log.warn(`Invalid duration '${action.duration}', defaulting to 0`, `${SOURCE}-${client._settings.name}`); action.duration = 0; }
+            else { action.duration = Math.max(0, Math.min(parsed, 3600)); }
+        }
     },
 
     async executeAction(client, action, event, getCurrentSceneCached = null) {
         // Replace placeholders in action fields
-        this.replaceActionPlaceholders(action, event);
+        this.replaceActionPlaceholders(action, event, client);
 
         const obsClient = client.obsClient;
         if (!obsClient) { throw new Error('No OBS client configured for this channel'); }
@@ -75,10 +87,13 @@ export default {
                 const enabled = action.enabled !== false; // Default to true
                 const duration = action.duration || 0;
                 const delay = action.delay || 0;
-                setTimeout(async () => {
+                const timeoutId = setTimeout(async () => {
+                    obsClient.activeTimeouts.delete(timeoutId);
+                    if (!client.obsClient || !client.obsClient.connected) return;
                     try { await obsClient.setSourceEnabled(sceneName, action.sourceName, enabled, duration); }
                     catch (error) { log.error(`Failed to execute delayed setSourceEnabled: ${error.message}`, `${SOURCE}-${client._settings.name}`); }
                 }, delay * 1000);
+                obsClient.activeTimeouts.add(timeoutId);
                 break;
             case 'setTextSource':
                 if (!action.sourceName) { throw new Error('sourceName required for setTextSource action'); }
@@ -112,16 +127,16 @@ export default {
         if (!client.obsClient) { return; }
         const obsClient = client.obsClient;
         if (!obsClient.connected) {
-            try { obsClient.connect(); log.info('Auto-connected OBS client due to live stream', `${SOURCE}-${client._settings.name}`); }
+            try { obsClient.manuallyDisconnected = false; obsClient.connect(); log.info('Auto-connected OBS client due to live stream', `${SOURCE}-${client._settings.name}`); }
             catch (error) { log.error(`Failed to auto-connect OBS client: ${error}`, `${SOURCE}-${client._settings.name}`); }
         }
     }
 
-    disconnectObsClient(client) {
+    async disconnectObsClient(client) {
         if (!client.obsClient) { return; }
         const obsClient = client.obsClient;
         if (obsClient.connected) {
-            try { obsClient.disconnect(); log.info('Auto-disconnected OBS client due to stream end', `${SOURCE}-${client._settings.name}`); }
+            try { await obsClient.disconnect(); log.info('Auto-disconnected OBS client due to stream end', `${SOURCE}-${client._settings.name}`); }
             catch (error) { log.error(`Failed to auto-disconnect OBS client: ${error}`, `${SOURCE}-${client._settings.name}`); }
         }
     }

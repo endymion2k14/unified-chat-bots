@@ -12,14 +12,17 @@ export class ClientOBS extends EventEmitter {
         this.obs = new OBSWebSocket();
         this.connected = false;
         this.reconnecting = false;
+        this.manuallyDisconnected = false;
         this.retryDelay = 1000;
         this.maxRetryDelay = 30000;
+        this.activeTimeouts = new Set();
+        this.sceneItemCache = new Map();
 
         // Set up event listeners once
         this.obs.on('ConnectionOpened', () => this.emit('connect'));
-        this.obs.on('ConnectionClosed', () => { this.connected = false; this.emit('disconnect'); this.reconnect(); });
+        this.obs.on('ConnectionClosed', () => { this.connected = false; this.emit('disconnect'); if (!this.manuallyDisconnected) { this.reconnect(); } });
         this.obs.on('ConnectionError', () => this.reconnect());
-        this.obs.on('CurrentSceneChanged', (data) => this.emit('sceneChanged', data));
+        this.obs.on('CurrentSceneChanged', (data) => { this.sceneItemCache.clear(); this.emit('sceneChanged', data); });
         this.obs.on('RecordingStarted', () => this.emit('recordingStarted'));
         this.obs.on('RecordingStopped', () => this.emit('recordingStopped'));
         // Add more events as needed
@@ -27,7 +30,7 @@ export class ClientOBS extends EventEmitter {
 
     // Connection methods
     async connect() {
-        try { const { host = 'localhost', port = 4455, password } = this._settings.settings || {}; await Promise.race([ this.obs.connect(`ws://${host}:${port}`, password), new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout after 1 second')), 1000)) ]); this.connected = true; this.emit('ready'); log.info('Connected to OBS', `${SOURCE}-${this._settings.name}`); }
+        try { const { host = 'localhost', port = 4455, password, connectionTimeout = 5000 } = this._settings.settings || {}; await Promise.race([ this.obs.connect(`ws://${host}:${port}`, password), new Promise((_, reject) => setTimeout(() => reject(new Error('Connection timeout')), connectionTimeout)) ]); this.connected = true; this.manuallyDisconnected = false; this.emit('ready'); log.info('Connected to OBS', `${SOURCE}-${this._settings.name}`); }
         catch (error) { log.error(`Failed to connect to OBS: ${error}`, `${SOURCE}-${this._settings.name}`); this.reconnect(); }
     }
 
@@ -62,11 +65,16 @@ export class ClientOBS extends EventEmitter {
 
     // Source methods
     async getSceneItemId(sceneName, sourceName) {
+        const cacheKey = `${sceneName}-${sourceName}`;
+        if (this.sceneItemCache.has(cacheKey)) { return this.sceneItemCache.get(cacheKey); }
+
         // First try direct lookup in main scene
         try {
             const idResponse = await this.obs.call('GetSceneItemId', { sceneName, sourceName });
             log.info(`Found ${sourceName} directly with id ${idResponse.sceneItemId}`, `${SOURCE}-${this._settings.name}`);
-            return { sceneItemId: idResponse.sceneItemId, groupName: null };
+            const result = { sceneItemId: idResponse.sceneItemId, groupName: null };
+            this.sceneItemCache.set(cacheKey, result);
+            return result;
         } catch (error) {
             // Not found directly, search within groups
         }
@@ -74,17 +82,19 @@ export class ClientOBS extends EventEmitter {
         // Get all scene items to find groups
         try {
             const sceneItems = await this.obs.call('GetSceneItemList', { sceneName });
-            
+
             for (const item of sceneItems.sceneItems) {
                 if (item.isGroup) {
                     try {
                         // Search within this group
                         const groupItems = await this.obs.call('GetGroupSceneItemList', { sceneName: item.sourceName });
                         const foundItem = groupItems.sceneItems.find(groupItem => groupItem.sourceName === sourceName);
-                        
+
                         if (foundItem) {
                             log.info(`Found ${sourceName} in group ${item.sourceName} with id ${foundItem.sceneItemId}`, `${SOURCE}-${this._settings.name}`);
-                            return { sceneItemId: foundItem.sceneItemId, groupName: item.sourceName };
+                            const result = { sceneItemId: foundItem.sceneItemId, groupName: item.sourceName };
+                            this.sceneItemCache.set(cacheKey, result);
+                            return result;
                         }
                     }
                     catch (groupError) { continue; } // Continue to next group if this one fails
@@ -102,15 +112,18 @@ export class ClientOBS extends EventEmitter {
             const { sceneItemId, groupName } = await this.getSceneItemId(sceneName, sourceName);
             // Use groupName as sceneName if it exists, otherwise use the original sceneName
             const targetSceneName = groupName || sceneName;
+            const originalScene = await this.getCurrentScene();
             const params = { sceneName: targetSceneName, sceneItemId, sceneItemEnabled: enabled };
             await this.obs.call('SetSceneItemEnabled', params);
             if (duration > 0) {
-                setTimeout(async () => {
-                    if (!this.connected) return;
+                const timeoutId = setTimeout(async () => {
+                    this.activeTimeouts.delete(timeoutId);
+                    if (!this.connected || await this.getCurrentScene() !== originalScene) return;
                     const revertParams = { sceneName: targetSceneName, sceneItemId, sceneItemEnabled: !enabled };
                     try { await this.obs.call('SetSceneItemEnabled', revertParams); }
                     catch (error) { log.error(`Failed to revert source: ${error.message}`, `${SOURCE}-${this._settings.name}`); }
-                }, duration * 1000); 
+                }, duration * 1000);
+                this.activeTimeouts.add(timeoutId);
             }
         } catch (error) {
             throw new Error(`Failed to set source enabled: ${error.message}`);
@@ -194,7 +207,8 @@ export class ClientOBS extends EventEmitter {
     // Disconnect method
     async disconnect() {
         log.info('Disconnecting OBS client...', `${SOURCE}-${this._settings.name}`);
-        try { this.reconnecting = true; if (this.connected && this.obs) { await this.obs.disconnect(); this.connected = false; } log.info('OBS client disconnected successfully', `${SOURCE}-${this._settings.name}`); }
+        try { this.reconnecting = true; this.manuallyDisconnected = true; if (this.connected && this.obs) { await this.obs.disconnect(); this.connected = false; } log.info('OBS client disconnected successfully', `${SOURCE}-${this._settings.name}`); }
         catch (error) { log.error(`Error during OBS client disconnect: ${error}`, `${SOURCE}-${this._settings.name}`); throw error; }
+        finally { this.activeTimeouts.forEach(clearTimeout); this.activeTimeouts.clear(); this.sceneItemCache.clear(); }
     }
 }
