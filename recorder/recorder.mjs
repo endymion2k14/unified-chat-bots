@@ -67,7 +67,7 @@ class Recorder {
             if (config.quality === 'audio_only') {
                 const streamlinkArgs = [ '--quiet', '--stdout', '--ffmpeg-video-transcode', 'copy', '--ffmpeg-audio-transcode', 'copy', `https://twitch.tv/${channel}`, config.quality ];
                 const streamlinkProc = spawn('streamlink', streamlinkArgs, { stdio: ['inherit', 'pipe', 'pipe'] });
-                const ffmpegArgs = ['-loglevel', 'quiet', '-i', 'pipe:0', '-c:a', 'libmp3lame', '-b:a', '320k', '-f', 'mp3', outputPath];
+                const ffmpegArgs = ['-loglevel', 'quiet', '-i', 'pipe:0', '-c:a', 'libmp3lame', '-b:a', '160k', '-f', 'mp3', outputPath];
                 const ffmpegProc = spawn('ffmpeg', ffmpegArgs, { stdio: ['pipe', 'inherit', 'pipe'] });
                 streamlinkProc.stdout.pipe(ffmpegProc.stdin);
                 this.processes.set(channel, { streamlink: streamlinkProc, ffmpeg: ffmpegProc });
