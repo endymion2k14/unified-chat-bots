@@ -39,6 +39,7 @@ class Recorder {
         this.processes = new Map();
         this.pollInterval = config.pollInterval || 60000;
         this.recordingsDir = config.recordingsDir || './recordings';
+        this.intervalId = null;
     }
     loadChannelConfigs() {
         try { const recorderConfig = this.config.channels || {}; for (const [channel, config] of Object.entries(recorderConfig)) { if (config.enabled) { this.channels.set(channel, { quality: config.quality || 'best' }); } } }
@@ -51,7 +52,7 @@ class Recorder {
         this.loadChannelConfigs();
         if (this.channels.size === 0) { log.info('No channels configured for auto recording', SOURCE); return; }
         this.poll();
-        setInterval(() => this.poll(), this.pollInterval);
+        this.intervalId = setInterval(() => this.poll(), this.pollInterval);
         log.info(`Auto recording started for ${this.channels.size} channels: ${Array.from(this.channels.keys()).join(', ')}`, SOURCE);
     }
     async poll() {
@@ -108,6 +109,7 @@ class Recorder {
     }
     async shutdown() {
         log.info('Shutting down recorder...', SOURCE);
+        if (this.intervalId) { clearInterval(this.intervalId); this.intervalId = null; }
         const channels = Array.from(this.recording);
         for (const channel of channels) { this.stopRecording(channel); }
         await new Promise(resolve => setTimeout(resolve, 6000));
