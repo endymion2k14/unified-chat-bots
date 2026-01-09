@@ -20,10 +20,14 @@ export default {
     },
 
     handleBan(client, event) {
-        if (event.tags['msg-id'] !== 'ban_success') { return; }
-        const username = event.message.split(' ')[0];
+        if (event.tags['msg-id'] !== 'ban_success' && event.tags['msg-id'] !== 'timeout_success') { return; }
+        const username = event.username;
         if (!username) { log.warn(`Could not extract username from ban event: ${event.message}`, SOURCE); return; }
-        this.cleanupUser(client, username);
+        const isPermanentBan = !('ban-duration' in event.tags);
+        const banType = isPermanentBan ? 'banned' : 'timed out';
+        const duration = event.tags['ban-duration'] ? `${event.tags['ban-duration']}s` : 'permanent';
+        log.info(`${username} ${banType} (${duration}) in channel ${client.channel}`, SOURCE);
+        if (isPermanentBan) { this.cleanupUser(client, username); }
     },
 
     cleanupUser(client, username) {
@@ -34,5 +38,6 @@ export default {
             catch (error) { log.error(`Error cleaning up user ${username} from system ${systemName}: ${error}`, SOURCE); }
         }
         if (this.log_cleanup && cleanedSystems.length > 0) { log.info(`Cleaned up ${username} from ${cleanedSystems.join(', ')} in channel ${channel}`, SOURCE); }
+        else if (this.log_cleanup) { log.info(`No systems required cleanup for ${username} in channel ${channel}`, SOURCE); }
     }
 };

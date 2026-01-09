@@ -14,7 +14,7 @@ export default {
         }
         const uptime = client.getSystem('channelLive');
         if ('getUptimeText' in uptime) {
-            if (uptime._live) { client.sendMessage(`Stream has running for ${uptime.getUptimeText(false)}.`); }
+            if (uptime.isLive(client.channel)) { client.sendMessage(`Stream has been running for ${uptime.getUptimeText(client.channel, false)}.`); }
             else { client.sendMessage('Stream is currently offline.'); }
         }
         else { throw('Problem getting info from the required system.'); }

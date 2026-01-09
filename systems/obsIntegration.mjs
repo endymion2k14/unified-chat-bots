@@ -14,29 +14,26 @@ export default {
         if ('enabled' in settings) { this.enabled = settings.enabled; }
         if ('integrations' in settings) { this.integrations = settings.integrations || []; }
         if (!this.enabled || this.integrations.length === 0) { log.info('OBS Integration disabled or no integrations configured', `${SOURCE}-${client._settings.name}`); return; }
-
         // Set up event listeners for each configured integration
         for (const integration of this.integrations) {
             if (!integration.event || !integration.actions || !Array.isArray(integration.actions)) { log.warn(`Invalid integration configuration: ${JSON.stringify(integration)}`, `${SOURCE}-${client._settings.name}`); continue; }
             client.on(integration.event, async (event) => { await this.handleEvent(client, integration, event); });
         }
-
         // Auto-connect OBS when stream goes live
         const liveSystem = client.getSystem('channelLive');
         if (liveSystem.isLive(client.channel)) { this.connectObsClient(client); }
         client.api.addListener(EventTypes.stream_start, () => { this.connectObsClient(client); });
         client.api.addListener(EventTypes.stream_end, () => { this.disconnectObsClient(client); });
-
         log.info(`OBS Integration loaded with ${this.integrations.length} integrations`, `${SOURCE}-${client._settings.name}`);
     },
 
     async handleEvent(client, integration, event) {
         if (!client.obsClient) { return; }
-
+        // Special handling for "ban" event - only trigger OBS actions on permanent bans (not timeouts)
+        if (integration.event === 'ban' && 'ban-duration' in (event.tags || {})) { log.info(`Skipping OBS ban actions for timed out user: ${event.username}`, `${SOURCE}-${client._settings.name}`); return; }
         // Cache current scene for this event batch to avoid multiple OBS calls
         let currentSceneCache = null;
         const getCurrentSceneCached = async (obsClient) => { if (currentSceneCache === null) { currentSceneCache = await obsClient.getCurrentScene(); } return currentSceneCache; };
-
         for (const action of integration.actions) { try { await this.executeAction(client, action, event, getCurrentSceneCached); } catch (error) { log.error(`Failed to execute OBS action: ${error.message}`, `${SOURCE}-${client._settings.name}`); } }
     },
 
@@ -60,10 +57,8 @@ export default {
     async executeAction(client, action, event, getCurrentSceneCached = null) {
         // Replace placeholders in action fields
         this.replaceActionPlaceholders(action, event);
-
         const obsClient = client.obsClient;
         if (!obsClient) { throw new Error('No OBS client configured for this channel'); }
-
         switch (action.type) {
             case 'changeScene':
                 if (!action.sceneName) { throw new Error('sceneName required for changeScene action'); }

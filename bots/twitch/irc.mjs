@@ -125,8 +125,21 @@ export class TwitchIRC extends EventEmitter {
         const parts = line.split(' '); if (parts.length >= 3) { if (!isNaN(parts[1]) && Number.isInteger(Number(parts[1])) && 0 <= Number(parts[1]) <= 999) { return; } }
         // CAP
         if (line.includes('CAP')) { return; }
-        // CLEARCHAT
-        if (line.includes('CLEARCHAT')) { return; }
+        // CLEARCHAT - Sent when a moderator removes all messages for a user (ban/timeout)
+        const clearChat = line.match(/^(@[^ ]+ )?:tmi\.twitch\.tv CLEARCHAT #(\S+) :(.*)$/);
+        if (clearChat) {
+            const [_, tagsPart, chan, username] = clearChat;
+            const tags = this.parseTags(tagsPart);
+            const isTimeout = 'ban-duration' in tags;
+            const duration = isTimeout ? `${tags['ban-duration']}s` : 'permanent';
+            const msgId = isTimeout ? 'timeout_success' : 'ban_success';
+            this.emit(EventTypes.ban, { 
+                username: username, 
+                message: `${username} was ${isTimeout ? `timed out for ${duration}` : 'banned'}.`,
+                tags: { ...tags, 'msg-id': msgId } 
+            });
+            return;
+        }
         // GLOBALUSERSTATE
         const globalUserState = line.match(/@.*display-name=(\w+);.*user-id=(\d+).*? :.* GLOBALUSERSTATE.*/);
         if (globalUserState) {
@@ -144,19 +157,7 @@ export class TwitchIRC extends EventEmitter {
             const [_, tagsPart, chan, message] = notice;
             const tags = this.parseTags(tagsPart);
             const msgId = tags['msg-id'];
-            if (msgId === 'ban_success' || msgId === 'timeout_success') {
-                // Ban/timeout: message like "username is now banned from talking." or "username is timed out for X seconds."
-                const username = message.split(' ')[0];
-                this.emit(EventTypes.ban, { username: username, message: message, tags: tags });
-            } else if (msgId === 'raid') {
-                // Raid: message like "username is raiding the channel with X viewers!"
-                const parts = message.split(' ');
-                const username = parts[0];
-                const viewerCount = parseInt(parts[6]) || 0; // "with X viewers!"
-                this.emit(EventTypes.raid, { username: username, viewer_count: viewerCount, message: message, tags: tags });
-            } else {
-                log.info(`NOTICE handled: ${message} (msg-id: ${msgId})`, `${SOURCE}-${this.channel}`);
-            }
+            log.info(`NOTICE: ${message} (msg-id: ${msgId})`, `${SOURCE}-${this.channel}`);
             return;
         }
         // PING/PONG keep‑alive
@@ -169,6 +170,19 @@ export class TwitchIRC extends EventEmitter {
             const tags = this.parseTags(tagsPart);
             const privileges = this.getPrivileges(tags);
             this.emit(EventTypes.message, { username: nickname, identity: ident, host: host, channel: chan, message: message, tags: tags, privileges: privileges });
+            return;
+        }
+        // USERNOTICE
+        const usernotice = line.match(/^(@[^ ]+ )?:tmi\.twitch\.tv USERNOTICE #(\S+) :(.*)$/);
+        if (usernotice) {
+            const [_, tagsPart, chan, message] = usernotice;
+            const tags = this.parseTags(tagsPart);
+            const msgId = tags['msg-id'];
+            if (msgId === 'raid') {
+                const username = tags['msg-param-displayName'] || tags['msg-param-login'] || '';
+                const viewerCount = parseInt(tags['msg-param-viewerCount']) || 0;
+                this.emit(EventTypes.raid, { username: username, viewer_count: viewerCount, message: message, tags: tags });
+            }
             return;
         }
         // RECONNECT
