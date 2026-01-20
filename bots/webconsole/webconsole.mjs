@@ -12,17 +12,15 @@ const app = express();
 export class WebConsole extends EventEmitter {
     getTwitch = 0;
     getDiscord = 0;
-    getOBS = 0;
     port = 0;
     settings = {};
     server = null;
 
-    constructor(functorTwitch, functorDiscord, functorOBS, settings) {
+    constructor(functorTwitch, functorDiscord, settings) {
         super();
 
         this.getTwitch  = functorTwitch;
         this.getDiscord = functorDiscord;
-        this.getOBS = functorOBS;
         this.settings = settings;
         if ('console' in settings && 'port' in settings.console) { this.port = settings.console.port; }
 
@@ -40,7 +38,7 @@ export class WebConsole extends EventEmitter {
             log.error(`Unable to start webserver with port 0`, SOURCE);
             return;
         }
-        if (this.getTwitch === 0 || this.getDiscord === 0 || this.getOBS === 0) {
+        if (this.getTwitch === 0 || this.getDiscord === 0) {
             log.error(`No functors obtained for collecting the info to display on the page `, SOURCE);
             return;
         }
@@ -60,7 +58,6 @@ export class WebConsole extends EventEmitter {
             let data = '';
             const twitch = this.getTwitch();
             const discord = this.getDiscord();
-            const obs = this.getOBS();
 
             let listnav = '';
             let listdata = '';
@@ -86,17 +83,7 @@ export class WebConsole extends EventEmitter {
                 data += `<div id="discord">Discord${listdata}</div>`;
             }
 
-            if (obs.length > 0) {
-                listnav = '';
-                listdata = '';
-                for (let i = 0; i < obs.length; i++) {
-                    const [objNav, objData] = this.parseObject(obs[i], `obs.${i}`);
-                    listnav += `<li><a href="#obs.${i}">${i}</a>${objNav.length > 0 ? `<ul>${objNav}</ul>` : ''}</li>`;
-                    listdata += `<div id="obs.${i}">${i}${objData}</div>`;
-                }
-                nav += `<li><a href="#obs">OBS</a><ul>${listnav}</ul></li>`;
-                data += `<div id="obs">OBS${listdata}</div>`;
-            }
+
 
             res.send(`<!DOCTYPE html><html lang="en"><head><link rel="stylesheet" href="style.css"></head><body><ul id="nav">${nav}</ul><div id="main">${data}</div><script>document.querySelectorAll("#nav li").forEach(li => { const sub = li.querySelector("ul"); if (!sub) { li.classList.add("no-children"); return; } sub.classList.add("collapsed"); li.addEventListener("click", (e) => { const list = e.target; const ul = list.querySelector("ul"); e.stopImmediatePropagation(); e.stopPropagation(); if (!ul) { return; } ul.classList.toggle("collapsed"); list.classList.toggle("expanded"); }); }); </script></body></html>`);
         });

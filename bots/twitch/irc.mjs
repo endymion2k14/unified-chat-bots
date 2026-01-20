@@ -19,7 +19,6 @@ export const EventTypes = {
     disconnect: 'disconnect',
     message: 'message',
     ban: 'ban',
-    raid: 'raid',
     command: 'command',
     stream_start: 'stream.start',
     stream_end: 'stream.end',
@@ -178,11 +177,8 @@ export class TwitchIRC extends EventEmitter {
             const [_, tagsPart, chan, message] = usernotice;
             const tags = this.parseTags(tagsPart);
             const msgId = tags['msg-id'];
-            if (msgId === 'raid') {
-                const username = tags['msg-param-displayName'] || tags['msg-param-login'] || '';
-                const viewerCount = parseInt(tags['msg-param-viewerCount']) || 0;
-                this.emit(EventTypes.raid, { username: username, viewer_count: viewerCount, message: message, tags: tags });
-            }
+            const username = tags['msg-param-displayName'] || tags['msg-param-login'] || 'unknown';
+            log.info(`USERNOTICE received: msg-id=${msgId}, username=${username}, channel=${chan}`, `${SOURCE}-${this.channel}`);
             return;
         }
         // RECONNECT

@@ -1,6 +1,5 @@
 import { log, json } from './utils.mjs';
 import { ClientTwitch } from './bots/twitch/bot.mjs';
-import { ClientOBS } from './bots/obs/bot.mjs';
 import { WebConsole } from './bots/webconsole/webconsole.mjs';
 
 const SOURCE = 'MAIN';
@@ -30,9 +29,7 @@ async function start() {
         log.info(`Starting ${botsTwitch .length} twitch bots`, SOURCE);
         for (let i = 0; i < botsTwitch.length; i++) {
             const twitchConfig = settings.twitch[botsTwitch[i]];
-            let obsClient = null;
-            if (twitchConfig.obs && twitchConfig.obs.enabled) { obsClient = new ClientOBS(twitchConfig); }
-            clientsTwitch.push(new ClientTwitch(twitchConfig, obsClient));
+            clientsTwitch.push(new ClientTwitch(twitchConfig));
         }
         clientsTwitch.forEach(client => readyPromises.push(new Promise(resolve => client.once('ready', resolve))));
         for (let i = 0; i < clientsTwitch.length; i++) { clientsTwitch[i].connect(); }
@@ -49,22 +46,19 @@ async function start() {
     }
     // Run the web console
     if ('console' in settings) {
-            webConsole = new WebConsole(getTwitchClients, getDiscordClients, getOBSClients, settings);
+            webConsole = new WebConsole(getTwitchClients, getDiscordClients, settings);
             webConsole.start().catch(err => log.error(`${err}`, SOURCE));
     }
 }
 
 function getTwitchClients() { return clientsTwitch; }
 function getDiscordClients() { return clientsDiscord; }
-function getOBSClients() { return clientsTwitch.map(client => client.obsClient).filter(client => client !== null); }
 
 async function gracefulShutdown() {
     log.info('Starting graceful shutdown...', SOURCE);
     const shutdownPromises = [];
     // Shutdown Twitch clients
     clientsTwitch.forEach(client => { if (client && typeof client.disconnect === 'function') { shutdownPromises.push( client.disconnect().catch(err => log.error(`Error disconnecting Twitch client: ${err}`, SOURCE)) ); } });
-    // Shutdown OBS clients
-    clientsTwitch.forEach(client => { if (client.obsClient && typeof client.obsClient.disconnect === 'function') { shutdownPromises.push( client.obsClient.disconnect().catch(err => log.error(`Error disconnecting OBS client: ${err}`, SOURCE)) ); } });
     // Shutdown Web Console
     if (webConsole && typeof webConsole.stop === 'function') { shutdownPromises.push( webConsole.stop().catch(err => log.error(`Error stopping web console: ${err}`, SOURCE)) ); }
     // Wait for all shutdown operations to complete, with timeout
