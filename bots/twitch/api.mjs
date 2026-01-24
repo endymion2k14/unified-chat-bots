@@ -23,13 +23,14 @@ export class TwitchAPI extends EventEmitter {
     }
     _refreshTimeouts = {};
 
-    constructor(appToken, channel, clientId, clientSecret, botToken = "", botRefresh = "", botExpiry = 0, broadcasterToken = "", broadcasterRefresh = "", broadcasterExpiry = 0) {
+    constructor(appToken, channel, clientId, clientSecret, tokenSource = 'app', botToken = "", botRefresh = "", botExpiry = 0, broadcasterToken = "", broadcasterRefresh = "", broadcasterExpiry = 0) {
         super();
 
         this._data.appToken = appToken;
         this._data.channel = channel;
         this._data.clientId = clientId;
         this._data.clientSecret = clientSecret;
+        this._tokenSource = tokenSource;
         this._data.botToken = botToken;
         this._data.botRefresh = botRefresh;
         this._data.botTokenExpiry = botExpiry;
@@ -39,11 +40,18 @@ export class TwitchAPI extends EventEmitter {
         this.eventsub = null;
     }
 
-    async _apiRequest(url, method = 'GET', body = null, tokenType = 'app') {
-        let token;
-        if (tokenType === 'bot') token = this._data.botToken;
-        else if (tokenType === 'broadcaster') token = this._data.broadcasterToken;
-        else token = this._data.appToken;
+    _selectToken(tokenType = null) {
+        // Explicit token type overrides preference
+        if (tokenType === 'bot') return this._data.botToken;
+        if (tokenType === 'broadcaster') return this._data.broadcasterToken;
+        if (tokenType === 'app') return this._data.appToken;
+        
+        // Use global preference
+        return this._tokenSource === 'bot' ? this._data.botToken : this._data.appToken;
+    }
+
+    async _apiRequest(url, method = 'GET', body = null, tokenType = null) {
+        const token = this._selectToken(tokenType);
         const options = {
             method,
             headers: {
@@ -62,7 +70,10 @@ export class TwitchAPI extends EventEmitter {
         catch { return await response.text(); }
     }
 
-    isReady() { return !(this._data.appToken === 0 || this._data.roomId === 0 || this._data.channel === 0 || this._data.clientId === 0); }
+    isReady() { 
+        const requiredToken = this._tokenSource === 'bot' ? this._data.botToken : this._data.appToken;
+        return !(requiredToken === 0 || this._data.roomId === 0 || this._data.channel === 0 || this._data.clientId === 0); 
+    }
 
     // OAuth Tokens
     async refreshToken(tokenType = 'bot') {
@@ -99,7 +110,7 @@ export class TwitchAPI extends EventEmitter {
         const bufferMs = 5 * 60 * 1000;
         const timeUntilExpiry = this._data[expiryKey] - Date.now() - bufferMs;
         const intervalMs = Math.max(1000, timeUntilExpiry);
-        //log.info(`Next ${tokenType} OAuth token refresh at ${new Date(Date.now() + intervalMs).toLocaleString()}`, `${SOURCE}-${this._data.channel}`);
+        log.info(`Next ${tokenType} OAuth token refresh at ${new Date(Date.now() + intervalMs).toLocaleString()}`, `${SOURCE}-${this._data.channel}`);
         this._refreshTimeouts[tokenType] = setTimeout(() => { this.refreshToken(tokenType).catch(err => { log.error(`Auto-refresh failed: ${err.message}`, `${SOURCE}-${this._data.channel}`); this._scheduleNextRefresh(tokenType); }); }, intervalMs);
     }
 
