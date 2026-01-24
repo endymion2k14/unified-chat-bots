@@ -14,6 +14,7 @@ const neededSettings = [
     'secrets.clientId',
     'settings.username',
     'settings.channel',
+    'settings.tokenSource',
     'name'
 ];
 
@@ -59,10 +60,10 @@ export class ClientTwitch extends EventEmitter {
             if (!valid) { log.warn('Couldn\'t start bot!', SOURCE); }
             else {
                 this.channel = this._settings.settings.channel;
-                this.api = new TwitchAPI(this._settings.secrets.appToken, this.channel, this._settings.secrets.clientId, this._settings.secrets.clientSecret, this._settings.secrets.botToken, this._settings.secrets.botRefresh, this._settings.secrets.botExpiry, this._settings.secrets.broadcasterToken, this._settings.secrets.broadcasterRefresh, this._settings.secrets.broadcasterExpiry);
+                this.api = new TwitchAPI(this._settings.secrets.appToken, this.channel, this._settings.secrets.clientId, this._settings.secrets.clientSecret, this._settings.settings.tokenSource, this._settings.secrets.botToken, this._settings.secrets.botRefresh, this._settings.secrets.botExpiry, this._settings.secrets.broadcasterToken, this._settings.secrets.broadcasterRefresh, this._settings.secrets.broadcasterExpiry);
                 this._setupApiEvents();
-                if (this._settings.settings.ircTokenSource === 'bot' && Date.now() > this._settings.secrets.botExpiry) { await this.api.refreshToken('bot'); }
-                const ircToken = this._settings.settings.ircTokenSource === 'bot' ? this._settings.secrets.botToken : this._settings.secrets.appToken;
+                if (this._settings.settings.tokenSource === 'bot' && Date.now() > this._settings.secrets.botExpiry) { await this.api.refreshToken('bot'); }
+                const ircToken = this._settings.settings.tokenSource === 'bot' ? this._settings.secrets.botToken : this._settings.secrets.appToken;
                 this._backend = new TwitchIRC({ username: this._settings.settings.username, oauth: ircToken, channel: this.channel, chat_show: this._settings.settings.chat_show });
                 if ('prefix'           in this._settings.settings) { if (this._settings.settings.prefix.length > 0) { this.prefix = this._settings.settings.prefix; } }
                 if ('chat_show'        in this._settings.settings) { this.chat_show = this._settings.settings.chat_show; }
@@ -93,7 +94,7 @@ export class ClientTwitch extends EventEmitter {
                     this._settings.secrets[tokenKey] = data.token;
                     this.api._data[tokenKey] = data.token;
                     if (!isBroadcaster && this.api.eventsub) this.api.eventsub.updateToken(data.token);
-                    if (!isBroadcaster && this._settings.settings.ircTokenSource === 'bot' && this._backend) this._backend.oauth = `oauth:${data.token}`;
+                    if (!isBroadcaster && this._settings.settings.tokenSource === 'bot' && this._backend) this._backend.oauth = `oauth:${data.token}`;
                 }
                 if (data.refresh) { this._settings.secrets[refreshKey] = data.refresh; this.api._data[refreshKey] = data.refresh; }
                 if (data.expiry) { this._settings.secrets[expiryKey] = data.expiry; this.api._data[isBroadcaster ? 'broadcasterTokenExpiry' : 'botTokenExpiry'] = data.expiry; }
